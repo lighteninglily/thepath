@@ -1,16 +1,25 @@
 {
   "name": "the-path",
-  "version": "1.0.0",
+  "version": "3.1.0",
   "description": "Church Presentation Software for The Way",
   "main": "dist-electron/main.js",
   "author": "The Way Church",
-  "private": true,
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lighteninglily/thepath.git"
+  },
   "scripts": {
     "dev": "vite",
     "dev:electron": "concurrently \"npm run dev\" \"npm run electron:start\"",
     "electron:start": "wait-on http://localhost:5173 && cross-env NODE_ENV=development npm run build:electron && electron .",
     "build": "tsc && vite build && npm run build:electron",
     "build:electron": "tsc -p tsconfig.electron.json",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "release": "npm run build && electron-builder --publish always",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest",
@@ -23,6 +32,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "clsx": "^2.0.0",
     "date-fns": "^3.0.6",
+    "electron-updater": "^6.6.2",
     "framer-motion": "^10.16.16",
     "genius-lyrics-api": "^3.2.1",
     "lucide-react": "^0.294.0",
@@ -72,19 +82,58 @@
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*"
+      "dist-electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "resources",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "win": {
-      "target": "nsis",
-      "icon": "public/icon.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
+      "icon": "public/icon.ico",
+      "publisherName": "The Way Church",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "The Path"
     },
     "mac": {
       "target": "dmg",
-      "icon": "public/icon.icns"
+      "icon": "public/icon.icns",
+      "category": "public.app-category.productivity"
     },
     "linux": {
-      "target": "AppImage",
-      "icon": "public/icon.png"
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "public/icon.png",
+      "category": "Office"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "lighteninglily",
+      "repo": "thepath",
+      "releaseType": "release"
     }
   }
 }
