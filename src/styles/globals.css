@@ -1,0 +1,71 @@
+/* Custom fonts - Must come first */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* shadcn/ui CSS variables - Light mode */
+    --background: 38 23 11; /* brand-offWhite in HSL */
+    --foreground: 25 3 27; /* brand-charcoal in HSL */
+    --card: 38 23 11;
+    --card-foreground: 25 3 27;
+    --popover: 38 23 11;
+    --popover-foreground: 25 3 27;
+    --primary: 206 35 74; /* brand-skyBlue in HSL */
+    --primary-foreground: 0 0 100;
+    --secondary: 30 17 75; /* brand-taupe in HSL */
+    --secondary-foreground: 25 3 27;
+    --muted: 30 9 89;
+    --muted-foreground: 30 6 55;
+    --accent: 206 35 84;
+    --accent-foreground: 25 3 27;
+    --destructive: 0 84 60;
+    --destructive-foreground: 0 0 100;
+    --border: 30 9 85;
+    --input: 30 9 85;
+    --ring: 206 35 74;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark mode variables */
+    --background: 25 3 21; /* brand-deepBrown in HSL */
+    --foreground: 38 23 95;
+    --card: 25 3 21;
+    --card-foreground: 38 23 95;
+    --popover: 25 3 21;
+    --popover-foreground: 38 23 95;
+    --primary: 206 35 74;
+    --primary-foreground: 25 3 21;
+    --secondary: 30 17 55;
+    --secondary-foreground: 38 23 95;
+    --muted: 25 5 35;
+    --muted-foreground: 30 9 70;
+    --accent: 206 35 64;
+    --accent-foreground: 38 23 95;
+    --destructive: 0 62 51;
+    --destructive-foreground: 38 23 95;
+    --border: 25 5 35;
+    --input: 25 5 35;
+    --ring: 206 35 74;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: Outfit, Inter, system-ui, sans-serif;
+  }
+}
