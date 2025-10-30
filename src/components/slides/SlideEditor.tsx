@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, Trash2, GripVertical, Image as ImageIcon } from 'lucide-react';
+import { X, Plus, Trash2, GripVertical, Image as ImageIcon, Copy } from 'lucide-react';
 import { AdvancedSlidePreview } from './AdvancedSlidePreview';
 import { BackgroundPicker } from '../backgrounds/BackgroundPicker';
 import type { Slide } from '../../types';
@@ -49,6 +49,38 @@ export function SlideEditor({ slides: initialSlides, backgrounds: initialBackgro
     setSlides(slides.filter((_, i) => i !== index));
     setBackgrounds(backgrounds.filter((_, i) => i !== index));
     setLayouts(layouts.filter((_, i) => i !== index));
+  };
+
+  const handleDuplicateSlide = (index: number) => {
+    const slideToDuplicate = slides[index];
+    const newSlide: Slide = {
+      ...slideToDuplicate,
+      id: `slide-${Date.now()}`,
+      order: index + 1,
+    };
+    
+    // Insert after the current slide
+    const newSlides = [
+      ...slides.slice(0, index + 1),
+      newSlide,
+      ...slides.slice(index + 1)
+    ];
+    
+    const newBackgrounds = [
+      ...backgrounds.slice(0, index + 1),
+      backgrounds[index],
+      ...backgrounds.slice(index + 1)
+    ];
+    
+    const newLayouts = [
+      ...layouts.slice(0, index + 1),
+      layouts[index],
+      ...layouts.slice(index + 1)
+    ];
+    
+    setSlides(newSlides);
+    setBackgrounds(newBackgrounds);
+    setLayouts(newLayouts);
   };
 
   const handleAddSlide = () => {
@@ -117,13 +149,22 @@ export function SlideEditor({ slides: initialSlides, backgrounds: initialBackgro
                       {slide.type}
                     </span>
                   </div>
-                  <button
-                    onClick={() => handleDeleteSlide(index)}
-                    className="p-1 rounded hover:bg-red-50 text-red-500"
-                    title="Delete slide"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleDuplicateSlide(index)}
+                      className="p-1 rounded hover:bg-brand-skyBlue/10 text-brand-skyBlue"
+                      title="Duplicate slide"
+                    >
+                      <Copy size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSlide(index)}
+                      className="p-1 rounded hover:bg-red-50 text-red-500"
+                      title="Delete slide"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Preview */}

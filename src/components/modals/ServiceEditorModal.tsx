@@ -1,4 +1,4 @@
-import { X, Plus, Clock, Save, Music, Play } from 'lucide-react';
+import { X, Plus, Clock, Music, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ServiceItemCard } from '../planner/ServiceItemCard';
 import { EditItemModal } from './EditItemModal';
@@ -48,6 +48,26 @@ export function ServiceEditorModal({
 
   // Detect changes by comparing current items with initial items
   const hasChanges = JSON.stringify(items) !== JSON.stringify(initialItems);
+
+  // 🔥 AUTOSAVE: Save changes automatically 1 second after editing stops
+  useEffect(() => {
+    if (!service || !isOpen || !hasChanges) return;
+
+    console.log('💾 Autosave: Changes detected, scheduling save...');
+    
+    const timer = setTimeout(() => {
+      const updatedService: Service = {
+        ...service,
+        items,
+        updatedAt: new Date().toISOString(),
+      };
+      console.log('✅ Autosave: Saving service...');
+      onSave(updatedService);
+      setInitialItems(items); // Update baseline to prevent re-saving
+    }, 1000); // Wait 1 second after last change
+
+    return () => clearTimeout(timer);
+  }, [items, service, isOpen, hasChanges, onSave]);
 
   if (!isOpen || !service) return null;
 
@@ -112,14 +132,7 @@ export function ServiceEditorModal({
     });
   };
 
-  const handleSave = () => {
-    const updatedService: Service = {
-      ...service,
-      items,
-      updatedAt: new Date().toISOString(),
-    };
-    onSave(updatedService);
-  };
+  // Manual save function removed - now using autosave
 
   const getTotalDuration = () => {
     return items.reduce((total, item) => total + (item.duration || 0), 0);
@@ -309,25 +322,25 @@ export function ServiceEditorModal({
         <div className="flex items-center justify-between p-6 border-t border-brand-warmGray bg-brand-offWhite">
           <div className="text-sm text-brand-umber">
             {items.length} {items.length === 1 ? 'item' : 'items'}
-            {hasChanges && <span className="ml-2 text-brand-taupe">• Unsaved changes</span>}
+            {hasChanges ? (
+              <span className="ml-2 text-orange-600 flex items-center gap-1">
+                <span className="inline-block w-2 h-2 bg-orange-600 rounded-full animate-pulse"></span>
+                Saving...
+              </span>
+            ) : (
+              <span className="ml-2 text-green-600 flex items-center gap-1">
+                <span className="inline-block w-2 h-2 bg-green-600 rounded-full"></span>
+                All changes saved
+              </span>
+            )}
           </div>
           
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-brand-charcoal hover:bg-brand-warmGray rounded-lg transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={!hasChanges}
-              className="flex items-center gap-2 px-6 py-2 bg-brand-taupe text-white rounded-lg hover:bg-brand-clay disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md"
-            >
-              <Save size={18} />
-              Save Changes
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-brand-taupe text-white rounded-lg hover:bg-brand-clay transition-colors font-medium shadow-md"
+          >
+            Close
+          </button>
         </div>
       </div>
 

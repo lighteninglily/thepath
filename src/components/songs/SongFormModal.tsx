@@ -54,6 +54,9 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
   const [slideBackgrounds, setSlideBackgrounds] = useState<(BackgroundImage | null)[]>([]);
   const [slideLayouts, setSlideLayouts] = useState<LayoutType[]>([]);
 
+  const [initialFormData, setInitialFormData] = useState<CreateSongInput | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+
   // Populate form when editing
   useEffect(() => {
     if (song) {
@@ -70,7 +73,7 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
         });
       }
       
-      setFormData({
+      const loadedData = {
         title: song.title,
         artist: song.artist,
         lyrics: song.lyrics,
@@ -81,7 +84,10 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
         key: song.key,
         tempo: song.tempo,
         tags: song.tags,
-      });
+      };
+      
+      setFormData(loadedData);
+      setInitialFormData(JSON.parse(JSON.stringify(loadedData))); // Deep copy
       
       console.log('✅ FormData populated');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -96,7 +102,7 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
         }
       }
     } else {
-      setFormData({
+      const emptyData = {
         title: '',
         artist: null,
         lyrics: '',
@@ -107,9 +113,34 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
         key: null,
         tempo: null,
         tags: [],
-      });
+      };
+      setFormData(emptyData);
+      setInitialFormData(JSON.parse(JSON.stringify(emptyData)));
     }
   }, [song]);
+
+  // Detect changes
+  useEffect(() => {
+    if (!initialFormData) return;
+    const changed = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+    setHasChanges(changed);
+  }, [formData, initialFormData]);
+
+  // 🔥 AUTOSAVE: Save changes automatically 2 seconds after editing stops (songs are bigger)
+  useEffect(() => {
+    if (!song || !hasChanges || !formData.title.trim()) return; // Only autosave for existing songs with title
+
+    console.log('💾 Song Autosave: Changes detected, scheduling save...');
+    
+    const timer = setTimeout(() => {
+      console.log('✅ Song Autosave: Saving song...');
+      onSubmit(formData);
+      setInitialFormData(JSON.parse(JSON.stringify(formData))); // Update baseline
+      setHasChanges(false);
+    }, 2000); // Wait 2 seconds for songs (more complex data)
+
+    return () => clearTimeout(timer);
+  }, [formData, song, hasChanges, onSubmit]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -754,42 +785,48 @@ Was blind, but now I see"
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-brand-warmGray flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              onClose();
-            }}
-            className="
-              px-4 py-2 rounded-lg
-              border border-brand-warmGray
-              text-brand-charcoal
-              hover:bg-brand-warmGray/10
-              transition-colors
-            "
-            disabled={isLoading}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            onClick={() => {
-              console.log('Save button clicked!');
-            }}
-            className="
-              px-6 py-2 rounded-lg
-              bg-brand-skyBlue text-white
-              hover:bg-brand-powderBlue
-              transition-all duration-200
-              shadow-md hover:shadow-lg
-              font-medium
-              disabled:opacity-50 disabled:cursor-not-allowed
-            "
-          >
-            {isLoading ? 'Saving...' : (song ? 'Update Song' : 'Add Song')}
-          </button>
+        <div className="p-6 border-t border-brand-warmGray flex items-center justify-between">
+          {/* Autosave Status (only for existing songs) */}
+          {song && (
+            <div className="text-sm text-brand-umber">
+              {hasChanges ? (
+                <span className="text-orange-600 flex items-center gap-1">
+                  <span className="inline-block w-2 h-2 bg-orange-600 rounded-full animate-pulse"></span>
+                  Saving...
+                </span>
+              ) : (
+                <span className="text-green-600 flex items-center gap-1">
+                  <span className="inline-block w-2 h-2 bg-green-600 rounded-full"></span>
+                  All changes saved
+                </span>
+              )}
+            </div>
+          )}
+          
+          <div className="flex items-center gap-3 ml-auto">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onClose();
+              }}
+              className="px-4 py-2 rounded-lg border border-brand-warmGray text-brand-charcoal hover:bg-brand-warmGray/10 transition-colors"
+              disabled={isLoading}
+            >
+              {song ? 'Close' : 'Cancel'}
+            </button>
+            
+            {/* Only show "Add Song" button for new songs */}
+            {!song && (
+              <button
+                type="submit"
+                disabled={isLoading || !formData.title.trim()}
+                className="px-6 py-2 rounded-lg bg-brand-skyBlue text-white hover:bg-brand-powderBlue transition-all duration-200 shadow-md hover:shadow-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Adding...' : 'Add Song'}
+              </button>
+            )}
+          </div>
         </div>
       </form>
 

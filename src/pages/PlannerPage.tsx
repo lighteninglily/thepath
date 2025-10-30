@@ -48,7 +48,8 @@ export function PlannerPage() {
   const handleSaveService = async (service: Service) => {
     try {
       await updateService.mutateAsync(service);
-      setSelectedService(null);
+      // DON'T close modal - let autosave work in background
+      console.log('✅ Service autosaved');
     } catch (error) {
       console.error('❌ Error saving service:', error);
       alert(`Failed to save service: ${error instanceof Error ? error.message : 'Unknown error'}`);

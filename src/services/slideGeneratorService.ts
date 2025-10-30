@@ -69,7 +69,8 @@ export class SlideGeneratorService {
   async generateSongSlides(
     title: string,
     artist: string,
-    onProgress?: ProgressCallback
+    onProgress?: ProgressCallback,
+    themePack?: 'mountains' | 'waves' | 'clouds'
   ): Promise<GenerationResult> {
     const totalSteps = 4;
 
@@ -138,15 +139,24 @@ export class SlideGeneratorService {
       slideBreakdown.slides = safeSlides;
       console.log(`✅ Final slide count: ${slideBreakdown.slides.length} slides`);
       
-      const templateSelection = selectTemplate(analysis);
+      // Use user-selected theme pack if provided, otherwise let AI choose
+      let selectedThemePack: string;
+      if (themePack) {
+        selectedThemePack = themePack;
+        console.log(`🎨 User selected theme pack: ${themePack}`);
+      } else {
+        const templateSelection = selectTemplate(analysis);
+        selectedThemePack = templateSelection.themePack;
+        console.log(`🤖 AI selected theme pack: ${selectedThemePack}`);
+      }
 
       // Get background pack from config (respects enabled/disabled settings)
-      const pack = getBackgroundPacks().find(p => p.id === templateSelection.themePack);
+      const pack = getBackgroundPacks().find(p => p.id === selectedThemePack);
       if (!pack) {
-        throw new Error(`Theme pack ${templateSelection.themePack} not found`);
+        throw new Error(`Theme pack ${selectedThemePack} not found`);
       }
       
-      console.log(`🎨 Using theme pack: ${pack.name} with ${pack.backgrounds.length} enabled backgrounds`);
+      console.log(`✅ Using theme pack: ${pack.name} with ${pack.backgrounds.length} enabled backgrounds`);
 
       // Step 4: Create slides using existing backgrounds
       onProgress?.({
@@ -216,8 +226,8 @@ export class SlideGeneratorService {
           lyrics: lyricsResult.lyrics
         },
         metadata: {
-          themePack: templateSelection.themePack,
-          templateName: templateSelection.templateName,
+          themePack: selectedThemePack,
+          templateName: pack.name,
           generatedAt: new Date().toISOString(),
           method: 'ai-generated'
         }

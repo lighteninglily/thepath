@@ -6,11 +6,12 @@ export function useQuickGenerate() {
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
 
   const mutation = useMutation({
-    mutationFn: async ({ title, artist }: { title: string; artist: string }) => {
+    mutationFn: async ({ title, artist, themePack }: { title: string; artist: string; themePack?: 'mountains' | 'waves' | 'clouds' }) => {
       return await slideGeneratorService.generateSongSlides(
         title,
         artist,
-        (prog) => setProgress(prog)
+        (prog) => setProgress(prog),
+        themePack
       );
     },
     onSuccess: () => {

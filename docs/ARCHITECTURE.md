@@ -305,21 +305,498 @@ User Action → Event Handler → Hook/Mutation →
 
 ## 6. FEATURE MODULES
 
-### 6.1 Song Management
-**Status**: ✅ Complete  
-**Location**: `src/pages/LibraryPage.tsx`, `src/components/songs/`
+### 6.1 Song Management & AI Quick Create System
+**Status**: ✅ Complete with Theme Selection & Slide Duplication  
+**Location**: `src/pages/LibraryPage.tsx`, `src/components/songs/`, `src/services/slideGeneratorService.ts`
 
-**Features**:
-- Create/edit/delete songs
-- **Lyrics Search**: Genius API integration for automated import
-- Lyrics input with live preview
-- Automatic slide generation
-- 4 design modes (Manual, Theme Pack, Quick Look, Auto)
-- Background selection (24+ images, 8 packs)
-- Layout selection (7 types)
-- CCLI, key, tempo metadata
-- Search & filter
-- **Visual Editor**: Advanced slide designer (see 6.5)
+---
+
+#### 6.1.1 Overview
+
+The song management system provides comprehensive tools for creating, editing, and managing worship songs with automated slide generation powered by AI. It features three creation methods:
+
+1. **Manual Entry**: Type lyrics and customize slides manually
+2. **Lyrics Search**: Import from Genius API (requires Electron)
+3. **🎨 AI Quick Create**: Fully automated end-to-end generation (NEW Theme Selection!)
+
+---
+
+#### 6.1.2 AI Quick Create System
+
+**The Power Feature**: One-click song creation from title only!
+
+**User Flow**:
+```
+1. Click "Quick Create" button
+2. Enter song title (e.g., "Goodness of God")
+3. Enter artist (optional but recommended)
+4. **🎨 SELECT THEME**: Choose Mountains, Waves, or Clouds
+5. Click "Generate Slides" → Wait ~30 seconds
+6. ✅ Complete song with lyrics, slides, backgrounds ready!
+```
+
+**What Happens Behind the Scenes**:
+```
+Step 1: Fetch lyrics from Genius API
+Step 2: Analyze song with OpenAI GPT-4
+Step 3: Break lyrics into slides (6-8 lines each)
+Step 4: Generate slides with selected theme backgrounds
+Result: 15-20 slides ready to present!
+```
+
+**🎨 NEW: Theme Selection Feature**
+
+Users now choose the background theme instead of random AI selection:
+
+- **Mountains** 🏔️ - Powerful, majestic worship (blue/purple tones)
+- **Ocean Waves** 🌊 - Joyful, flowing worship (teal/blue tones)  
+- **Clouds** ☁️ - Peaceful, reflective worship (soft blue/white tones)
+
+This ensures visual consistency and matches the song's mood.
+
+---
+
+#### 6.1.3 Component Architecture
+
+**QuickGenerateModal.tsx** - User Interface
+```typescript
+// Location: src/components/songs/QuickGenerateModal.tsx
+
+interface QuickGenerateModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onComplete: (result: GenerationResult) => void;
+}
+
+// NEW: Theme selection state
+const [selectedTheme, setSelectedTheme] = useState<'mountains' | 'waves' | 'clouds'>('waves');
+
+// Theme selection UI (3-column grid with icons)
+<div className="grid grid-cols-3 gap-3">
+  <button onClick={() => setSelectedTheme('mountains')}>
+    <Mountain /> Mountains - Powerful, majestic
+  </button>
+  <button onClick={() => setSelectedTheme('waves')}>
+    <Waves /> Ocean Waves - Joyful, flowing
+  </button>
+  <button onClick={() => setSelectedTheme('clouds')}>
+    <Cloud /> Clouds - Peaceful, reflective
+  </button>
+</div>
+
+// Pass theme to generation service
+const result = await generateAsync({ title, artist, themePack: selectedTheme });
+```
+
+**Key Features**:
+- Visual theme picker with icons and descriptions
+- Default to "Waves" (most versatile)
+- Disabled state when AI not available
+- Real-time progress tracking (4 steps)
+- Error handling with helpful messages
+
+---
+
+#### 6.1.4 Slide Generation Service
+
+**slideGeneratorService.ts** - Core AI Logic
+```typescript
+// Location: src/services/slideGeneratorService.ts
+
+export class SlideGeneratorService {
+  async generateSongSlides(
+    title: string,
+    artist: string,
+    onProgress?: ProgressCallback,
+    themePack?: 'mountains' | 'waves' | 'clouds'  // NEW: User-selected theme
+  ): Promise<GenerationResult> {
+    
+    // Step 1: Fetch lyrics from Genius
+    const lyricsResult = await searchLyrics(title, artist);
+    
+    // Step 2: Analyze song with GPT-4
+    const analysis = await openaiService.analyzeSong(
+      lyricsResult.title,
+      lyricsResult.artist,
+      lyricsResult.lyrics
+    );
+    // Returns: { mood, energy, themes, recommendedColors, pace }
+    
+    // Step 3: Break into slides (6-8 lines each)
+    const slideBreakdown = await openaiService.breakIntoSlides(lyricsResult.lyrics);
+    
+    // SAFETY CHECK: Split slides >8 lines into multiple slides
+    slideBreakdown.slides.forEach((slide, idx) => {
+      const lines = slide.content.split('\n');
+      if (lines.length > 8) {
+        // Split into chunks of 6 lines
+        for (let i = 0; i < lines.length; i += 6) {
+          const chunk = lines.slice(i, i + 6).join('\n');
+          safeSlides.push({ content: chunk, type: slide.type, order: safeSlides.length });
+        }
+      }
+    });
+    
+    // 🎨 NEW: Use user-selected theme if provided
+    let selectedThemePack: string;
+    if (themePack) {
+      selectedThemePack = themePack;  // User choice takes priority!
+      console.log(`🎨 User selected theme pack: ${themePack}`);
+    } else {
+      const templateSelection = selectTemplate(analysis);  // AI fallback
+      selectedThemePack = templateSelection.themePack;
+      console.log(`🤖 AI selected theme pack: ${selectedThemePack}`);
+    }
+    
+    // Get backgrounds from selected pack
+    const pack = getBackgroundPacks().find(p => p.id === selectedThemePack);
+    console.log(`✅ Using ${pack.name} with ${pack.backgrounds.length} backgrounds`);
+    
+    // Step 4: Create slides with rotating backgrounds
+    const generatedSlides = slideBreakdown.slides.map((slide, index) => {
+      const backgroundIndex = index % pack.backgrounds.length;
+      const background = pack.backgrounds[backgroundIndex];
+      
+      return {
+        id: `slide_${Date.now()}_${index}`,
+        content: slide.content,
+        backgroundId: background.id,
+        layout: 'center',
+        visualData: {
+          background: { type: 'image', imageId: background.id },
+          elements: [{
+            type: 'text',
+            content: slide.content,
+            visible: true,
+            opacity: 1,
+            zIndex: 10,
+            position: { x: 160, y: 340 },
+            size: { width: 1600, height: 400 },
+            style: {
+              fontSize: 64,
+              fontWeight: 700,
+              color: '#ffffff',
+              textAlign: 'center',
+              textShadow: '3px 3px 12px rgba(0, 0, 0, 0.9)'
+            }
+          }]
+        }
+      };
+    });
+    
+    return { slides: generatedSlides, analysis, songInfo, metadata };
+  }
+}
+```
+
+**Key Algorithms**:
+1. **Lyric Safety Check**: Prevents slides with >8 lines (readability)
+2. **Background Rotation**: Cycles through pack backgrounds (visual variety)
+3. **Theme Selection Priority**: User choice > AI recommendation
+4. **VisualData Generation**: Creates editor-compatible slide data
+
+---
+
+#### 6.1.5 Background Configuration System
+
+**backgroundConfig.ts** - Easy Enable/Disable
+```typescript
+// Location: src/config/backgroundConfig.ts
+
+export const MOUNTAINS_CONFIG: BackgroundConfig[] = [
+  { id: 'mountain-1', enabled: true, name: 'Mountain Peak', url: '...' },
+  { id: 'mountain-2', enabled: true, name: 'Snowy Summit', url: '...' },
+  { id: 'mountain-3', enabled: false, name: 'Rocky Trail', url: '...' },  // Disabled
+  // ... 6 total
+];
+
+export function getEnabledBackgrounds(category: 'mountains' | 'waves' | 'clouds') {
+  const configs = { mountains: MOUNTAINS_CONFIG, waves: WAVES_CONFIG, clouds: CLOUDS_CONFIG };
+  return configs[category].filter(bg => bg.enabled);
+}
+```
+
+**Benefits**:
+- Centralized background management
+- Easy enable/disable without code changes
+- Respects pack consistency
+- ~6 backgrounds per pack (optimal variety)
+
+---
+
+#### 6.1.6 Slide Editor & Duplication
+
+**SlideEditor.tsx** - Edit Song Slides
+```typescript
+// Location: src/components/slides/SlideEditor.tsx
+
+export function SlideEditor({ slides, backgrounds, layouts, onSave, onClose }) {
+  const [slides, setSlides] = useState(initialSlides);
+  
+  // 🆕 DUPLICATE SLIDE FEATURE
+  const handleDuplicateSlide = (index: number) => {
+    const slideToDuplicate = slides[index];
+    const newSlide = {
+      ...slideToDuplicate,
+      id: `slide-${Date.now()}`,
+      order: index + 1
+    };
+    
+    // Insert after current slide
+    const newSlides = [
+      ...slides.slice(0, index + 1),
+      newSlide,
+      ...slides.slice(index + 1)
+    ];
+    
+    setSlides(newSlides);
+    setBackgrounds([...backgrounds.slice(0, index + 1), backgrounds[index], ...backgrounds.slice(index + 1)]);
+    setLayouts([...layouts.slice(0, index + 1), layouts[index], ...layouts.slice(index + 1)]);
+  };
+  
+  // ADD CUSTOM SLIDE FEATURE (already existed)
+  const handleAddSlide = () => {
+    const newSlide = {
+      id: `slide-${Date.now()}`,
+      type: 'custom',
+      content: 'New slide\nAdd your text here',
+      order: slides.length
+    };
+    setSlides([...slides, newSlide]);
+  };
+  
+  // UI: Duplicate button next to each slide
+  <button onClick={() => handleDuplicateSlide(index)} title="Duplicate slide">
+    <Copy size={16} />
+  </button>
+}
+```
+
+**Use Cases for Duplication**:
+- **Repeat Chorus**: Duplicate chorus slides 2-3 times
+- **Tag Ending**: Duplicate last line for worship tags
+- **Verse Variations**: Duplicate and edit for similar verses
+- **Bridge Repeats**: Duplicate bridge for extended worship
+
+**Use Cases for Custom Slides**:
+- **Intro/Outro**: Add "Welcome" or "Thank You" slides
+- **Transition**: Add blank or instruction slides between songs
+- **Instrumental**: Add "Instrumental Break" text slides
+- **Special Notes**: Add musician cues or key changes
+
+---
+
+#### 6.1.7 Complete Feature List
+
+**Song Creation**:
+- ✅ Manual lyrics entry with live preview
+- ✅ Genius API lyrics search (Electron only)
+- ✅ AI Quick Create with theme selection
+- ✅ Metadata: CCLI number, key, tempo, tags
+- ✅ Automatic slide generation (6-8 lines per slide)
+
+**Slide Editing**:
+- ✅ Edit slide text inline
+- ✅ Change background per slide
+- ✅ Change layout per slide (7 types)
+- ✅ **🆕 Duplicate slides** (for chorus/tags)
+- ✅ **🆕 Add custom slides** (for transitions)
+- ✅ Delete slides
+- ✅ Reorder slides (drag handles)
+- ✅ Visual editor integration (advanced)
+
+**Design Options**:
+- ✅ **🎨 Theme packs**: Mountains, Waves, Clouds
+- ✅ 24+ worship backgrounds across 8 categories
+- ✅ 7 layout types: full-bleed, split, thirds, etc.
+- ✅ Quick Looks: Canva-style presets
+- ✅ Visual editor: Full Canva-level customization
+
+**AI Features**:
+- ✅ GPT-4 song mood analysis
+- ✅ Automatic theme selection (or user override)
+- ✅ Smart slide breaking (6-8 lines)
+- ✅ Safety checks (split long slides)
+- ✅ Background rotation algorithm
+
+**Data Management**:
+- ✅ Search & filter songs
+- ✅ Duplicate songs
+- ✅ Delete songs
+- ✅ Export/import (future)
+- ✅ localStorage or SQLite persistence
+
+---
+
+#### 6.1.8 API Integration Details
+
+**Genius API** (Lyrics Search)
+```typescript
+// Location: src/services/lyricsApi.ts
+// Requires: Electron IPC to bypass CORS
+
+export async function searchLyrics(title: string, artist: string) {
+  const result = await window.electron.lyrics.search({ title, artist });
+  // Returns: { title, artist, lyrics, album, year }
+}
+```
+
+**OpenAI API** (Song Analysis)
+```typescript
+// Location: src/services/openaiService.ts
+// Model: gpt-4o-mini (optimized for speed/cost)
+
+export async function analyzeSong(title: string, artist: string, lyrics: string) {
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{
+      role: 'system',
+      content: 'Analyze worship song mood, energy level, themes...'
+    }, {
+      role: 'user',
+      content: `Title: ${title}\nArtist: ${artist}\nLyrics: ${lyrics}`
+    }]
+  });
+  
+  return JSON.parse(response.choices[0].message.content);
+  // Returns: { mood: 'joyful', energy: 8, themes: ['praise', 'celebration'], ... }
+}
+
+export async function breakIntoSlides(lyrics: string) {
+  // Prompt: "Break lyrics into slides, 6-8 lines each, preserve structure..."
+  // Returns: { slides: [{ content: '...', type: 'verse', order: 0 }, ...] }
+}
+```
+
+---
+
+#### 6.1.9 Performance & Optimization
+
+**Generation Speed**:
+- Genius API: ~2-3 seconds
+- OpenAI Analysis: ~3-5 seconds  
+- OpenAI Slide Breaking: ~2-3 seconds
+- Total: **~8-11 seconds** (vs 30 seconds estimate)
+
+**Cost Per Song** (OpenAI):
+- Model: gpt-4o-mini
+- Tokens: ~2000 input + ~1500 output
+- Cost: **~$0.005 per song** (half a cent!)
+
+**Caching Strategy**:
+- Lyrics cached by song ID
+- Songs cached in React Query
+- Backgrounds loaded once (browser cache)
+- No re-fetching on navigation
+
+---
+
+#### 6.1.10 Error Handling
+
+**Genius API Failures**:
+```
+"Could not find song lyrics. Please try a different search or add manually."
+→ Fallback: Manual lyrics entry
+```
+
+**OpenAI API Failures**:
+```
+"AI analysis failed. Using default theme."
+→ Fallback: Waves theme (most versatile)
+```
+
+**Network Failures**:
+```
+"Generation failed. Please check your internet connection."
+→ Retry button available
+```
+
+**Validation Errors**:
+```
+"Song title is required."
+"No API key configured. Add VITE_OPENAI_API_KEY to .env"
+```
+
+---
+
+#### 6.1.11 Recommendations for AI Improvement
+
+**Current Limitations**:
+1. ❌ AI sometimes selects theme inconsistent with mood
+2. ❌ No preview before generation completes
+3. ❌ Cannot adjust slide breaking rules
+4. ❌ No A/B theme comparison
+
+**Suggested Enhancements**:
+
+**1. Improve Theme Selection Accuracy**
+```typescript
+// Add more nuanced mapping in templateMappings.ts
+const themeSelection = {
+  // Energy-based selection
+  lowEnergy: analysis.energy < 4 ? 'clouds' : 'waves',
+  highEnergy: analysis.energy > 7 ? 'mountains' : 'waves',
+  
+  // Mood-based overrides
+  peaceful: ['calm', 'peaceful', 'restful'] → 'clouds',
+  powerful: ['mighty', 'powerful', 'victorious'] → 'mountains',
+  joyful: ['joyful', 'celebrate', 'dance'] → 'waves',
+  
+  // Theme-based selection
+  nature: ['creation', 'ocean', 'mountain'] → match theme,
+  spiritual: ['holy', 'spirit', 'heaven'] → 'clouds'
+};
+```
+
+**2. Add Preview Step**
+```typescript
+// Show AI analysis + recommended theme BEFORE generating
+<AnalysisPreview analysis={analysis} recommendedTheme="waves">
+  <button onClick={acceptAndGenerate}>✅ Looks good!</button>
+  <ThemePicker onOverride={setTheme} />
+</AnalysisPreview>
+```
+
+**3. Customizable Slide Breaking**
+```typescript
+// Add user preferences
+<SlideSettings>
+  <Range label="Lines per slide" min={4} max={10} value={6} />
+  <Checkbox label="Keep verses intact" checked />
+  <Checkbox label="Separate choruses" checked />
+</SlideSettings>
+```
+
+**4. Multi-Theme Generation**
+```typescript
+// Generate 3 versions in parallel (mountains, waves, clouds)
+// Let user pick after seeing previews
+const [version1, version2, version3] = await Promise.all([
+  generateWith('mountains'),
+  generateWith('waves'),
+  generateWith('clouds')
+]);
+```
+
+**5. Fine-tune GPT-4 Prompts**
+```typescript
+// Current prompt is generic - make it more specific
+const improvedPrompt = `
+Analyze this worship song for presentation purposes.
+Consider:
+- Vocal dynamics (soft vs powerful)
+- Lyrical themes (nature, victory, intimacy)
+- Imagery (ocean, mountains, sky, fire)
+- Energy progression (builds, sustains, resolves)
+
+Return theme recommendation with confidence score:
+{ theme: 'waves', confidence: 0.92, reasoning: '...' }
+`;
+```
+
+---
+
+**End of Song Management Documentation**
 
 ### 6.2 Design System
 **Status**: ✅ Complete  

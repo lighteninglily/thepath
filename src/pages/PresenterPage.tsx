@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useServicePresentationStore, getNextSlideInfo } from '../store/servicePresentationStore';
 import { ServiceItemSlidePreview } from '../components/slides/ServiceItemSlidePreview';
 import { useSongs } from '../hooks/useSongs';
-import { Play, Square, ArrowLeft, ArrowRight, X } from 'lucide-react';
+import { Square, ArrowLeft, ArrowRight, X } from 'lucide-react';
 
 interface PresenterPageProps {
   onClose: () => void;
@@ -20,7 +20,6 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
     previousSlide,
     toggleBlank,
     stopPresentation,
-    jumpToItem,
     updateElapsedTime,
   } = useServicePresentationStore();
   
@@ -308,6 +307,51 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
     }
   };
 
+  // Build a flat list of all slides for the slide navigator
+  const allSlides: Array<{
+    itemIndex: number;
+    slideIndex: number;
+    item: typeof currentItem;
+    song: typeof currentSong;
+    title: string;
+    slideNumber: number; // Global slide number
+  }> = [];
+  
+  let globalSlideNumber = 0;
+  service.items.forEach((item, itemIndex) => {
+    if (item.type === 'song' && item.songId) {
+      const song = songs.find(s => s.id === item.songId);
+      const slideCount = song?.slidesData?.length || 1;
+      for (let slideIndex = 0; slideIndex < slideCount; slideIndex++) {
+        allSlides.push({
+          itemIndex,
+          slideIndex,
+          item,
+          song: song || null,
+          title: `${item.songTitle || item.title} (${slideIndex + 1}/${slideCount})`,
+          slideNumber: globalSlideNumber++
+        });
+      }
+    } else {
+      allSlides.push({
+        itemIndex,
+        slideIndex: 0,
+        item,
+        song: null,
+        title: item.type === 'scripture' ? (item.scriptureReference || item.title || 'Scripture')
+              : item.type === 'announcement' ? `Announcement${item.title ? ': ' + item.title : ''}`
+              : item.type === 'sermon' ? `Sermon${item.title ? ': ' + item.title : ''}`
+              : (item.title || item.type || 'Slide'),
+        slideNumber: globalSlideNumber++
+      });
+    }
+  });
+  
+  // Find current slide in the flat list
+  const currentGlobalSlideIndex = allSlides.findIndex(
+    s => s.itemIndex === currentItemIndex && s.slideIndex === currentSlideIndex
+  );
+
   return (
     <div className="h-screen flex flex-col bg-gray-900">
       {/* Header */}
@@ -315,10 +359,7 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
         <div>
           <h1 className="text-xl font-bold">🎭 {service.name}</h1>
           <p className="text-sm opacity-90">
-            Item {currentItemIndex + 1} of {service.items.length}
-            {currentSong?.slidesData && currentSong.slidesData.length > 1 && (
-              <span> • Slide {currentSlideIndex + 1} of {currentSong.slidesData.length}</span>
-            )}
+            Slide {currentGlobalSlideIndex + 1} of {allSlides.length}
             {' • '}{formatTime(elapsedTime)}
           </p>
         </div>
@@ -333,43 +374,71 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Service Items */}
-        <div className="w-64 bg-gray-800 p-4 overflow-y-auto">
-          <h3 className="text-white text-sm font-semibold mb-3 uppercase tracking-wider">
-            Service Items
+        {/* Left Sidebar - All Slides Navigator */}
+        <div className="w-72 bg-gray-800 p-3 overflow-y-auto">
+          <h3 className="text-white text-xs font-semibold mb-3 uppercase tracking-wider px-2">
+            All Slides ({allSlides.length})
           </h3>
-          <div className="space-y-2">
-            {service.items.map((item, index) => (
-              <button
-                key={item.id}
-                onClick={() => jumpToItem(index)}
-                className={`w-full text-left p-3 rounded-lg transition-colors ${
-                  index === currentItemIndex
-                    ? 'bg-brand-skyBlue text-white'
-                    : index < currentItemIndex
-                    ? 'bg-gray-700 text-gray-400'
-                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-xs opacity-60">{index + 1}</span>
-                  {index === currentItemIndex ? (
-                    <Play size={14} className="fill-current" />
-                  ) : index < currentItemIndex ? (
-                    '✓'
-                  ) : (
-                    '○'
-                  )}
-                  <span className="flex-1 truncate text-sm">
-                    {item.type === 'song' ? (item.songTitle || item.title)
-                      : item.type === 'scripture' ? (item.scriptureReference || item.title)
-                      : item.type === 'announcement' ? `Announcement${item.title ? ': ' + item.title : ''}`
-                      : item.type === 'sermon' ? `Sermon${item.title ? ': ' + item.title : ''}`
-                      : (item.title || item.type)}
-                  </span>
-                </div>
-              </button>
-            ))}
+          <div className="space-y-1">
+            {allSlides.map((slide, index) => {
+              const isCurrent = index === currentGlobalSlideIndex;
+              const isPast = index < currentGlobalSlideIndex;
+              const isNext = index === currentGlobalSlideIndex + 1;
+              
+              return (
+                <button
+                  key={`${slide.itemIndex}-${slide.slideIndex}`}
+                  onClick={() => {
+                    useServicePresentationStore.setState({ 
+                      currentItemIndex: slide.itemIndex,
+                      currentSlideIndex: slide.slideIndex
+                    });
+                  }}
+                  className={`w-full text-left p-2 rounded-lg transition-all ${
+                    isCurrent
+                      ? 'bg-brand-skyBlue text-white ring-2 ring-white/50'
+                      : isNext
+                      ? 'bg-green-900/30 text-green-200 border border-green-500/50'
+                      : isPast
+                      ? 'bg-gray-700/50 text-gray-500'
+                      : 'bg-gray-700/30 text-gray-300 hover:bg-gray-700/60'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    {/* Slide number & status */}
+                    <div className="flex-shrink-0 pt-0.5">
+                      <span className="text-xs opacity-70 font-mono">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                    </div>
+                    
+                    {/* Thumbnail */}
+                    <div className="flex-shrink-0 w-16 h-9 bg-black rounded overflow-hidden">
+                      <div className="transform scale-[0.15] origin-top-left" style={{ width: '640px', height: '360px' }}>
+                        <ServiceItemSlidePreview 
+                          item={slide.item}
+                          slideIndex={slide.slideIndex}
+                          songData={slide.song}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Slide info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs truncate font-medium">
+                        {slide.title}
+                      </div>
+                      {isCurrent && (
+                        <div className="text-xs opacity-75 mt-0.5">▶ NOW SHOWING</div>
+                      )}
+                      {isNext && (
+                        <div className="text-xs opacity-75 mt-0.5">→ UP NEXT</div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 

@@ -36,6 +36,7 @@ export const MOUNTAINS_CONFIG: BackgroundConfig[] = [
     name: 'Snowy Mountain Peaks',
     url: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1920&q=80',
     category: 'mountains',
+    notes: 'DISABLED - User feedback: Take out'
   },
   {
     id: 'mountain-3',
@@ -60,10 +61,27 @@ export const MOUNTAINS_CONFIG: BackgroundConfig[] = [
   },
   {
     id: 'mountain-6',
-    enabled: true,
+    enabled: false,
     name: 'Blue Hour Mountains',
     url: 'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=1920&q=80',
     category: 'mountains',
+    notes: 'DISABLED - User feedback: This is a forest image'
+  },
+  {
+    id: 'mountain-7',
+    enabled: true,
+    name: 'Rocky Mountain Peaks',
+    url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80',
+    category: 'mountains',
+    notes: 'ADDED - Replacement for removed mountains'
+  },
+  {
+    id: 'mountain-8',
+    enabled: true,
+    name: 'Dramatic Mountain Landscape',
+    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
+    category: 'mountains',
+    notes: 'ADDED - Replacement for removed mountains'
   },
 ];
 
@@ -98,83 +116,107 @@ export const WAVES_CONFIG: BackgroundConfig[] = [
   },
   {
     id: 'waves-4',
-    enabled: true,
+    enabled: false,
     name: 'Aerial Ocean View',
     url: 'https://images.unsplash.com/photo-7vHr9SPJXws?w=1920&q=80',
     category: 'waves',
-    notes: 'Aerial view of water - replaced'
+    notes: 'DISABLED - User feedback: 404 error'
   },
   {
     id: 'waves-5',
-    enabled: true,
+    enabled: false,
     name: 'Blue Sea Water',
     url: 'https://images.unsplash.com/photo-2FEE6BR343k?w=1920&q=80',
     category: 'waves',
-    notes: 'Blue sea water - replaced'
+    notes: 'DISABLED - User feedback: 404 error'
   },
   {
     id: 'waves-6',
-    enabled: true,
+    enabled: false,
     name: 'Crystal Clear Waters',
     url: 'https://images.unsplash.com/photo-zOy5lCccdec?w=1920&q=80',
     category: 'waves',
-    notes: 'Clear water body - replaced'
+    notes: 'DISABLED - User feedback: 404 error'
   },
   {
     id: 'waves-7',
-    enabled: true,
+    enabled: false,
     name: 'Beach Shore Waters',
     url: 'https://images.unsplash.com/photo-9K9ipjhDdks?w=1920&q=80',
     category: 'waves',
-    notes: 'Water on beach shore - added'
+    notes: 'Disabled - keeping 6 best waves for consistency'
   },
   {
     id: 'waves-8',
-    enabled: true,
+    enabled: false,
     name: 'Close-Up Water Surface',
     url: 'https://images.unsplash.com/photo-0gZ1JLxqdus?w=1920&q=80',
     category: 'waves',
-    notes: 'Close-up water detail - added'
+    notes: 'Disabled - keeping 6 best waves for consistency'
   },
   {
     id: 'waves-9',
-    enabled: true,
+    enabled: false,
     name: 'Aerial Ocean Waves',
     url: 'https://images.unsplash.com/photo-SaO_koXXy_s?w=1920&q=80',
     category: 'waves',
-    notes: 'Aerial view of waves - added'
+    notes: 'Disabled - keeping 6 best waves for consistency'
   },
   {
     id: 'waves-10',
-    enabled: true,
+    enabled: false,
     name: 'Wave Close-Up Photography',
     url: 'https://images.unsplash.com/photo-Z1jyU-1ixXE?w=1920&q=80',
     category: 'waves',
-    notes: 'Close-up wave photography - added'
+    notes: 'Disabled - keeping 6 best waves for consistency'
   },
   {
     id: 'waves-11',
-    enabled: true,
+    enabled: false,
     name: 'White and Blue Ocean',
     url: 'https://images.unsplash.com/photo-0QEG_xOoY7Y?w=1920&q=80',
     category: 'waves',
-    notes: 'White and blue waves - added'
+    notes: 'Disabled - keeping 6 best waves for consistency'
   },
   {
     id: 'waves-12',
-    enabled: true,
+    enabled: false,
     name: 'Waves During Daytime',
     url: 'https://images.unsplash.com/photo--djS1aPrSr4?w=1920&q=80',
     category: 'waves',
-    notes: 'Daytime waves - added'
+    notes: 'Disabled - keeping 6 best waves for consistency'
   },
   {
     id: 'waves-13',
-    enabled: true,
+    enabled: false,
     name: 'Birds Eye Seashore',
     url: 'https://images.unsplash.com/photo-Ai2TRdvI6gM?w=1920&q=80',
     category: 'waves',
-    notes: 'Birds eye view of shore - added'
+    notes: 'Disabled - keeping 6 best waves for consistency'
+  },
+  {
+    id: 'waves-14',
+    enabled: false,
+    name: 'Calm Blue Ocean',
+    url: 'https://images.unsplash.com/photo-1439405326854-014607f694d7?w=1920&q=80',
+    category: 'waves',
+    notes: 'DISABLED - User wants to stick with original waves only'
+  },
+  {
+    id: 'waves-15',
+    enabled: false,
+    name: 'Ocean Sunset Waves',
+    url: 'https://images.unsplash.com/photo-1551244072-5d12893278ab?w=1920&q=80',
+    category: 'waves',
+    notes: 'DISABLED - User wants to stick with original waves only'
+  },
+  {
+    id: 'waves-16',
+    enabled: false,
+    name: 'Crystal Blue Water',
+    url: 'https://images.unsplash.com/photo-1549171596-39f6f43d6e90?w=1920&q=80',
+    category: 'waves',
+    notes: 'DISABLED - User wants to stick with original waves only'
   },
 ];
 
@@ -276,6 +318,7 @@ export const CLOUDS_CONFIG: BackgroundConfig[] = [
     name: 'Wispy Cloud Layers',
     url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&q=80',
     category: 'clouds',
+    notes: 'DISABLED - User feedback: Night sky, move'
   },
   {
     id: 'clouds-3',
@@ -304,6 +347,14 @@ export const CLOUDS_CONFIG: BackgroundConfig[] = [
     name: 'Peaceful Cloud Cover',
     url: 'https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?w=1920&q=80',
     category: 'clouds',
+  },
+  {
+    id: 'clouds-7',
+    enabled: true,
+    name: 'Bright Daytime Clouds',
+    url: 'https://images.unsplash.com/photo-1601134467661-3d775b999c8b?w=1920&q=80',
+    category: 'clouds',
+    notes: 'FIXED - Peaceful daytime clouds'
   },
 ];
 

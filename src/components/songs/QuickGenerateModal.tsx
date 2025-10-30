@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Check, AlertCircle, Zap } from 'lucide-react';
+import { X, Sparkles, Check, AlertCircle, Zap, Mountain, Waves, Cloud } from 'lucide-react';
 import { useQuickGenerate } from '../../hooks/useQuickGenerate';
 import { GenerationResult } from '../../services/slideGeneratorService';
 
@@ -16,19 +16,21 @@ export const QuickGenerateModal: React.FC<QuickGenerateModalProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
+  const [selectedTheme, setSelectedTheme] = useState<'mountains' | 'waves' | 'clouds'>('waves');
   const { generateAsync, isGenerating, progress, error, availability } = useQuickGenerate();
 
   const handleGenerate = async () => {
     if (!title.trim()) return;
 
     try {
-      const result = await generateAsync({ title, artist });
+      const result = await generateAsync({ title, artist, themePack: selectedTheme });
       onComplete(result);
       onClose();
       
       // Reset form
       setTitle('');
       setArtist('');
+      setSelectedTheme('waves');
     } catch (err) {
       // Error handled by hook
       console.error('Generation error:', err);
@@ -115,6 +117,70 @@ export const QuickGenerateModal: React.FC<QuickGenerateModalProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 disabled={!canGenerate}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Background Theme *
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTheme('mountains')}
+                  disabled={!canGenerate}
+                  className={`p-4 border-2 rounded-lg flex flex-col items-center gap-2 transition ${
+                    selectedTheme === 'mountains'
+                      ? 'border-brand-skyBlue bg-brand-skyBlue/10'
+                      : 'border-gray-200 hover:border-gray-300'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <Mountain className={`w-6 h-6 ${
+                    selectedTheme === 'mountains' ? 'text-brand-skyBlue' : 'text-gray-600'
+                  }`} />
+                  <span className={`text-sm font-medium ${
+                    selectedTheme === 'mountains' ? 'text-brand-skyBlue' : 'text-gray-700'
+                  }`}>Mountains</span>
+                  <span className="text-xs text-gray-500">Powerful, majestic</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedTheme('waves')}
+                  disabled={!canGenerate}
+                  className={`p-4 border-2 rounded-lg flex flex-col items-center gap-2 transition ${
+                    selectedTheme === 'waves'
+                      ? 'border-brand-skyBlue bg-brand-skyBlue/10'
+                      : 'border-gray-200 hover:border-gray-300'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <Waves className={`w-6 h-6 ${
+                    selectedTheme === 'waves' ? 'text-brand-skyBlue' : 'text-gray-600'
+                  }`} />
+                  <span className={`text-sm font-medium ${
+                    selectedTheme === 'waves' ? 'text-brand-skyBlue' : 'text-gray-700'
+                  }`}>Ocean Waves</span>
+                  <span className="text-xs text-gray-500">Joyful, flowing</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedTheme('clouds')}
+                  disabled={!canGenerate}
+                  className={`p-4 border-2 rounded-lg flex flex-col items-center gap-2 transition ${
+                    selectedTheme === 'clouds'
+                      ? 'border-brand-skyBlue bg-brand-skyBlue/10'
+                      : 'border-gray-200 hover:border-gray-300'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <Cloud className={`w-6 h-6 ${
+                    selectedTheme === 'clouds' ? 'text-brand-skyBlue' : 'text-gray-600'
+                  }`} />
+                  <span className={`text-sm font-medium ${
+                    selectedTheme === 'clouds' ? 'text-brand-skyBlue' : 'text-gray-700'
+                  }`}>Clouds</span>
+                  <span className="text-xs text-gray-500">Peaceful, reflective</span>
+                </button>
+              </div>
             </div>
 
             {error && (
