@@ -1,4 +1,4 @@
-import type { BackgroundImage } from '../assets/backgrounds';
+// import type { BackgroundImage } from '../assets/backgrounds'; // Not currently used
 
 export type LayoutType = 
   | 'full-bleed'      // Full background image with text overlay

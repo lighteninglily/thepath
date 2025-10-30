@@ -4,8 +4,8 @@ import { parseLyricsIntoSlides } from '../../utils/lyricsParser';
 import { TemplateSelector } from '../templates/TemplateSelector';
 import { BackgroundPicker } from '../backgrounds/BackgroundPicker';
 import { BackgroundPackPicker } from '../backgrounds/BackgroundPackPicker';
-import { QuickLookPicker } from '../backgrounds/QuickLookPicker';
-import { AdvancedSlidePreview } from '../slides/AdvancedSlidePreview';
+// import { QuickLookPicker } from '../backgrounds/QuickLookPicker'; // Not currently used
+// import { AdvancedSlidePreview } from '../slides/AdvancedSlidePreview'; // Now using grid overview instead
 import { SlideEditor } from '../slides/SlideEditor';
 import { SlideDesigner } from '../designer/SlideDesigner';
 import { LyricsSearchModal } from '../lyrics/LyricsSearchModal';
@@ -23,7 +23,7 @@ import type { LayoutType } from '../../utils/layouts';
 interface SongFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateSongInput) => void;
+  onSubmit: (data: CreateSongInput, shouldClose?: boolean) => void;
   song?: Song | null;
   isLoading?: boolean;
 }
@@ -44,10 +44,10 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
   const [selectedTemplate, setSelectedTemplate] = useState<DesignTemplate | null>(null);
   const [selectedBackground, setSelectedBackground] = useState<BackgroundImage | null>(null);
   const [selectedPack, setSelectedPack] = useState<BackgroundPack | null>(null);
-  const [selectedLook, setSelectedLook] = useState<QuickLook | null>(null);
+  const [selectedLook, _setSelectedLook] = useState<QuickLook | null>(null);
   const [useAdvancedLayouts, setUseAdvancedLayouts] = useState(true);
   const [usePacks, setUsePacks] = useState(false);
-  const [useQuickLooks, setUseQuickLooks] = useState(true);
+  const [useQuickLooks, _setUseQuickLooks] = useState(true);
   const [showSlideEditor, setShowSlideEditor] = useState(false);
   const [showVisualDesigner, setShowVisualDesigner] = useState(false);
   const [showLyricsSearch, setShowLyricsSearch] = useState(false);
@@ -134,7 +134,7 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
     
     const timer = setTimeout(() => {
       console.log('✅ Song Autosave: Saving song...');
-      onSubmit(formData);
+      onSubmit(formData, false); // false = don't close modal on autosave
       setInitialFormData(JSON.parse(JSON.stringify(formData))); // Update baseline
       setHasChanges(false);
     }, 2000); // Wait 2 seconds for songs (more complex data)
@@ -153,7 +153,7 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
     console.log('🖼️ Slide backgrounds:', slideBackgrounds.map(bg => bg?.name));
     
     // Use slides from formData if they were edited, otherwise parse from lyrics
-    let slides = formData.slidesData || parseLyricsIntoSlides(formData.lyrics);
+    let slides = formData.slidesData || parseLyricsIntoSlides(formData.lyrics, formData.title, formData.artist || undefined);
     console.log('📊 Final slides count:', slides.length);
     
     // ✅ APPLY BACKGROUNDS FROM PACK TO SLIDES!
@@ -173,11 +173,12 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
             ...newSlide.visualData,
             background: {
               type: 'image' as const,
+              imageId: slideBackgrounds[idx].id,
               imageUrl: slideBackgrounds[idx].id,
               overlay: {
                 enabled: true,
                 color: '#000000',
-                opacity: 20,
+                opacity: 50,
                 blendMode: 'normal' as const,
               },
             },
@@ -228,7 +229,7 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
   };
 
   // Auto-parse lyrics into slides when lyrics change
-  const currentSlides = formData.slidesData || parseLyricsIntoSlides(formData.lyrics);
+  const currentSlides = formData.slidesData || parseLyricsIntoSlides(formData.lyrics, formData.title, formData.artist || undefined);
 
   // Initialize slide backgrounds and layouts when slides change
   useEffect(() => {
@@ -710,7 +711,13 @@ Was blind, but now I see"
                                 ...slide.visualData.background,
                                 type: 'image',
                                 imageId: newBg.id,
-                                imageUrl: newBg.id
+                                imageUrl: newBg.id,
+                                overlay: {
+                                  enabled: true,
+                                  color: '#000000',
+                                  opacity: 50,
+                                  blendMode: 'normal' as const,
+                                }
                               }
                             }
                           };
@@ -739,11 +746,11 @@ Was blind, but now I see"
             </div>
           </div>
           ) : (
-            /* Preview Mode */
+            /* Preview Mode - 30,000 Foot Overview */
             <div className="space-y-4">
               <div className="bg-brand-skyBlue/10 border border-brand-skyBlue/20 rounded-lg p-4">
                 <p className="text-sm text-brand-charcoal">
-                  <strong>{currentSlides.length} slides</strong> generated from your lyrics.
+                  <strong>{currentSlides.length} slides</strong> in your song.
                   {selectedTemplate && (
                     <span className="ml-2">
                       Using <strong>{selectedTemplate.name}</strong> template.
@@ -756,28 +763,58 @@ Was blind, but now I see"
                 <div className="text-center py-12 text-brand-umber">
                   <p>Add some lyrics to see the slide preview</p>
                 </div>
-              ) : useAdvancedLayouts && selectedBackground ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {currentSlides.map((slide, index) => {
-                    const layouts = assignRandomLayouts(currentSlides.length);
-                    return (
-                      <div key={slide.id}>
-                        <div className="text-xs text-brand-umber mb-2 font-medium">
-                          Slide {index + 1} - {slide.type}
-                        </div>
-                        <AdvancedSlidePreview
-                          slide={slide}
-                          background={selectedBackground}
-                          layout={layouts[index]}
-                          className="rounded-lg border border-brand-warmGray shadow-sm"
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
               ) : (
-                <div className="text-center py-12 text-brand-umber">
-                  <p>Select a background to preview slides</p>
+                /* Grid Overview - Similar to AI Generation Preview */
+                <div className="grid grid-cols-4 gap-4">
+                  {currentSlides.map((slide, index) => (
+                    <div
+                      key={slide.id}
+                      className="border-2 border-brand-warmGray rounded-lg overflow-hidden hover:border-brand-skyBlue transition-colors cursor-pointer"
+                    >
+                      {/* Thumbnail Preview */}
+                      <div className="bg-gray-100 aspect-video relative">
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            backgroundImage: slide.visualData?.background?.imageUrl 
+                              ? `url(${slide.visualData.background.imageUrl})` 
+                              : slide.backgroundId
+                              ? `url(${slide.backgroundId})`
+                              : 'linear-gradient(135deg, #A8C5DD 0%, #C5D9E8 100%)',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                          }}
+                        >
+                          <div className="absolute inset-0 flex items-center justify-center p-2">
+                            <p
+                              className="text-white font-bold text-center text-xs leading-tight"
+                              style={{
+                                fontSize: `${(slide.visualData?.elements?.[0]?.style?.fontSize || 64) / 12}px`,
+                                textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
+                              }}
+                            >
+                              {slide.content || slide.visualData?.elements?.[0]?.content}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Slide Info */}
+                      <div className="p-2 bg-white">
+                        <p className="text-center text-sm font-semibold text-gray-800">
+                          Slide {index + 1}
+                        </p>
+                        <p className="text-center text-xs text-gray-500 truncate">
+                          {(slide.content || slide.visualData?.elements?.[0]?.content || '').split('\n')[0]}...
+                        </p>
+                        {slide.type && (
+                          <p className="text-center text-xs text-brand-skyBlue mt-1 font-medium">
+                            {slide.type}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

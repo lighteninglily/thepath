@@ -1,16 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { mockElectronAPI } from './useMockElectron';
-import type { Song, CreateSongInput, UpdateSongInput } from '../types';
+import type { CreateSongInput, UpdateSongInput } from '../types';
 
 // Helper to safely access window.electron
 const getElectron = () => {
   if (typeof window !== 'undefined' && window.electron) {
-    console.log('✅ Using real Electron API');
     return window.electron;
   }
-  // Use mock API for browser development
-  console.log('🔧 Using MOCK Electron API (browser mode)');
-  return mockElectronAPI;
+  throw new Error('Electron API not available');
 };
 
 /**

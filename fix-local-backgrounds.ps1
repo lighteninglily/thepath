@@ -1,3 +1,15 @@
+# Delete and recreate localBackgrounds.ts with empty exports
+
+$filePath = "src\assets\localBackgrounds.ts"
+
+# Remove old file
+if (Test-Path $filePath) {
+    Remove-Item $filePath
+    Write-Host "Deleted old file"
+}
+
+# Create new file with correct content
+$content = @'
 /**
  * Local background images from assets folder
  * 
@@ -13,3 +25,7 @@ export const LOCAL_BACKGROUNDS: BackgroundImage[] = [];
 export function getAllBackgrounds(): BackgroundImage[] {
   return LOCAL_BACKGROUNDS;
 }
+'@
+
+Set-Content -Path $filePath -Value $content
+Write-Host "✅ Created new localBackgrounds.ts"

@@ -1,4 +1,4 @@
-import React from 'react';
+// React import not needed
 import { Settings } from 'lucide-react';
 
 export function SettingsPage() {

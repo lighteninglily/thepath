@@ -79,7 +79,8 @@ export function ServiceItemSlidePreview({ item, slideIndex = 0, songData, classN
         }
         
         console.log('✅ Rendering visual slide with', visualData.elements.length, 'elements');
-        return renderVisualSlide(visualData, className);
+        // For template items, we don't have a 'slide' object, just pass undefined
+        return renderVisualSlide(visualData, className, undefined);
       }
       console.log('⚠️ Visual data structure incomplete, falling back to simple');
     } catch (e) {
@@ -94,7 +95,7 @@ export function ServiceItemSlidePreview({ item, slideIndex = 0, songData, classN
 }
 
 // Render visual editor slide data
-function renderVisualSlide(visualData: any, className: string) {
+function renderVisualSlide(visualData: any, className: string, slide?: any) {
   console.log('🎨 renderVisualSlide received:', {
     hasBackground: !!visualData?.background,
     background: visualData?.background,
@@ -118,29 +119,87 @@ function renderVisualSlide(visualData: any, className: string) {
   }));
   
   const { background } = visualData;
+  
+  // Calculate overlay opacity (ALWAYS 50% minimum for image backgrounds)
+  const overlayOpacity = background.type === 'image' 
+    ? (background.overlay?.enabled === false 
+        ? 0 
+        : background.overlay?.opacity 
+          ? Math.max(background.overlay.opacity / 100, 0.5)
+          : 0.5)
+    : 0;
+  
   console.log('🖼️ Rendering with background:', {
     type: background.type,
     imageUrl: background.imageUrl,
-    color: background.color
+    imageId: background.imageId,
+    color: background.color,
+    overlay: background.overlay,
+    calculatedOpacity: overlayOpacity
   });
   
   // Resolve background image URL if it's an ID
   const getBackgroundImageUrl = () => {
-    if (!background.imageUrl) return null;
+    // Try imageId first (new format), then imageUrl (legacy)
+    const bgId = background.imageId || background.imageUrl;
+    
+    if (!bgId) {
+      // No image ID/URL - try to get from slide's backgroundId
+      console.warn('⚠️ visualData has no imageUrl/imageId, checking slide.backgroundId');
+      if (slide?.backgroundId) {
+        const bg = WORSHIP_BACKGROUNDS.find(b => b.id === slide.backgroundId);
+        if (bg) {
+          console.log('✅ Using slide backgroundId:', slide.backgroundId, '→', bg.url);
+          return bg.url;
+        } else {
+          // Fallback logic for removed backgrounds
+          console.warn('⚠️ Slide backgroundId not found:', slide.backgroundId, '- using fallback');
+          if (slide.backgroundId.startsWith('forest-') || slide.backgroundId.startsWith('nature-')) {
+            const forestBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'forest');
+            return forestBg?.url || null;
+          } else if (slide.backgroundId.startsWith('waves-')) {
+            const wavesBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'waves');
+            return wavesBg?.url || null;
+          } else if (slide.backgroundId.startsWith('mountain-')) {
+            const mountainBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'mountains');
+            return mountainBg?.url || null;
+          } else if (slide.backgroundId.startsWith('clouds-') || slide.backgroundId.startsWith('sky-')) {
+            const cloudBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'clouds');
+            return cloudBg?.url || null;
+          }
+        }
+      }
+      return null;
+    }
     
     // If it's already a full URL, use it
-    if (background.imageUrl.startsWith('http://') || background.imageUrl.startsWith('https://')) {
-      return background.imageUrl;
+    if (bgId.startsWith('http://') || bgId.startsWith('https://')) {
+      return bgId;
     }
     
     // Otherwise, it's a background ID - look it up
-    const bg = WORSHIP_BACKGROUNDS.find(b => b.id === background.imageUrl);
+    const bg = WORSHIP_BACKGROUNDS.find(b => b.id === bgId);
     if (bg) {
-      console.log('✅ Resolved background ID:', background.imageUrl, '→', bg.url);
+      console.log('✅ Resolved background ID:', bgId, '→', bg.url);
       return bg.url;
     }
     
-    console.warn('⚠️ Background ID not found:', background.imageUrl);
+    // Background ID not found - use fallback logic
+    console.warn('⚠️ Background ID not found:', bgId, '- using fallback');
+    if (bgId.startsWith('forest-') || bgId.startsWith('nature-')) {
+      const forestBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'forest');
+      return forestBg?.url || null;
+    } else if (bgId.startsWith('waves-')) {
+      const wavesBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'waves');
+      return wavesBg?.url || null;
+    } else if (bgId.startsWith('mountain-')) {
+      const mountainBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'mountains');
+      return mountainBg?.url || null;
+    } else if (bgId.startsWith('clouds-') || bgId.startsWith('sky-')) {
+      const cloudBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'clouds');
+      return cloudBg?.url || null;
+    }
+    
     return null;
   };
   
@@ -157,10 +216,20 @@ function renderVisualSlide(visualData: any, className: string) {
     >
       {/* Background */}
       {background.type === 'image' && backgroundImageUrl ? (
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${backgroundImageUrl})` }}
-        />
+        <>
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+          />
+          {/* Dark overlay for text readability - ALWAYS ENABLED unless explicitly disabled */}
+          <div 
+            className="absolute inset-0 bg-black"
+            style={{ 
+              opacity: overlayOpacity,
+              zIndex: 1 
+            }}
+          />
+        </>
       ) : background.type === 'gradient' && background.gradient ? (
         <div 
           className="absolute inset-0"
@@ -260,7 +329,7 @@ function renderSongSlide(slide: any, song: Song, className: string) {
   if (slide.visualData) {
     const visualData = slide.visualData;
     if (visualData.elements && visualData.background) {
-      return renderVisualSlide(visualData, className);
+      return renderVisualSlide(visualData, className, slide);
     }
   }
   
@@ -342,10 +411,10 @@ function renderSongSlide(slide: any, song: Song, className: string) {
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${backgroundImage})` }}
           />
-          {/* Overlay for text readability */}
+          {/* Overlay for text readability - ALWAYS 50% minimum */}
           <div 
             className="absolute inset-0 bg-black"
-            style={{ opacity: song.designTheme?.overlayOpacity || 0.4 }}
+            style={{ opacity: Math.max(song.designTheme?.overlayOpacity || 0.5, 0.5) }}
           />
         </>
       ) : (

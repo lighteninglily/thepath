@@ -33,11 +33,15 @@ export function useCreateService() {
       console.log('🔵 useCreateService mutation called with:', data);
       const electron = getElectron();
       console.log('📡 Calling electron.database.createService...');
-      const result = await electron.database.createService(data);
+      const serviceData = {
+        ...data,
+        date: data.date || new Date().toISOString().split('T')[0] // Ensure date is always a string
+      };
+      const result = await electron.database.createService(serviceData);
       console.log('✅ Database createService returned:', result);
       return result;
     },
-    onSuccess: async (data) => {
+    onSuccess: async () => {
       console.log('🎉 Service creation successful, invalidating queries...');
       await queryClient.invalidateQueries({ queryKey: ['services'] });
       console.log('✅ Queries invalidated');

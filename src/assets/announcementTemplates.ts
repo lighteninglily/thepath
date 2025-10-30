@@ -9,34 +9,17 @@ import bb2 from './bb (2).jpg';
 import bb3 from './bb (3).jpg';
 import bb4 from './bb (4).jpg';
 import bb5 from './bb (5).jpg';
-import bb6 from './bb (6).jpg';
-import bb7 from './bb (7).jpg';
-import bb8 from './bb (8).jpg';
-import bb9 from './bb (9).jpg';
-import bb10 from './bb (10).jpg';
-import bb11 from './bb (11).jpg';
+// Unused: bb6-bb11 imported but not used in templates
 
 import bw1 from './11 -bw (1).jpg';
 import bw2 from './11 -bw (2).jpg';
 import bw3 from './11 -bw (3).jpg';
-import bw4 from './11 -bw (4).jpg';
-import bw5 from './11 -bw (5).jpg';
-import bw6 from './11 -bw (6).jpg';
-import bw7 from './11 -bw (7).jpg';
-import bw8 from './11 -bw (8).jpg';
-import bw9 from './11 -bw (9).jpg';
-import bw10 from './11 -bw (10).jpg';
+// Unused: bw4-bw10 imported but not used in templates
 
 import rp1 from './Rp (1).jpg';
 import rp2 from './Rp (2).jpg';
 import rp3 from './Rp (3).jpg';
-import rp4 from './Rp (4).jpg';
-import rp5 from './Rp (5).jpg';
-import rp6 from './Rp (6).jpg';
-import rp7 from './Rp (7).jpg';
-import rp8 from './Rp (8).jpg';
-import rp9 from './Rp (9).jpg';
-import rp10 from './Rp (10).jpg';
+// Unused: rp4-rp10 imported but not used in templates
 
 export interface AnnouncementTemplate {
   id: string;

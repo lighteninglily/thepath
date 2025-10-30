@@ -185,6 +185,22 @@ export function AudienceViewPage() {
       }
       
       const backgroundStyle = getBackgroundStyle(background);
+      
+      // Calculate overlay opacity (ALWAYS 50% minimum for image backgrounds)
+      const hasImageBackground = background?.imageUrl || backgroundStyle.backgroundImage;
+      const overlayOpacity = hasImageBackground
+        ? (background?.overlay?.enabled === false 
+            ? 0 
+            : background?.overlay?.opacity 
+              ? Math.max(background.overlay.opacity / 100, 0.5)
+              : 0.5)
+        : 0;
+      
+      console.log('📺 Audience overlay:', {
+        hasImageBackground,
+        overlayData: background?.overlay,
+        calculatedOpacity: overlayOpacity
+      });
 
       return (
         <div className="w-full h-full relative overflow-hidden">
@@ -193,6 +209,17 @@ export function AudienceViewPage() {
             className="absolute inset-0"
             style={backgroundStyle}
           />
+          
+          {/* Dark overlay for text readability */}
+          {overlayOpacity > 0 && (
+            <div 
+              className="absolute inset-0 bg-black"
+              style={{ 
+                opacity: overlayOpacity,
+                zIndex: 1 
+              }}
+            />
+          )}
 
           {/* Elements */}
           {elements?.map((element: any, index: number) => {

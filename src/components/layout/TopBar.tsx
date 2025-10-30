@@ -1,4 +1,4 @@
-import React from 'react';
+// React import not needed in this file
 import { Search, Play } from 'lucide-react';
 
 interface TopBarProps {

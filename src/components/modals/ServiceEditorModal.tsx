@@ -35,6 +35,11 @@ export function ServiceEditorModal({
 
   useEffect(() => {
     if (service && isOpen) {
+      console.log('📖 Loading service into editor:', {
+        name: service.name,
+        itemCount: service.items?.length || 0,
+        items: service.items?.map(i => ({ id: i.id, type: i.type, title: i.title }))
+      });
       setItems(service.items || []);
     }
   }, [service, isOpen]);
@@ -61,7 +66,17 @@ export function ServiceEditorModal({
         items,
         updatedAt: new Date().toISOString(),
       };
-      console.log('✅ Autosave: Saving service...');
+      console.log('✅ Autosave: Saving service with items:', {
+        name: updatedService.name,
+        itemCount: updatedService.items.length,
+        items: updatedService.items.map(i => ({
+          id: i.id,
+          type: i.type,
+          title: i.title,
+          hasContent: !!i.content,
+          contentLength: i.content?.length || 0
+        }))
+      });
       onSave(updatedService);
       setInitialItems(items); // Update baseline to prevent re-saving
     }, 1000); // Wait 1 second after last change
@@ -104,9 +119,20 @@ export function ServiceEditorModal({
   };
 
   const handleSaveVisualItem = (updatedItem: ServiceItem) => {
-    setItems(prev => prev.map(item => 
-      item.id === updatedItem.id ? updatedItem : item
-    ));
+    console.log('📝 handleSaveVisualItem called:', {
+      itemId: updatedItem.id,
+      title: updatedItem.title,
+      type: updatedItem.type,
+      contentPreview: updatedItem.content?.substring(0, 100) + '...'
+    });
+    
+    setItems(prev => {
+      const newItems = prev.map(item => 
+        item.id === updatedItem.id ? updatedItem : item
+      );
+      console.log('✅ Items updated, autosave will trigger in 1 second');
+      return newItems;
+    });
     setVisualEditingItem(null);
   };
 
@@ -228,7 +254,7 @@ export function ServiceEditorModal({
           <div className="flex gap-2 mb-6 pb-4 border-b border-brand-warmGray">
             <button
               onClick={onAddSong}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-mistyBlue text-brand-skyBlue rounded-lg hover:bg-brand-powderBlue transition-colors font-medium"
             >
               <Music size={18} />
               Add Song

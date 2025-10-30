@@ -202,15 +202,35 @@ export function VisualCanvas({
                   type: element.type,
                   position: element.position,
                   size: element.size,
-                  fontSize: elAny.style?.fontSize,
-                  color: elAny.style?.color
+                  topLevelFontSize: elAny.fontSize,
+                  topLevelFontFamily: elAny.fontFamily,
+                  topLevelColor: elAny.color,
+                  styleObject: elAny.style,
+                  styleFontSize: elAny.style?.fontSize,
+                  styleFontFamily: elAny.style?.fontFamily,
+                  styleColor: elAny.style?.color
                 });
                 return (
                   <CanvasElement
                     key={element.id}
                     element={element}
                     isSelected={element.id === selectedElementId}
-                    onSelect={() => onSelectElement(element.id)}
+                    onSelect={() => {
+                      console.log('🎯 Element selected:', {
+                        id: element.id,
+                        type: element.type,
+                        topLevel: {
+                          fontSize: elAny.fontSize,
+                          fontFamily: elAny.fontFamily,
+                          fontWeight: elAny.fontWeight,
+                          color: elAny.color,
+                          textAlign: elAny.textAlign
+                        },
+                        style: elAny.style,
+                        allKeys: Object.keys(element)
+                      });
+                      onSelectElement(element.id);
+                    }}
                     onUpdate={(updates) => onUpdateElement(element.id, updates)}
                   />
                 );

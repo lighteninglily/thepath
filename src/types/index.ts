@@ -101,6 +101,8 @@ export interface ElectronAPI {
     getServices: () => Promise<Service[]>;
     getServiceById: (id: string) => Promise<Service | null>;
     createService: (service: CreateServiceInput) => Promise<Service>;
+    updateService: (id: string, data: Partial<Service>) => Promise<Service>;
+    deleteService: (id: string) => Promise<void>;
     
     getDesignTemplates: () => Promise<DesignTemplate[]>;
     

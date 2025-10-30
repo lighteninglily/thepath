@@ -69,10 +69,8 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
 
   // Next slide
   nextSlide: () => {
-    const { service, currentItemIndex, currentSlideIndex } = get();
+    const { service, currentItemIndex } = get();
     if (!service) return;
-
-    const currentItem = service.items[currentItemIndex];
     
     // Check if current item is a song with multiple slides
     // Note: Song data will be loaded separately by the presenter
@@ -156,7 +154,7 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
 export function getNextSlideInfo(
   service: Service | null,
   currentItemIndex: number,
-  currentSlideIndex: number
+  _currentSlideIndex: number
 ): { nextItem: ServiceItem | null; nextSlideIndex: number } {
   if (!service) return { nextItem: null, nextSlideIndex: 0 };
 

@@ -37,22 +37,22 @@ export function AdvancedSlidePreview({
       return renderSplitLayout(lines, background, textColor, fontSize, className, true);
     
     case 'centered-mask':
-      return renderMaskedLayout(lines, background, textColor, fontSize, className);
+      return renderMinimalLayout(lines, background, textColor, fontSize, className);
     
     case 'gradient-overlay':
       return renderGradientOverlay(lines, background, textColor, fontSize, className);
     
     case 'full-bleed':
     default:
-      return renderFullBleed(lines, background, textColor, fontSize, className);
+      return renderFullBleedLayout(lines, background, textColor, fontSize, className);
   }
 }
 
 // Full-bleed photo with text overlay
-function renderFullBleed(
+function renderFullBleedLayout(
   lines: string[], 
   background: BackgroundImage | null | undefined, 
-  textColor: string,
+  _textColor: string,
   fontSize: string,
   className: string
 ) {
@@ -74,7 +74,7 @@ function renderFullBleed(
       {/* Text */}
       <div className="absolute inset-0 flex items-center justify-center p-12">
         <div style={{ 
-          color: textColor,
+          color: '#FFFFFF',
           fontSize,
           lineHeight: '1.4',
           textAlign: 'left',
@@ -95,8 +95,8 @@ function renderFullBleed(
 function renderSplitLayout(
   lines: string[], 
   background: BackgroundImage | null | undefined,
-  textColor: string,
-  fontSize: string,
+  _textColor: string,
+  _fontSize: string,
   className: string,
   reversed: boolean
 ) {
@@ -153,11 +153,11 @@ function renderSplitLayout(
 }
 
 // Centered with masked image (like your example 3)
-function renderMaskedLayout(
+function renderMinimalLayout(
   lines: string[], 
   background: BackgroundImage | null | undefined,
-  textColor: string,
-  fontSize: string,
+  _textColor: string,
+  _fontSize: string,
   className: string
 ) {
   const titleLine = lines[0];
@@ -210,7 +210,7 @@ function renderMaskedLayout(
 function renderGradientOverlay(
   lines: string[], 
   background: BackgroundImage | null | undefined,
-  textColor: string,
+  _textColor: string,
   fontSize: string,
   className: string
 ) {

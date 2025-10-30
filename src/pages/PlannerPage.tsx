@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Loader2, Plus, Copy, Trash2 } from 'lucide-react';
+import { Calendar, Loader2, Plus, Copy, Trash2, Play } from 'lucide-react';
 import { CreateServiceModal } from '../components/planner/CreateServiceModal';
 import { ServiceEditorModal } from '../components/modals/ServiceEditorModal';
 import { AddSongToServiceModal } from '../components/modals/AddSongToServiceModal';
@@ -8,6 +8,7 @@ import { TemplatePickerModal } from '../components/modals/TemplatePickerModal';
 import type { SlideTemplate } from '../config/slideTemplatesFixed';
 import { useServices, useCreateService, useUpdateService, useDeleteService, useDuplicateService } from '../hooks/useServices';
 import { useSongs } from '../hooks/useSongs';
+import { useServicePresentationStore } from '../store/servicePresentationStore';
 import type { Service, ServiceItem } from '../types/service';
 
 export function PlannerPage() {
@@ -25,6 +26,7 @@ export function PlannerPage() {
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
   const duplicateService = useDuplicateService();
+  const { startPresentation } = useServicePresentationStore();
 
   const handleCreateService = async (data: { name: string; date: string }) => {
     console.log('🔵 handleCreateService called with:', data);
@@ -82,6 +84,33 @@ export function PlannerPage() {
     }
   };
 
+  const handlePresentService = (service: Service) => {
+    console.log('🎭 Starting presentation for:', service.name);
+    console.log('📊 Service data:', {
+      id: service.id,
+      name: service.name,
+      itemCount: service.items?.length || 0,
+      items: service.items
+    });
+    
+    // Validate service has items
+    if (!service.items || service.items.length === 0) {
+      alert('This service has no items to present. Please add songs or slides first.');
+      return;
+    }
+    
+    // Start presentation in dual-screen mode
+    startPresentation(service, 'dual');
+    
+    // Open audience window (projection screen) with correct hash route
+    const audienceWindow = window.open('/#/audience', 'audience', 'fullscreen=yes');
+    if (!audienceWindow) {
+      alert('Please allow popups to open the projection screen');
+    } else {
+      console.log('✅ Audience window opened successfully');
+    }
+  };
+
   const handleAddSong = (song: any) => {
     if (!selectedService) return;
     
@@ -104,6 +133,12 @@ export function PlannerPage() {
 
   const handleAddScripture = (scripture: { reference: string; text: string; version: string }) => {
     if (!selectedService) return;
+    
+    console.log('📖 handleAddScripture called with:', {
+      reference: scripture.reference,
+      textPreview: scripture.text.substring(0, 100) + '...',
+      version: scripture.version
+    });
     
     // Store scripture data and show template picker
     setPendingScripture(scripture);
@@ -150,17 +185,25 @@ export function PlannerPage() {
 
     // If there's pending scripture data, pre-fill it into the template
     if (pendingScripture && template.category === 'scripture') {
+      console.log('📖 Using pending scripture:', {
+        reference: pendingScripture.reference,
+        textPreview: pendingScripture.text.substring(0, 100) + '...',
+        version: pendingScripture.version
+      });
+      
       // Clone template and customize with scripture
       const customizedVisualData = { ...template.visualData };
       
-      // Find scripture text elements and update them
+      // Update elements with scripture data
       customizedVisualData.elements = template.visualData.elements.map((el: any) => {
-        // Update scripture reference
-        if (el.id === 'scripture-ref' || el.id === 'header') {
-          return { ...el, content: pendingScripture.reference };
+        // Update scripture reference (check multiple possible IDs)
+        if (el.id === 'scripture-ref' || el.id === 'header' || el.id === 'reference') {
+          console.log('  ✏️ Updating element', el.id, 'with reference:', pendingScripture.reference);
+          return { ...el, content: pendingScripture.reference.toUpperCase() };
         }
-        // Update scripture text
-        if (el.id === 'scripture-text' || el.id === 'scripture-quote' || el.id === 'point-1') {
+        // Update scripture text (check multiple possible IDs)
+        if (el.id === 'scripture-text' || el.id === 'scripture-quote' || el.id === 'point-1' || el.id === 'verse-text') {
+          console.log('  ✏️ Updating element', el.id, 'with text preview:', pendingScripture.text.substring(0, 50) + '...');
           return { ...el, content: pendingScripture.text };
         }
         return el;
@@ -331,6 +374,14 @@ export function PlannerPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handlePresentService(service)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-skyBlue hover:bg-brand-powderBlue text-white transition-colors text-sm font-medium"
+                      title="Start presentation"
+                    >
+                      <Play size={16} />
+                      Present
+                    </button>
                     <button
                       onClick={() => handleDuplicateService(service)}
                       className="p-2 hover:bg-brand-warmGray rounded-lg transition-colors group"

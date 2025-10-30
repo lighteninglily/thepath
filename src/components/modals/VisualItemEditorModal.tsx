@@ -383,13 +383,13 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
         ...updates,
         style: {
           ...el.style,
-          // Sync specific properties to style
-          fontFamily: updates.fontFamily !== undefined ? updates.fontFamily : el.fontFamily,
-          fontSize: updates.fontSize !== undefined ? updates.fontSize : el.fontSize,
-          fontWeight: updates.fontWeight !== undefined ? updates.fontWeight : el.fontWeight,
-          color: updates.color !== undefined ? updates.color : el.color,
-          textAlign: updates.textAlign !== undefined ? updates.textAlign : el.textAlign,
-          backgroundColor: updates.backgroundColor !== undefined ? updates.backgroundColor : el.backgroundColor,
+          // Sync specific properties to style (preserve existing style values!)
+          fontFamily: updates.fontFamily !== undefined ? updates.fontFamily : (el.style?.fontFamily || el.fontFamily),
+          fontSize: updates.fontSize !== undefined ? updates.fontSize : (el.style?.fontSize || el.fontSize),
+          fontWeight: updates.fontWeight !== undefined ? updates.fontWeight : (el.style?.fontWeight || el.fontWeight),
+          color: updates.color !== undefined ? updates.color : (el.style?.color || el.color),
+          textAlign: updates.textAlign !== undefined ? updates.textAlign : (el.style?.textAlign || el.textAlign),
+          backgroundColor: updates.backgroundColor !== undefined ? updates.backgroundColor : (el.style?.backgroundColor || el.backgroundColor),
         }
       };
       
@@ -733,7 +733,7 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
             {/* Brand Assets */}
             <button
               onClick={() => setShowAssetPicker(true)}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-brand-skyBlue hover:bg-brand-powderBlue text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
               title="Insert from brand assets library"
             >
               <Files className="w-4 h-4" />
@@ -945,7 +945,7 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
                     </label>
                     <input
                       type="number"
-                      value={selectedElement.fontSize || 48}
+                      value={selectedElement.fontSize || selectedElement.style?.fontSize || 48}
                       onChange={(e) => handleUpdateElement(selectedElement.id, { fontSize: parseInt(e.target.value) })}
                       className="w-full px-3 py-2 border border-brand-warmGray rounded-lg text-sm"
                       min="8"
@@ -961,7 +961,7 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
                       Font Weight
                     </label>
                     <select
-                      value={selectedElement.fontWeight || 400}
+                      value={selectedElement.fontWeight || selectedElement.style?.fontWeight || 400}
                       onChange={(e) => handleUpdateElement(selectedElement.id, { fontWeight: parseInt(e.target.value) })}
                       className="w-full px-3 py-2 border border-brand-warmGray rounded-lg text-sm"
                     >
@@ -985,7 +985,7 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
                       Font Family
                     </label>
                     <select
-                      value={selectedElement.fontFamily || 'Outfit'}
+                      value={selectedElement.fontFamily || selectedElement.style?.fontFamily || 'Outfit'}
                       onChange={(e) => handleUpdateElement(selectedElement.id, { fontFamily: e.target.value })}
                       className="w-full px-3 py-2 border border-brand-warmGray rounded-lg text-sm"
                     >
@@ -1039,13 +1039,13 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
                     <div className="flex gap-2">
                       <input
                         type="color"
-                        value={selectedElement.color || '#000000'}
+                        value={selectedElement.color || selectedElement.style?.color || '#000000'}
                         onChange={(e) => handleUpdateElement(selectedElement.id, { color: e.target.value })}
                         className="w-12 h-10 border border-brand-warmGray rounded cursor-pointer"
                       />
                       <input
                         type="text"
-                        value={selectedElement.color || '#000000'}
+                        value={selectedElement.color || selectedElement.style?.color || '#000000'}
                         onChange={(e) => handleUpdateElement(selectedElement.id, { color: e.target.value })}
                         className="flex-1 px-3 py-2 border border-brand-warmGray rounded-lg text-sm font-mono"
                         placeholder="#000000"
@@ -1066,7 +1066,7 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
                           key={align}
                           onClick={() => handleUpdateElement(selectedElement.id, { textAlign: align })}
                           className={`flex-1 px-3 py-2 rounded border transition-colors capitalize text-sm ${
-                            selectedElement.textAlign === align
+                            (selectedElement.textAlign || selectedElement.style?.textAlign) === align
                               ? 'bg-brand-skyBlue text-white border-brand-skyBlue'
                               : 'bg-white text-brand-charcoal border-brand-warmGray hover:bg-brand-warmGray'
                           }`}

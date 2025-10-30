@@ -99,15 +99,13 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "arch": ["x64"]
         }
       ],
       "icon": "public/icon.ico",
       "publisherName": "The Way Church",
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": false,
+      "sign": null
     },
     "nsis": {
       "oneClick": false,
