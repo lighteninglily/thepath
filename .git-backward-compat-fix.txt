@@ -1,0 +1,12 @@
+FIX: Restore background compatibility for existing songs
+
+Problem: Audience view showed black backgrounds for existing songs
+Cause: Code was only checking for imageUrl, but existing songs use imageId
+
+Solution: Check both imageUrl (new format) and imageId (old format)
+Now works with:
+- Old songs created before fix (imageId)
+- New songs created after fix (imageUrl)
+- Both formats resolve to background URL correctly
+
+This maintains backward compatibility with all existing content

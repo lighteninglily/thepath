@@ -1,0 +1,19 @@
+Fix song slide backgrounds for audience view
+
+Problem: Song slides showed backgrounds in presenter but not audience view
+
+Root cause: Song slides were setting imageId but not imageUrl
+AudienceViewPage needs the actual URL to load the image
+
+Solution:
+- Added imageUrl field to all song lyric slides (background.url)
+- Added imageUrl field to title slide (background.url)  
+- Added overlay settings for better text readability (50% opacity)
+
+Now both title and lyric slides have:
+- imageId (for reference)
+- imageUrl (actual Unsplash URL for rendering)
+- overlay (50% black for text readability)
+
+Note: Existing songs in database need to be regenerated
+New songs created after this fix will work correctly

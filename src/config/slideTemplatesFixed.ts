@@ -55,6 +55,21 @@ export interface SlideTemplate {
       
       // Common
       zIndex?: number;
+      
+      // Style object (used by VisualCanvas for rendering)
+      style?: {
+        fontSize?: number;
+        fontFamily?: string;
+        fontWeight?: number;
+        color?: string;
+        textAlign?: string;
+        lineHeight?: number;
+        letterSpacing?: number | string;
+        textTransform?: string;
+        textDecoration?: string;
+        fontStyle?: string;
+        textShadow?: string;
+      };
     }>;
     backgroundGradient?: string;
     backgroundColor?: string;

@@ -1,0 +1,11 @@
+CRITICAL FIX: React hooks violation - move useEffect before early return
+
+Problem: "Rendered more hooks than during the previous render"
+Cause: useEffect was declared AFTER early return statement
+React Rule: All hooks must be called before any conditional returns
+
+Solution: Moved auto-start presentation useEffect to line 106
+Now executes BEFORE the early return at line 136
+All hooks now called in consistent order every render
+
+This fixes the crash when opening ServiceEditorModal
