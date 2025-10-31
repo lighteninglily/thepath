@@ -1,0 +1,20 @@
+CRITICAL FIX: Connect AI modals to template system
+
+Previously AI modals generated content but stored as JSON with no visual representation.
+
+Now the flow works properly:
+1. AI generates content (sermon/offering/welcome/closing)
+2. Template picker opens automatically
+3. User selects a template
+4. Template is populated with AI-generated content
+5. Item created with visual template
+6. User can edit in Visual Editor (add logos, images, etc.)
+
+Changes:
+- Added pendingAIContent state to store AI data
+- Modified all AI handlers to open template picker after generation
+- Updated handleSelectTemplate to populate templates with AI content
+- Maps AI fields to template element IDs
+- Added offering to templateCategory type
+
+This fixes the critical issue where AI-generated slides were blank/unusable
