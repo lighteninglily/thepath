@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { VisualCanvas } from '../designer/VisualCanvas';
 import type { SermonTemplate } from '../../config/sermonTemplates';
 
@@ -16,10 +16,8 @@ interface SermonSlideEditorProps {
   slideIndex: number;
   totalSlides: number;
   appliedTemplate: SermonTemplate | null;
-  suggestedTemplates?: SermonTemplate[];
   onUpdateContent: (content: string) => void;
   onNavigate: (direction: 'prev' | 'next') => void;
-  onAIPickTemplate: () => void;
   onOpenVisualEditor: () => void;
 }
 
@@ -28,10 +26,8 @@ export function SermonSlideEditor({
   slideIndex,
   totalSlides,
   appliedTemplate,
-  suggestedTemplates = [],
   onUpdateContent,
   onNavigate,
-  onAIPickTemplate,
   onOpenVisualEditor,
 }: SermonSlideEditorProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -196,35 +192,19 @@ Examples:
             Template & Design
           </label>
           
-          <div className="grid grid-cols-2 gap-3">
-            {/* AI Suggest Button */}
-            {suggestedTemplates.length > 0 && (
-              <button
-                onClick={onAIPickTemplate}
-                className="flex items-center justify-center gap-2 px-4 py-3
-                  bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg
-                  hover:from-purple-700 hover:to-blue-700 transition-all
-                  shadow-md hover:shadow-lg font-medium"
-              >
-                <Sparkles size={18} />
-                AI Suggest
-              </button>
-            )}
-
-            {/* Visual Editor Button */}
-            <button
-              onClick={onOpenVisualEditor}
-              disabled={!hasTemplate}
-              className="flex items-center justify-center gap-2 px-4 py-3
-                bg-white border-2 border-blue-500 text-blue-600 rounded-lg
-                hover:bg-blue-50 transition-colors font-medium
-                disabled:opacity-40 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400"
-              title={!hasTemplate ? "Apply a template first" : "Open Visual Editor"}
-            >
-              <Eye size={18} />
-              Customize
-            </button>
-          </div>
+          {/* Visual Editor Button */}
+          <button
+            onClick={onOpenVisualEditor}
+            disabled={!hasTemplate}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3
+              bg-blue-600 text-white rounded-lg
+              hover:bg-blue-700 transition-colors font-medium
+              disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-gray-400"
+            title={!hasTemplate ? "Select a template first" : "Open Visual Editor"}
+          >
+            <Eye size={18} />
+            Customize
+          </button>
 
           {!hasTemplate && slide.content && (
             <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
