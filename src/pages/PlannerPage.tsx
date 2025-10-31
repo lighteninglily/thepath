@@ -25,6 +25,7 @@ export function PlannerPage() {
   const [showAddClosingModal, setShowAddClosingModal] = useState(false);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [pendingAIContent, setPendingAIContent] = useState<any>(null);
+  const [autoOpenItemId, setAutoOpenItemId] = useState<string | null>(null);
   const [templateCategory, setTemplateCategory] = useState<'sermon' | 'offering' | 'announcement' | 'scripture' | 'welcome' | 'closing' | 'generic'>('announcement');
   const [pendingScripture, setPendingScripture] = useState<{ 
     reference: string; 
@@ -448,6 +449,7 @@ export function PlannerPage() {
       setSelectedService(updatedService);
       setPendingAIContent(null); // Clear pending AI content
       setShowTemplatePicker(false);
+      setAutoOpenItemId(newItem.id); // Auto-open in visual editor
     } else {
       // Regular template (announcement, etc.)
       const newItem: ServiceItem = {
@@ -647,10 +649,14 @@ export function PlannerPage() {
       <ServiceEditorModal
         service={selectedService}
         isOpen={selectedService !== null}
-        onClose={() => setSelectedService(null)}
+        onClose={() => {
+          setSelectedService(null);
+          setAutoOpenItemId(null);
+        }}
         onSave={handleSaveService}
         onAddSong={() => setShowAddSongModal(true)}
         onAddItem={handleAddItem}
+        autoOpenVisualEditorForItemId={autoOpenItemId}
       />
 
       {/* Add Song Modal */}

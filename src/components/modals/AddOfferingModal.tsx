@@ -142,17 +142,49 @@ export function AddOfferingModal({ isOpen, onClose, onAddOffering }: AddOffering
             </label>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <div className="flex items-center gap-3 mb-3">
+                <Loader2 size={20} className="animate-spin text-emerald-600" />
+                <p className="text-sm font-semibold text-emerald-800">AI is creating your offering slide...</p>
+              </div>
+              <div className="space-y-1 text-xs text-emerald-700">
+                <p>✨ Analyzing your selected theme</p>
+                <p>🎨 Crafting graceful giving message</p>
+                <p>📝 Adding scripture reference (if requested)</p>
+              </div>
+              <div className="mt-3 h-1 bg-emerald-200 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-600 rounded-full animate-pulse" style={{width: '60%'}}></div>
+              </div>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-700">{error}</p>
+              <div className="flex items-start gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-red-800 mb-1">Generation Failed</p>
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+                <button
+                  onClick={handleGenerate}
+                  className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
           )}
 
           {/* Preview */}
           {preview && (
-            <div className="space-y-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm font-semibold text-green-800">✨ Offering Slide Generated!</p>
+            <div className="space-y-3 p-4 bg-green-50 border border-green-200 rounded-lg animate-in fade-in duration-300">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-sm">✓</div>
+                <p className="text-sm font-semibold text-green-800">Offering Slide Generated Successfully!</p>
+              </div>
               
               <div className="p-4 bg-white rounded border">
                 <p className="text-lg font-bold text-brand-charcoal mb-2">{preview.title}</p>

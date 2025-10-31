@@ -14,6 +14,7 @@ interface ServiceEditorModalProps {
   onSave: (service: Service) => void;
   onAddSong: () => void;
   onAddItem: (type: string) => void;
+  autoOpenVisualEditorForItemId?: string | null;
 }
 
 export function ServiceEditorModal({ 
@@ -22,7 +23,8 @@ export function ServiceEditorModal({
   onClose, 
   onSave,
   onAddSong,
-  onAddItem 
+  onAddItem,
+  autoOpenVisualEditorForItemId
 }: ServiceEditorModalProps) {
   const [items, setItems] = useState<ServiceItem[]>([]);
   const [initialItems, setInitialItems] = useState<ServiceItem[]>([]);
@@ -32,6 +34,17 @@ export function ServiceEditorModal({
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   
   const { startPresentation } = useServicePresentationStore();
+
+  // Auto-open visual editor for newly created AI items
+  useEffect(() => {
+    if (autoOpenVisualEditorForItemId && items.length > 0) {
+      const itemToOpen = items.find(i => i.id === autoOpenVisualEditorForItemId);
+      if (itemToOpen) {
+        console.log('🎨 Auto-opening visual editor for:', itemToOpen.title);
+        setVisualEditingItem(itemToOpen);
+      }
+    }
+  }, [autoOpenVisualEditorForItemId, items]);
 
   useEffect(() => {
     if (service && isOpen) {
