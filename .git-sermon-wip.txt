@@ -1,0 +1,36 @@
+WIP: Sermon slide builder foundation - Template system and AI
+
+Phase 1 of sermon slide builder implementation
+
+CREATED:
+1. sermonTemplates.ts - 10 professional templates
+   - Title slides (2): Hero Bold, Elegant Center
+   - Scripture slides (2): Classic Center, Modern Split
+   - Point slides (2): Numbered Bold, Split Image
+   - Multi-point (1): Two-column layout
+   - Quote (1): Elegant with attribution
+   - Transition (1): Minimal section break
+   - Question (1): Bold engagement slide
+
+2. sermonTemplateMatcher.ts - AI content detection
+   - Analyzes slide content automatically
+   - Detects scripture references (John 3:16, etc.)
+   - Identifies numbered points (1. 2. 3.)
+   - Recognizes questions (?)
+   - Finds quotes and attributions
+   - Smart template suggestions
+   - Content-to-template mapping
+
+FEATURES:
+- 10 beautifully designed templates across 7 categories
+- AI analyzes text and suggests best templates
+- Auto-extracts data (titles, scripture refs, point numbers)
+- Template placeholder system ({{TITLE}}, {{SCRIPTURE_TEXT}}, etc.)
+- Confidence scoring for suggestions
+- Flexible template structure (visualData format)
+
+NEXT:
+- Build 3-panel UI components
+- Template gallery with previews
+- Slide navigator (left panel)
+- Integration with sermon creation flow
