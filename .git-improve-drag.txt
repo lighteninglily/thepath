@@ -1,0 +1,37 @@
+UX: Make drag & drop more discoverable and easier to use
+
+Enhanced visibility and usability of slide reordering
+
+IMPROVEMENTS:
+1. Drag handle now ALWAYS visible (not just on hover)
+2. Drag handle is bigger (16px instead of 14px)
+3. Drag handle has stronger visual presence:
+   - Thicker border (2px)
+   - Stronger shadow
+   - Hover effect (blue border + blue background)
+   - Better positioning (slightly further left)
+
+4. Entire header bar is now draggable:
+   - Can grab slide number/type header to drag
+   - Header shows "grab" cursor
+   - Header highlights on hover (subtle blue tint)
+   - Tooltip says "Drag to reorder"
+
+5. Thumbnail remains clickable for selection:
+   - Click thumbnail → selects slide
+   - Click/drag header → reorders slide
+   - Clear separation of concerns
+
+BEFORE:
+- Tiny handle only visible on hover
+- Easy to miss
+- Users didn't know slides were draggable
+
+AFTER:
+- Always-visible drag handle on left
+- Entire header bar is draggable
+- Visual feedback on hover
+- Much more discoverable
+- Easier to grab and drag
+
+This makes the drag & drop feature immediately obvious to users!

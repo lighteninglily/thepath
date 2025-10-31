@@ -72,10 +72,21 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
         });
       }
       
+      // Extract lyrics from slides if lyrics field is empty
+      let lyrics = song.lyrics;
+      if (!lyrics && song.slidesData && song.slidesData.length > 0) {
+        console.log('🔄 Extracting lyrics from slides...');
+        lyrics = song.slidesData
+          .map(slide => slide.content || slide.visualData?.elements?.[0]?.content || '')
+          .filter(content => content.trim())
+          .join('\n\n');
+        console.log('✅ Extracted lyrics:', lyrics.substring(0, 50) + '...');
+      }
+
       const loadedData = {
         title: song.title,
         artist: song.artist,
-        lyrics: song.lyrics,
+        lyrics: lyrics,
         slidesData: song.slidesData,
         designTheme: song.designTheme,
         backgroundId: song.backgroundId,
