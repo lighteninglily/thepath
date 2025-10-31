@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { SermonSlideBuilder } from './SermonSlideBuilder';
+import { SlideDesigner } from '../designer/SlideDesigner';
+import type { VisualSlide } from '../../types/designer';
 
 interface SermonSlide {
   id: string;
@@ -16,11 +18,13 @@ interface AddSermonModalProps {
 }
 
 export function AddSermonModal({ onClose, onSave }: AddSermonModalProps) {
-  const [step, setStep] = useState<'details' | 'builder'>('details');
+  const [step, setStep] = useState<'details' | 'builder' | 'visual-editor'>('details');
   const [sermonTitle, setSermonTitle] = useState('');
   const [sermonDate, setSermonDate] = useState('');
   const [sermonSpeaker, setSermonSpeaker] = useState('');
   const [scripture, setScripture] = useState('');
+  const [sermonSlides, setSermonSlides] = useState<SermonSlide[]>([]);
+  const [editingSlideIndex, setEditingSlideIndex] = useState<number>(0);
 
   const handleStartBuilder = () => {
     if (!sermonTitle.trim()) {
@@ -37,12 +41,69 @@ export function AddSermonModal({ onClose, onSave }: AddSermonModalProps) {
     });
   };
 
+  const handleOpenVisualEditor = (slide: SermonSlide, index: number) => {
+    console.log('Opening Visual Editor for slide', index + 1);
+    setSermonSlides(slides => {
+      const updated = [...slides];
+      updated[index] = slide;
+      return updated;
+    });
+    setEditingSlideIndex(index);
+    setStep('visual-editor');
+  };
+
+  const handleSaveFromVisualEditor = (visualSlides: VisualSlide[]) => {
+    console.log('Saving from Visual Editor:', visualSlides);
+    if (visualSlides.length > 0) {
+      const updatedSlide = visualSlides[0];
+      const newSlides = [...sermonSlides];
+      newSlides[editingSlideIndex] = {
+        ...newSlides[editingSlideIndex],
+        visualData: {
+          background: updatedSlide.background,
+          elements: updatedSlide.elements,
+        },
+      };
+      setSermonSlides(newSlides);
+    }
+    setStep('builder');
+  };
+
+  if (step === 'visual-editor') {
+    // Convert sermon slide to Visual Editor format
+    const currentSlide = sermonSlides[editingSlideIndex];
+    const visualSlide: VisualSlide = {
+      id: currentSlide.id,
+      content: currentSlide.content,
+      order: editingSlideIndex,
+      elements: currentSlide.visualData?.elements || [],
+      background: currentSlide.visualData?.background || { type: 'color', value: '#000000' },
+      aspectRatio: '16:9',
+      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+      isVisualMode: true,
+      templateId: currentSlide.templateId,
+    };
+
+    return (
+      <SlideDesigner
+        slides={[visualSlide]}
+        onSave={handleSaveFromVisualEditor}
+        onClose={() => setStep('builder')}
+      />
+    );
+  }
+
   if (step === 'builder') {
     return (
       <SermonSlideBuilder
         sermonTitle={sermonTitle}
-        onSave={handleSaveSermon}
+        initialSlides={sermonSlides.length > 0 ? sermonSlides : undefined}
+        onSave={(slides) => {
+          setSermonSlides(slides);
+          handleSaveSermon(slides);
+        }}
         onClose={onClose}
+        onOpenVisualEditor={handleOpenVisualEditor}
       />
     );
   }
