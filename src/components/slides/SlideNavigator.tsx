@@ -85,9 +85,8 @@ function SortableSlideItem({
     <div
       ref={setNodeRef}
       style={style}
-      onClick={onSelect}
       className={`
-        relative group cursor-pointer rounded-lg border-2 transition-all
+        relative group rounded-lg border-2 transition-all
         ${isDragging ? 'z-50 shadow-2xl scale-105' : ''}
         ${isActive 
           ? 'border-blue-500 bg-white shadow-md ring-2 ring-blue-200' 
@@ -95,18 +94,27 @@ function SortableSlideItem({
         }
       `}
     >
-      {/* Drag Handle */}
+      {/* Drag Handle - Always visible, positioned on left */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute -left-1 top-1/2 -translate-y-1/2 p-1 cursor-grab active:cursor-grabbing
-          opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded border border-gray-300 shadow-sm"
+        className="absolute -left-2 top-1/2 -translate-y-1/2 p-1.5 cursor-grab active:cursor-grabbing
+          bg-white rounded-md border-2 border-gray-300 shadow-md
+          hover:border-blue-400 hover:bg-blue-50 transition-all z-10"
+        title="Drag to reorder"
       >
-        <GripVertical size={14} className="text-gray-500" />
+        <GripVertical size={16} className="text-gray-600" />
       </div>
 
-      {/* Slide Number & Type */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-100">
+      {/* Slide Number & Type - DRAGGABLE HEADER */}
+      <div 
+        {...attributes}
+        {...listeners}
+        className="flex items-center justify-between p-2 border-b border-gray-100 cursor-grab active:cursor-grabbing
+          hover:bg-blue-50/50 transition-colors"
+        title="Drag to reorder"
+        onClick={onSelect}
+      >
         <div className="flex items-center gap-2">
           <span className={`text-xs font-bold ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
             {index + 1}
@@ -146,9 +154,10 @@ function SortableSlideItem({
         </div>
       </div>
 
-      {/* Thumbnail Preview */}
+      {/* Thumbnail Preview - Click to select */}
       <div 
-        className="relative aspect-video overflow-hidden bg-gray-900"
+        onClick={onSelect}
+        className="relative aspect-video overflow-hidden bg-gray-900 cursor-pointer"
         style={{
           backgroundImage: background?.url ? `url(${background.url})` : 'none',
           backgroundSize: 'cover',

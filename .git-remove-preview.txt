@@ -1,0 +1,28 @@
+CLEANUP: Remove redundant Preview Slides tab
+
+The "Preview Slides" tab is now unnecessary with the new 3-panel slide editor
+
+REMOVED:
+- Preview Slides tab button and functionality
+- showPreview state variable
+- Grid preview of slides in modal
+- Conditional rendering based on preview mode
+
+SIMPLIFIED UI:
+- Edit Song modal now shows only "Song Details" section
+- Removed confusing tab switching
+- Users can click "Edit Slides" to open the new powerful editor
+- "Visual Editor" button still available for advanced customization
+
+BENEFITS:
+- Cleaner, less confusing interface
+- One clear path to edit slides (Edit Slides button)
+- Preview functionality is built into the new slide editor
+- Reduces cognitive load on users
+
+The new SlideEditorNew component provides:
+- Better slide previews (thumbnails on left)
+- Full editing capabilities
+- Drag & drop reordering
+- Split/merge functionality
+- All in one comprehensive interface
