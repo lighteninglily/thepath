@@ -1,0 +1,44 @@
+CRITICAL FIX: Customize button now works - Opens Visual Editor
+
+PROBLEM:
+- User clicks "Customize" button in sermon builder
+- Nothing happens
+- Cannot edit slides in Visual Editor
+
+ROOT CAUSE:
+- SermonSlideBuilder had onOpenVisualEditor handler
+- BUT AddSermonModal wasn't passing the prop
+- No state management for Visual Editor integration
+
+SOLUTION:
+1. Added state management in AddSermonModal:
+   - step: 'details' | 'builder' | 'visual-editor'
+   - sermonSlides: tracks all slides
+   - editingSlideIndex: which slide is being customized
+
+2. Added handleOpenVisualEditor function:
+   - Saves current slide state
+   - Switches to visual-editor step
+   - Opens SlideDesigner component
+
+3. Added handleSaveFromVisualEditor function:
+   - Gets changes from Visual Editor
+   - Updates sermon slide visualData
+   - Returns to builder
+
+4. Pass onOpenVisualEditor prop to SermonSlideBuilder
+
+WORKFLOW NOW:
+1. Type content in sermon builder
+2. Apply template (AI Suggest or manual)
+3. Click "Customize"
+4. Opens full Visual Editor with slide
+5. Edit fonts, colors, positions, elements
+6. Save
+7. Back to sermon builder with changes
+
+IMPACT:
+- Customize button now fully functional ✓
+- Round-trip editing works ✓
+- Changes persist correctly ✓
+- Professional customization available ✓

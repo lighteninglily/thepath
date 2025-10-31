@@ -86,22 +86,33 @@ export function SermonSlideEditor({
             {hasTemplate && slide.visualData ? (
               <div className="w-full h-full bg-gray-900 flex items-center justify-center">
                 <div className="w-full max-w-5xl aspect-video">
-                  <VisualCanvas
-                    slide={{
-                      id: slide.id,
-                      content: slide.content,
-                      order: slideIndex,
-                      elements: slide.visualData?.elements || [],
-                      background: slide.visualData?.background || { type: 'color', value: '#000000' },
-                      aspectRatio: '16:9' as const,
-                      padding: { top: 0, right: 0, bottom: 0, left: 0 },
-                      isVisualMode: true,
+                  {(() => {
+                    console.log('🎨 SERMON PREVIEW - Rendering slide:', {
+                      hasTemplate,
                       templateId: slide.templateId,
-                    }}
-                    selectedElementId={null}
-                    onSelectElement={() => {}}
-                    onUpdateElement={() => {}}
-                  />
+                      background: slide.visualData?.background,
+                      elementsCount: slide.visualData?.elements?.length || 0,
+                      elements: slide.visualData?.elements,
+                    });
+                    return (
+                      <VisualCanvas
+                        slide={{
+                          id: slide.id,
+                          content: slide.content,
+                          order: slideIndex,
+                          elements: slide.visualData?.elements || [],
+                          background: slide.visualData?.background || { type: 'color', value: '#000000' },
+                          aspectRatio: '16:9' as const,
+                          padding: { top: 0, right: 0, bottom: 0, left: 0 },
+                          isVisualMode: true,
+                          templateId: slide.templateId,
+                        }}
+                        selectedElementId={null}
+                        onSelectElement={() => {}}
+                        onUpdateElement={() => {}}
+                      />
+                    );
+                  })()}
                 </div>
               </div>
             ) : (

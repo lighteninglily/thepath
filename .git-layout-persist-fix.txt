@@ -1,0 +1,39 @@
+FIX: Layout styles now persist correctly when reopening song editor
+
+PROBLEM:
+- User sets layout style to "Full Photo"
+- Saves changes
+- Reopens editor
+- Layout randomly changes to "Split: Dark/Light" or other layout
+- Very frustrating!
+
+ROOT CAUSE:
+- useEffect auto-initializes backgrounds/layouts when slideBackgrounds.length === 0
+- When loading existing song, there's a brief moment where slideBackgrounds is []
+- useEffect sees length === 0 and runs assignRandomLayouts()
+- This OVERWRITES the layouts we just loaded from the database
+
+SOLUTION:
+- Check if song has existing slidesData with layouts before auto-initializing
+- Skip auto-initialization if we're loading an existing song
+- Only auto-initialize for NEW songs with no saved data
+
+CODE CHANGES:
+```
+const hasExistingSlidesWithLayout = song?.slidesData && song.slidesData.some(s => s.layout);
+if (currentSlides.length > 0 && !hasExistingSlidesWithLayout && ...) {
+  // Only auto-initialize for new songs
+}
+```
+
+IMPACT:
+- Layouts now persist correctly across editor sessions
+- No more random layout changes
+- User's layout choices are respected and saved
+- Background persistence also improved
+
+TESTED:
+- Save song with "Full Photo" layout
+- Close editor
+- Reopen editor
+- Layout should still be "Full Photo" ✓

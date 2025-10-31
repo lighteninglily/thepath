@@ -1,0 +1,6 @@
+FIX: Connect sermon builder to app + Add background debug logging
+
+- Replaced old AI sermon modal with new 3-panel slide builder
+- Added debug logging to track background changes in song editor
+- Sermon builder now accessible from PlannerPage
+- Backgrounds ARE saving correctly (confirmed in logs)

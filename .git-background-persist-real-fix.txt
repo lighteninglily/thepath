@@ -1,0 +1,42 @@
+CRITICAL FIX: Backgrounds now persist correctly when reopening editor
+
+PROBLEM:
+- User adds background to slide 7
+- Saves changes
+- Closes editor
+- Reopens editor
+- Background is GONE!
+
+ROOT CAUSE:
+The handleOpenSlideEditor() function was ALWAYS creating new background arrays
+based on current UI state (selectedBackground, selectedPack, selectedLook).
+
+This happened EVERY TIME you clicked "Edit Slides", which OVERWROTE the 
+backgrounds we just carefully loaded from the database!
+
+Flow was:
+1. Load song → Extract backgrounds from database → Set slideBackgrounds ✓
+2. Click "Edit Slides" → handleOpenSlideEditor runs
+3. Create NEW backgrounds array → OVERWRITES slideBackgrounds ✗
+4. Editor opens with wrong backgrounds
+
+SOLUTION:
+Check if backgrounds/layouts are already loaded before creating new ones:
+- If slideBackgrounds.length === currentSlides.length → Use loaded data
+- If not → Create new arrays (for NEW songs only)
+
+This preserves database-loaded backgrounds while still supporting new songs.
+
+CODE CHANGES:
+- Added hasLoadedData check in handleOpenSlideEditor
+- Early return if backgrounds already loaded
+- Only create new arrays for genuinely new songs
+- Added comprehensive debug logging
+
+IMPACT:
+- Backgrounds now persist correctly ✓
+- Layouts now persist correctly ✓  
+- User changes are respected and saved ✓
+- No more data loss when reopening editor ✓
+
+This was the REAL root cause of the persistence issue!
