@@ -1,4 +1,4 @@
-import { X, BookOpen, Loader2 } from 'lucide-react';
+import { X, BookOpen, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { openaiService } from '../../services/openaiService';
 
@@ -20,6 +20,7 @@ export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScript
   const [scriptureText, setScriptureText] = useState('');
   const [scriptureParts, setScriptureParts] = useState<string[]>([]);
   const [shouldSplit, setShouldSplit] = useState(false);
+  const [selectedSlideCount, setSelectedSlideCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,6 +58,8 @@ export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScript
       setScriptureText(result.fullText);
       setScriptureParts(result.parts);
       setShouldSplit(result.shouldSplit);
+      // Default to AI recommendation
+      setSelectedSlideCount(result.parts.length);
 
     } catch (err) {
       console.error('❌ Error looking up scripture:', err);
@@ -66,18 +69,40 @@ export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScript
     }
   };
 
+  // Function to split scripture into N parts evenly
+  const splitIntoNParts = (text: string, n: number): string[] => {
+    if (n === 1) return [text];
+    
+    const words = text.split(' ');
+    const wordsPerPart = Math.ceil(words.length / n);
+    const parts: string[] = [];
+    
+    for (let i = 0; i < n; i++) {
+      const start = i * wordsPerPart;
+      const end = Math.min(start + wordsPerPart, words.length);
+      parts.push(words.slice(start, end).join(' '));
+    }
+    
+    return parts;
+  };
+
   const handleAdd = () => {
     if (!scriptureText) {
       setError('Please look up a scripture first');
       return;
     }
 
+    // Use selected slide count to re-split if needed
+    const finalParts = selectedSlideCount && selectedSlideCount !== scriptureParts.length
+      ? splitIntoNParts(scriptureText, selectedSlideCount)
+      : scriptureParts;
+
     onAddScripture({
       reference,
       text: scriptureText,
       version,
-      parts: scriptureParts,
-      shouldSplit: shouldSplit,
+      parts: finalParts,
+      shouldSplit: finalParts.length > 1,
     });
 
     // Reset and close
@@ -85,6 +110,7 @@ export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScript
     setScriptureText('');
     setScriptureParts([]);
     setShouldSplit(false);
+    setSelectedSlideCount(null);
     setError('');
     onClose();
   };
@@ -183,11 +209,39 @@ export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScript
                 Scripture Text ({version})
               </label>
               
-              {/* Split Notice */}
-              {shouldSplit && scriptureParts.length > 1 && (
+              {/* Split Notice with Slide Count Selector */}
+              {shouldSplit && scriptureParts.length > 1 && selectedSlideCount && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm text-amber-800 font-medium">
-                    📖 This scripture will be split into {scriptureParts.length} slides for better readability
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-amber-800 font-medium">
+                      📖 Split into slides:
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSlideCount(Math.max(1, selectedSlideCount - 1))}
+                        disabled={selectedSlideCount <= 1}
+                        className="p-1 rounded hover:bg-amber-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        title="Fewer slides"
+                      >
+                        <ChevronDown size={18} className="text-amber-700" />
+                      </button>
+                      <span className="text-lg font-bold text-amber-900 min-w-[2rem] text-center">
+                        {selectedSlideCount}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSlideCount(Math.min(scriptureParts.length, selectedSlideCount + 1))}
+                        disabled={selectedSlideCount >= scriptureParts.length}
+                        className="p-1 rounded hover:bg-amber-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        title="More slides"
+                      >
+                        <ChevronUp size={18} className="text-amber-700" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-amber-700 mt-1">
+                    AI recommends {scriptureParts.length} slides. Use arrows to adjust (1-{scriptureParts.length})
                   </p>
                 </div>
               )}

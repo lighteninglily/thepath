@@ -1,0 +1,19 @@
+Feature improvements: Scripture auto-split, emoji removal, improvement plan
+
+Implemented AI-powered scripture auto-split for long passages
+Removed emojis from Add Item menu, replaced with professional Lucide icons
+Created FEATURE-IMPROVEMENT-PLAN.md with 8-week roadmap
+Fixed logo rendering in presenter view
+Fixed overlay logic - only apply to song slides
+Implemented beautiful title slides with Allura/Outfit typography
+
+Files changed:
+- openaiService.ts: Smart scripture splitting logic
+- AddScriptureModal.tsx: Split preview UI
+- PlannerPage.tsx: Multi-slide creation for splits
+- ServiceEditorModal.tsx: Professional icon menu
+- ServiceItemSlidePreview.tsx: Image element rendering
+- slideGeneratorService.ts: Beautiful dual-typography titles
+- globals.css: Allura font import
+
+Ready for Phase 1 implementation

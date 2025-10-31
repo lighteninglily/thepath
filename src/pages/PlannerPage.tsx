@@ -90,7 +90,7 @@ export function PlannerPage() {
     }
   };
 
-  const handlePresentService = (service: Service) => {
+  const handlePresentService = async (service: Service) => {
     console.log('🎭 Starting presentation for:', service.name);
     console.log('📊 Service data:', {
       id: service.id,
@@ -108,13 +108,25 @@ export function PlannerPage() {
     // Start presentation in dual-screen mode
     startPresentation(service, 'dual');
     
+    // Small delay to ensure store is updated
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Open audience window (projection screen) with correct hash route
     const audienceWindow = window.open('/#/audience', 'audience', 'fullscreen=yes');
     if (!audienceWindow) {
       alert('Please allow popups to open the projection screen');
     } else {
       console.log('✅ Audience window opened successfully');
+      // Force audience window to reload after a moment to pick up state
+      setTimeout(() => {
+        if (audienceWindow && !audienceWindow.closed) {
+          audienceWindow.location.reload();
+        }
+      }, 500);
     }
+    
+    // Open the service editor modal for presenter controls
+    setSelectedService(service);
   };
 
   const handleAddSong = (song: any) => {

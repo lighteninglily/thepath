@@ -1,0 +1,16 @@
+Quick fixes: Present button and scripture slide count selector
+
+Present Button Fix:
+- Fixed standalone Present button on service cards
+- Now opens both audience window AND service editor modal
+- Added delay to ensure state syncs properly
+- Audience window reloads after 500ms to pick up presentation state
+
+Scripture Slide Count Selector:
+- Added ChevronUp/ChevronDown controls to adjust slide count
+- AI recommends initial split (e.g. 8 slides)
+- User can adjust from 1 to AI-recommended max
+- Real-time preview updates
+- splitIntoNParts() helper divides text evenly
+
+Both issues resolved, ready for Phase 1 implementation
