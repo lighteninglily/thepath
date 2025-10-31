@@ -1,0 +1,24 @@
+Add automatic versioning system and release scripts
+
+Added 6 new npm scripts for version management:
+
+VERSION ONLY (bumps version, commits, tags, pushes):
+- npm run version:patch  (3.1.0 → 3.1.1) - Bug fixes
+- npm run version:minor  (3.1.0 → 3.2.0) - New features  
+- npm run version:major  (3.1.0 → 4.0.0) - Breaking changes
+
+VERSION + BUILD (bumps version AND builds installer):
+- npm run release:patch  - Bump patch + build Windows installer
+- npm run release:minor  - Bump minor + build Windows installer
+- npm run release:major  - Bump major + build Windows installer
+
+Each version command:
+1. Updates version in package.json
+2. Creates git commit with version number
+3. Creates git tag (e.g., v3.1.1)
+4. Pushes to GitHub
+5. (release:* only) Builds Windows installer
+
+Follows semantic versioning (semver.org)
+
+Also fixed TypeScript build error by adding style property to template type

@@ -6,7 +6,7 @@ import { BackgroundPicker } from '../backgrounds/BackgroundPicker';
 import { BackgroundPackPicker } from '../backgrounds/BackgroundPackPicker';
 // import { QuickLookPicker } from '../backgrounds/QuickLookPicker'; // Not currently used
 // import { AdvancedSlidePreview } from '../slides/AdvancedSlidePreview'; // Now using grid overview instead
-import { SlideEditor } from '../slides/SlideEditor';
+import { SlideEditorNew } from '../slides/SlideEditorNew';
 import { SlideDesigner } from '../designer/SlideDesigner';
 import { LyricsSearchModal } from '../lyrics/LyricsSearchModal';
 import { simpleToVisualSlide, visualToSimpleSlide } from '../../utils/slideConverter';
@@ -869,12 +869,14 @@ Was blind, but now I see"
 
       {/* Slide Editor Modal */}
       {showSlideEditor && (
-        <SlideEditor
+        <SlideEditorNew
           slides={currentSlides}
           backgrounds={slideBackgrounds}
           layouts={slideLayouts}
           onSave={handleSaveSlides}
           onClose={() => setShowSlideEditor(false)}
+          songTitle={song?.title || formData.title}
+          songArtist={song?.artist || formData.artist || undefined}
         />
       )}
 
