@@ -1,0 +1,9 @@
+Fix React hooks violation in auto-start presentation
+
+Fixed error: Cannot access handleStartPresentation before initialization
+
+Solution: Inlined presentation start logic instead of calling function
+Now uses startPresentation from store directly in useEffect
+Proper cleanup with timer clearTimeout
+
+User must refresh browser to see changes (Ctrl+Shift+R)

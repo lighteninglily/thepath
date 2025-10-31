@@ -1,0 +1,24 @@
+BUGFIX: Fix Present button on PlannerPage + Scripture insertion style
+
+PRESENT BUTTON FIX:
+Previously, clicking Present on main PlannerPage showed "Waiting for presentation..." and got stuck.
+
+Solution:
+- Present button now opens service in ServiceEditorModal
+- Auto-starts presentation after modal opens
+- Uses working presentation system from ServiceEditorModal
+- Added autoStartPresentation props to coordinate
+
+Flow now:
+1. User clicks Present on PlannerPage
+2. Service opens in editor modal
+3. Presentation auto-starts (300ms delay for loading)
+4. Presenter view shows with working controls
+5. Audience window opens via Electron
+
+SCRIPTURE INSERTION FIX:
+- Added missing style property to scripture text elements
+- Prevents "Cannot read properties of undefined (reading 'fontFamily')" error
+- Scripture reference and text now render correctly in VisualCanvas
+
+Both features now working correctly!

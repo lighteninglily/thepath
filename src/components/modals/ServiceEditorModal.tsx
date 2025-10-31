@@ -101,6 +101,38 @@ export function ServiceEditorModal({
     return () => clearTimeout(timer);
   }, [items, service, isOpen, hasChanges, onSave]);
 
+  // Auto-start presentation when requested from PlannerPage Present button
+  // MUST be before early return to avoid hooks violation
+  useEffect(() => {
+    if (autoStartPresentation && isOpen && items.length > 0 && !isPresentationMode && service) {
+      console.log('🎭 Auto-starting presentation from PlannerPage...');
+      const timer = setTimeout(async () => {
+        const presentationService: Service = {
+          ...service,
+          items: items,
+          name: service.name,
+          date: service.date,
+        };
+        
+        startPresentation(presentationService, 'dual');
+        
+        if (window.electron?.presentation?.start) {
+          try {
+            await window.electron.presentation.start();
+            console.log('✅ Audience window opened');
+          } catch (error) {
+            console.error('❌ Failed to open audience window:', error);
+          }
+        }
+        
+        setIsPresentationMode(true);
+        onPresentationStarted?.();
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoStartPresentation, isOpen, items, isPresentationMode, service, startPresentation, onPresentationStarted]);
+
   if (!isOpen || !service) return null;
 
   const handleDeleteItem = (itemId: string) => {
@@ -220,18 +252,6 @@ export function ServiceEditorModal({
       }
     }
   };
-
-  // Auto-start presentation when requested from PlannerPage Present button
-  useEffect(() => {
-    if (autoStartPresentation && isOpen && items.length > 0 && !isPresentationMode) {
-      console.log('🎭 Auto-starting presentation from PlannerPage...');
-      // Small delay to ensure modal is fully loaded
-      setTimeout(() => {
-        handleStartPresentation();
-        onPresentationStarted?.();
-      }, 300);
-    }
-  }, [autoStartPresentation, isOpen, items.length]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
