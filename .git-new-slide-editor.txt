@@ -1,0 +1,60 @@
+FEATURE: PowerPoint-style 3-panel slide editor
+
+Complete redesign of song slide editing interface for better usability
+
+NEW 3-PANEL LAYOUT:
+├─ LEFT: Slide Navigator (200px)
+│  ├─ Thumbnail previews with slide numbers
+│  ├─ Type badges (Title/Verse/Chorus/Bridge)
+│  ├─ Active slide highlighting
+│  ├─ Quick duplicate/delete buttons
+│  └─ Add new slide button
+├─ CENTER: Slide Editor (flexible)
+│  ├─ Large slide preview
+│  ├─ Text editor (click to edit)
+│  ├─ Layout selector
+│  ├─ Background picker
+│  ├─ Split slide button (divides long slides)
+│  ├─ Merge with next button
+│  └─ Previous/Next navigation
+└─ RIGHT: Lyrics Panel (250px)
+   ├─ Full song lyrics (editable)
+   ├─ Text selection & copy
+   ├─ Paste to current slide
+   └─ Line count display
+
+FEATURES IMPLEMENTED:
+✅ 3-panel responsive layout
+✅ Slide thumbnails with backgrounds
+✅ Split slide (smart line-based splitting)
+✅ Merge slides
+✅ Duplicate slides
+✅ Delete slides with confirmation
+✅ Copy/paste lyrics to slides
+✅ Full lyrics editor
+✅ Keyboard shortcuts:
+   - Ctrl+S: Save
+   - Ctrl+N: New slide
+   - Ctrl+D: Duplicate
+   - Ctrl+↑/↓: Reorder slides
+   - ←/→: Navigate slides
+   - Esc: Close editor
+
+IMPROVEMENTS:
+- Much easier slide management
+- See all slides at once
+- No more scrolling through grid
+- Reference lyrics while editing
+- Quick duplicate/split/merge
+- Visual feedback on active slide
+
+NEXT PHASE:
+- Add drag & drop reordering (requires @dnd-kit library)
+
+Created 4 new components:
+- SlideEditorNew.tsx (main modal)
+- SlideNavigator.tsx (left panel)
+- SlideEditorPanel.tsx (center panel)
+- LyricsPanel.tsx (right panel)
+
+Updated SongFormModal to use new editor
