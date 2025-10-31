@@ -1,0 +1,22 @@
+FIX: Populate lyrics field from existing slides when editing songs
+
+Extracts lyrics from slide content when lyrics field is empty
+
+PROBLEM:
+- When editing an existing song, lyrics textarea was empty
+- Even though the lyrics existed in the slides
+- This was confusing for users
+
+SOLUTION:
+- When loading a song for editing, check if lyrics field is empty
+- If empty but slides exist, extract lyrics from slide content
+- Reconstruct full lyrics by joining all slide text with line breaks
+- Display in the lyrics textarea
+
+NOW:
+- Edit Song modal shows actual song lyrics
+- Extracted from slide.content or slide.visualData.elements
+- Prevents confusing empty lyrics field
+- User can see and edit the full song text
+
+This ensures existing song data is properly displayed when editing!
