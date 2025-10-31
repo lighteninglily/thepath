@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles, Eye } from 'lucide-react';
+import { VisualCanvas } from '../designer/VisualCanvas';
 import type { SermonTemplate } from '../../config/sermonTemplates';
 
 interface SermonSlide {
@@ -83,23 +84,24 @@ export function SermonSlideEditor({
         <div className="rounded-lg overflow-hidden border-2 border-gray-200 shadow-lg">
           <div className="aspect-video bg-gray-50 flex items-center justify-center">
             {hasTemplate && slide.visualData ? (
-              <div 
-                className="w-full h-full relative"
-                style={{
-                  background: slide.visualData.background?.type === 'gradient' 
-                    ? slide.visualData.background.value
-                    : slide.visualData.background?.type === 'color'
-                    ? slide.visualData.background.value
-                    : '#f5f5f0',
-                }}
-              >
-                {/* Simplified preview - actual rendering would use VisualCanvas */}
-                <div className="absolute inset-0 flex items-center justify-center p-8">
-                  <div className="text-center">
-                    <p className="text-gray-700 font-semibold text-lg whitespace-pre-wrap">
-                      {slide.content || 'Empty slide'}
-                    </p>
-                  </div>
+              <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                <div className="w-full max-w-5xl aspect-video">
+                  <VisualCanvas
+                    slide={{
+                      id: slide.id,
+                      content: slide.content,
+                      order: slideIndex,
+                      elements: slide.visualData?.elements || [],
+                      background: slide.visualData?.background || { type: 'color', value: '#000000' },
+                      aspectRatio: '16:9' as const,
+                      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+                      isVisualMode: true,
+                      templateId: slide.templateId,
+                    }}
+                    selectedElementId={null}
+                    onSelectElement={() => {}}
+                    onUpdateElement={() => {}}
+                  />
                 </div>
               </div>
             ) : (
