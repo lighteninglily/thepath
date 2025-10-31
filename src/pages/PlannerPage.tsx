@@ -4,6 +4,10 @@ import { CreateServiceModal } from '../components/planner/CreateServiceModal';
 import { ServiceEditorModal } from '../components/modals/ServiceEditorModal';
 import { AddSongToServiceModal } from '../components/modals/AddSongToServiceModal';
 import { AddScriptureModal } from '../components/modals/AddScriptureModal';
+import { AddSermonModal } from '../components/modals/AddSermonModal';
+import { AddOfferingModal } from '../components/modals/AddOfferingModal';
+import { AddWelcomeModal } from '../components/modals/AddWelcomeModal';
+import { AddClosingModal } from '../components/modals/AddClosingModal';
 import { TemplatePickerModal } from '../components/modals/TemplatePickerModal';
 import type { SlideTemplate } from '../config/slideTemplatesFixed';
 import { useServices, useCreateService, useUpdateService, useDeleteService, useDuplicateService } from '../hooks/useServices';
@@ -15,6 +19,10 @@ export function PlannerPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddSongModal, setShowAddSongModal] = useState(false);
   const [showAddScriptureModal, setShowAddScriptureModal] = useState(false);
+  const [showAddSermonModal, setShowAddSermonModal] = useState(false);
+  const [showAddOfferingModal, setShowAddOfferingModal] = useState(false);
+  const [showAddWelcomeModal, setShowAddWelcomeModal] = useState(false);
+  const [showAddClosingModal, setShowAddClosingModal] = useState(false);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [templateCategory, setTemplateCategory] = useState<'sermon' | 'announcement' | 'scripture' | 'welcome' | 'closing' | 'generic'>('announcement');
   const [pendingScripture, setPendingScripture] = useState<{ 
@@ -173,17 +181,131 @@ export function PlannerPage() {
     setShowAddScriptureModal(false);
   };
 
+  const handleAddSermon = (sermon: { title: string; scripture?: string; points?: string[]; aiGenerated: any }) => {
+    if (!selectedService) return;
+    
+    console.log('🎤 handleAddSermon called');
+    
+    // For now, just create a basic item - will enhance with template generation next
+    const newItem: ServiceItem = {
+      id: String(Date.now()),
+      type: 'sermon',
+      title: sermon.title,
+      order: selectedService.items.length,
+      duration: 20,
+      // Store AI data for later template integration
+      content: JSON.stringify(sermon.aiGenerated)
+    };
+    
+    const updatedService = {
+      ...selectedService,
+      items: [...selectedService.items, newItem],
+    };
+    
+    setSelectedService(updatedService);
+    setShowAddSermonModal(false);
+  };
+
+  const handleAddOffering = (offering: { theme: string; aiGenerated: any }) => {
+    if (!selectedService) return;
+    
+    console.log('💰 handleAddOffering called');
+    
+    const newItem: ServiceItem = {
+      id: String(Date.now()),
+      type: 'offering',
+      title: offering.aiGenerated.title || 'Offering',
+      order: selectedService.items.length,
+      duration: 5,
+      content: JSON.stringify(offering.aiGenerated)
+    };
+    
+    const updatedService = {
+      ...selectedService,
+      items: [...selectedService.items, newItem],
+    };
+    
+    setSelectedService(updatedService);
+    setShowAddOfferingModal(false);
+  };
+
+  const handleAddWelcome = (welcome: { churchName: string; serviceType: string; aiGenerated: any }) => {
+    if (!selectedService) return;
+    
+    console.log('👋 handleAddWelcome called');
+    
+    const newItem: ServiceItem = {
+      id: String(Date.now()),
+      type: 'welcome',
+      title: 'Welcome',
+      order: selectedService.items.length,
+      duration: 2,
+      content: JSON.stringify(welcome.aiGenerated)
+    };
+    
+    const updatedService = {
+      ...selectedService,
+      items: [...selectedService.items, newItem],
+    };
+    
+    setSelectedService(updatedService);
+    setShowAddWelcomeModal(false);
+  };
+
+  const handleAddClosing = (closing: { includeBenediction: boolean; nextWeekPreview?: string; aiGenerated: any }) => {
+    if (!selectedService) return;
+    
+    console.log('✅ handleAddClosing called');
+    
+    const newItem: ServiceItem = {
+      id: String(Date.now()),
+      type: 'closing',
+      title: 'Closing',
+      order: selectedService.items.length,
+      duration: 3,
+      content: JSON.stringify(closing.aiGenerated)
+    };
+    
+    const updatedService = {
+      ...selectedService,
+      items: [...selectedService.items, newItem],
+    };
+    
+    setSelectedService(updatedService);
+    setShowAddClosingModal(false);
+  };
+
   const handleAddItem = (type: string) => {
     if (!selectedService) return;
 
-    // Handle scripture specially (has AI lookup)
+    // Handle AI-enhanced items with dedicated modals
     if (type === 'scripture') {
       setShowAddScriptureModal(true);
       return;
     }
+    
+    if (type === 'sermon') {
+      setShowAddSermonModal(true);
+      return;
+    }
+    
+    if (type === 'offering') {
+      setShowAddOfferingModal(true);
+      return;
+    }
+    
+    if (type === 'welcome') {
+      setShowAddWelcomeModal(true);
+      return;
+    }
+    
+    if (type === 'closing') {
+      setShowAddClosingModal(true);
+      return;
+    }
 
-    // For items with templates, show template picker
-    if (['announcement', 'sermon', 'welcome', 'closing'].includes(type)) {
+    // For items with templates (announcement), show template picker
+    if (['announcement'].includes(type)) {
       setTemplateCategory(type as any);
       setShowTemplatePicker(true);
       return;
@@ -492,6 +614,34 @@ export function PlannerPage() {
         isOpen={showAddScriptureModal}
         onClose={() => setShowAddScriptureModal(false)}
         onAddScripture={handleAddScripture}
+      />
+
+      {/* Add Sermon Modal (AI-Enhanced) */}
+      <AddSermonModal
+        isOpen={showAddSermonModal}
+        onClose={() => setShowAddSermonModal(false)}
+        onAddSermon={handleAddSermon}
+      />
+
+      {/* Add Offering Modal (AI-Enhanced) */}
+      <AddOfferingModal
+        isOpen={showAddOfferingModal}
+        onClose={() => setShowAddOfferingModal(false)}
+        onAddOffering={handleAddOffering}
+      />
+
+      {/* Add Welcome Modal (AI-Enhanced) */}
+      <AddWelcomeModal
+        isOpen={showAddWelcomeModal}
+        onClose={() => setShowAddWelcomeModal(false)}
+        onAddWelcome={handleAddWelcome}
+      />
+
+      {/* Add Closing Modal (AI-Enhanced) */}
+      <AddClosingModal
+        isOpen={showAddClosingModal}
+        onClose={() => setShowAddClosingModal(false)}
+        onAddClosing={handleAddClosing}
       />
 
       {/* Template Picker Modal */}

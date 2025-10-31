@@ -302,6 +302,215 @@ For invalid references, return an error in the fullText field.`
   }
 
   /**
+   * Generate sermon slides with AI
+   */
+  async generateSermonSlides(params: {
+    title: string;
+    scripture?: string;
+    points?: string[];
+  }): Promise<{
+    titleSlide: any;
+    pointsSlide?: any;
+    closingSlide: any;
+  }> {
+    if (!this.client) {
+      throw new Error('OpenAI not configured');
+    }
+
+    const response = await this.client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful assistant that creates professional sermon slide content for church presentations.
+
+Generate sermon slides with:
+1. Title slide: Engaging sermon title, scripture reference
+2. Points slide (if points provided): 3-4 key takeaways
+3. Closing slide: Call to action or benediction
+
+Return as JSON:
+{
+  "titleSlide": {
+    "title": "sermon title",
+    "subtitle": "scripture reference",
+    "theme": "brief description"
+  },
+  "pointsSlide": {
+    "title": "Key Points",
+    "points": ["point 1", "point 2", "point 3"]
+  },
+  "closingSlide": {
+    "title": "closing message",
+    "callToAction": "what should people do"
+  }
+}`
+        },
+        {
+          role: 'user',
+          content: `Create sermon slides for:
+Title: ${params.title}
+Scripture: ${params.scripture || 'None specified'}
+Points: ${params.points?.join(', ') || 'None - generate suggested points'}`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0]?.message?.content?.trim() || '{}';
+    return JSON.parse(content);
+  }
+
+  /**
+   * Generate offering slide with AI
+   */
+  async generateOfferingSlide(params: {
+    theme?: 'gratitude' | 'purpose' | 'joy' | 'stewardship';
+    includeScripture?: boolean;
+  }): Promise<{
+    title: string;
+    message: string;
+    scripture?: string;
+  }> {
+    if (!this.client) {
+      throw new Error('OpenAI not configured');
+    }
+
+    const response = await this.client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful assistant that creates graceful, non-awkward offering slide content.
+
+Focus on: ${params.theme || 'gratitude'}
+Include scripture: ${params.includeScripture ? 'yes' : 'no'}
+
+Return as JSON:
+{
+  "title": "main heading",
+  "message": "encouraging message about giving",
+  "scripture": "relevant verse reference (if requested)"
+}
+
+Keep tone positive, grateful, and purpose-driven. Avoid guilt or obligation.`
+        },
+        {
+          role: 'user',
+          content: 'Generate an offering slide message'
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 300,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0]?.message?.content?.trim() || '{}';
+    return JSON.parse(content);
+  }
+
+  /**
+   * Generate welcome slide with AI
+   */
+  async generateWelcomeSlide(params: {
+    churchName: string;
+    serviceType?: string;
+    specialMessage?: string;
+  }): Promise<{
+    mainMessage: string;
+    subtitle: string;
+    greeting: string;
+  }> {
+    if (!this.client) {
+      throw new Error('OpenAI not configured');
+    }
+
+    const response = await this.client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful assistant that creates warm, welcoming slide content for church services.
+
+Return as JSON:
+{
+  "mainMessage": "Welcome to [Church Name]",
+  "subtitle": "brief welcoming statement",
+  "greeting": "friendly greeting message"
+}
+
+Keep it warm, inclusive, and inviting.`
+        },
+        {
+          role: 'user',
+          content: `Generate welcome slide for:
+Church: ${params.churchName}
+Service Type: ${params.serviceType || 'Sunday Service'}
+Special: ${params.specialMessage || 'None'}`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0]?.message?.content?.trim() || '{}';
+    return JSON.parse(content);
+  }
+
+  /**
+   * Generate closing slide with AI
+   */
+  async generateClosingSlide(params: {
+    includeBenediction?: boolean;
+    nextWeekPreview?: string;
+  }): Promise<{
+    title: string;
+    message: string;
+    benediction?: string;
+    nextWeek?: string;
+  }> {
+    if (!this.client) {
+      throw new Error('OpenAI not configured');
+    }
+
+    const response = await this.client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful assistant that creates meaningful closing slide content for church services.
+
+Include benediction: ${params.includeBenediction ? 'yes' : 'no'}
+Next week preview: ${params.nextWeekPreview || 'no'}
+
+Return as JSON:
+{
+  "title": "main closing message",
+  "message": "thank you and send-off message",
+  "benediction": "scripture benediction (if requested)",
+  "nextWeek": "preview of next week (if provided)"
+}
+
+Keep it warm, grateful, and forward-looking.`
+        },
+        {
+          role: 'user',
+          content: `Generate closing slide${params.nextWeekPreview ? ` with next week: ${params.nextWeekPreview}` : ''}`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 300,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0]?.message?.content?.trim() || '{}';
+    return JSON.parse(content);
+  }
+
+  /**
    * Check if OpenAI is configured
    */
   isConfigured(): boolean {
