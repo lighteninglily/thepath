@@ -220,7 +220,7 @@ export function PlannerPage() {
               <h3 className="text-lg font-bold text-brand-charcoal mb-4">Items Breakdown</h3>
               <div className="space-y-2">
                 {[
-                  { type: 'song', label: 'Songs', color: 'purple' },
+                  { type: 'song', label: 'Songs', color: 'skyBlue' },
                   { type: 'scripture', label: 'Scriptures', color: 'blue' },
                   { type: 'sermon', label: 'Sermon', color: 'orange' },
                   { type: 'announcement', label: 'Announcements', color: 'yellow' },
@@ -230,7 +230,7 @@ export function PlannerPage() {
                     <div key={type} className="flex items-center justify-between text-sm">
                       <span className="text-brand-umber">{label}</span>
                       <span className={`font-medium px-2 py-1 rounded ${
-                        color === 'purple' ? 'bg-purple-100 text-purple-700' :
+                        color === 'skyBlue' ? 'bg-brand-mistyBlue text-brand-skyBlue' :
                         color === 'blue' ? 'bg-blue-100 text-blue-700' :
                         color === 'orange' ? 'bg-orange-100 text-orange-700' :
                         'bg-yellow-100 text-yellow-700'

@@ -22,11 +22,6 @@ export function AppShell({ children, currentRoute, onNavigate }: AppShellProps) 
     }
   };
 
-  const handleStartPresentation = () => {
-    // TODO: Implement in Stage 5
-    console.log('Start presentation');
-  };
-
   return (
     <div className="flex h-screen bg-brand-offWhite">
       {/* Sidebar */}
@@ -35,10 +30,7 @@ export function AppShell({ children, currentRoute, onNavigate }: AppShellProps) 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <TopBar
-          title={getPageTitle()}
-          onStartPresentation={currentRoute !== 'settings' ? handleStartPresentation : undefined}
-        />
+        <TopBar title={getPageTitle()} />
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto">

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Check, AlertCircle, Zap, Mountain, Waves, Cloud } from 'lucide-react';
+import { X, Sparkles, Check, AlertCircle, Zap, Mountain, Waves, Cloud, Trees } from 'lucide-react';
 import { useQuickGenerate } from '../../hooks/useQuickGenerate';
 import { GenerationResult } from '../../services/slideGeneratorService';
+import { GenerationPreviewModal } from './GenerationPreviewModal';
 
 interface QuickGenerateModalProps {
   isOpen: boolean;
@@ -16,25 +17,64 @@ export const QuickGenerateModal: React.FC<QuickGenerateModalProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
-  const [selectedTheme, setSelectedTheme] = useState<'mountains' | 'waves' | 'clouds'>('waves');
+  const [selectedTheme, setSelectedTheme] = useState<'mountains' | 'waves' | 'clouds' | 'forest'>('waves');
   const { generateAsync, isGenerating, progress, error, availability } = useQuickGenerate();
+  
+  // Preview modal state
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleGenerate = async () => {
     if (!title.trim()) return;
 
     try {
       const result = await generateAsync({ title, artist, themePack: selectedTheme });
-      onComplete(result);
+      
+      // Show preview instead of immediately completing
+      setPreviewData({
+        title,
+        artist,
+        slides: result.slides,
+        analysis: result.analysis,
+        themePack: selectedTheme,
+        metadata: result.metadata,
+        structureDetection: result.structureDetection,
+      });
+      setShowPreview(true);
+    } catch (err) {
+      // Error handled by hook
+      console.error('Generation error:', err);
+    }
+  };
+  
+  const handleAcceptPreview = () => {
+    if (previewData) {
+      onComplete({
+        slides: previewData.slides,
+        analysis: previewData.analysis,
+        songInfo: {
+          title: previewData.title,
+          artist: previewData.artist,
+          lyrics: '',
+        },
+        metadata: previewData.metadata,
+        structureDetection: previewData.structureDetection,
+      });
+      setShowPreview(false);
+      setPreviewData(null);
       onClose();
       
       // Reset form
       setTitle('');
       setArtist('');
       setSelectedTheme('waves');
-    } catch (err) {
-      // Error handled by hook
-      console.error('Generation error:', err);
     }
+  };
+  
+  const handleRegeneratePreview = () => {
+    // Close preview, let user change theme and regenerate
+    setShowPreview(false);
+    setPreviewData(null);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -98,7 +138,7 @@ export const QuickGenerateModal: React.FC<QuickGenerateModalProps> = ({
                 onChange={(e) => setTitle(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="e.g., Goodness of God"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-skyBlue"
                 autoFocus
                 disabled={!canGenerate}
               />
@@ -114,7 +154,7 @@ export const QuickGenerateModal: React.FC<QuickGenerateModalProps> = ({
                 onChange={(e) => setArtist(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="e.g., Bethel Music"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-skyBlue"
                 disabled={!canGenerate}
               />
             </div>
@@ -123,7 +163,7 @@ export const QuickGenerateModal: React.FC<QuickGenerateModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Background Theme *
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 <button
                   type="button"
                   onClick={() => setSelectedTheme('mountains')}
@@ -179,6 +219,25 @@ export const QuickGenerateModal: React.FC<QuickGenerateModalProps> = ({
                     selectedTheme === 'clouds' ? 'text-brand-skyBlue' : 'text-gray-700'
                   }`}>Clouds</span>
                   <span className="text-xs text-gray-500">Peaceful, reflective</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedTheme('forest')}
+                  disabled={!canGenerate}
+                  className={`p-4 border-2 rounded-lg flex flex-col items-center gap-2 transition ${
+                    selectedTheme === 'forest'
+                      ? 'border-brand-skyBlue bg-brand-skyBlue/10'
+                      : 'border-gray-200 hover:border-gray-300'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <Trees className={`w-6 h-6 ${
+                    selectedTheme === 'forest' ? 'text-brand-skyBlue' : 'text-gray-600'
+                  }`} />
+                  <span className={`text-sm font-medium ${
+                    selectedTheme === 'forest' ? 'text-brand-skyBlue' : 'text-gray-700'
+                  }`}>Forests</span>
+                  <span className="text-xs text-gray-500">Calm, grounded</span>
                 </button>
               </div>
             </div>
@@ -253,6 +312,18 @@ export const QuickGenerateModal: React.FC<QuickGenerateModalProps> = ({
           </div>
         )}
       </div>
+      
+      {/* Preview Modal */}
+      <GenerationPreviewModal
+        isOpen={showPreview}
+        onClose={() => {
+          setShowPreview(false);
+          setPreviewData(null);
+        }}
+        generatedSong={previewData}
+        onAccept={handleAcceptPreview}
+        onRegenerate={handleRegeneratePreview}
+      />
     </div>
   );
 };

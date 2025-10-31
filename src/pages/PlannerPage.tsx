@@ -17,7 +17,13 @@ export function PlannerPage() {
   const [showAddScriptureModal, setShowAddScriptureModal] = useState(false);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [templateCategory, setTemplateCategory] = useState<'sermon' | 'announcement' | 'scripture' | 'welcome' | 'closing' | 'generic'>('announcement');
-  const [pendingScripture, setPendingScripture] = useState<{ reference: string; text: string; version: string } | null>(null);
+  const [pendingScripture, setPendingScripture] = useState<{ 
+    reference: string; 
+    text: string; 
+    version: string;
+    parts?: string[];
+    shouldSplit?: boolean;
+  } | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const { data: services, isLoading: servicesLoading } = useServices();
@@ -131,13 +137,21 @@ export function PlannerPage() {
     setSelectedService(updatedService);
   };
 
-  const handleAddScripture = (scripture: { reference: string; text: string; version: string }) => {
+  const handleAddScripture = (scripture: { 
+    reference: string; 
+    text: string; 
+    version: string;
+    parts?: string[];
+    shouldSplit?: boolean;
+  }) => {
     if (!selectedService) return;
     
     console.log('📖 handleAddScripture called with:', {
       reference: scripture.reference,
       textPreview: scripture.text.substring(0, 100) + '...',
-      version: scripture.version
+      version: scripture.version,
+      shouldSplit: scripture.shouldSplit,
+      partsCount: scripture.parts?.length || 1
     });
     
     // Store scripture data and show template picker
@@ -188,45 +202,65 @@ export function PlannerPage() {
       console.log('📖 Using pending scripture:', {
         reference: pendingScripture.reference,
         textPreview: pendingScripture.text.substring(0, 100) + '...',
-        version: pendingScripture.version
+        version: pendingScripture.version,
+        shouldSplit: pendingScripture.shouldSplit,
+        partsCount: pendingScripture.parts?.length || 1
       });
       
-      // Clone template and customize with scripture
-      const customizedVisualData = { ...template.visualData };
-      
-      // Update elements with scripture data
-      customizedVisualData.elements = template.visualData.elements.map((el: any) => {
-        // Update scripture reference (check multiple possible IDs)
-        if (el.id === 'scripture-ref' || el.id === 'header' || el.id === 'reference') {
-          console.log('  ✏️ Updating element', el.id, 'with reference:', pendingScripture.reference);
-          return { ...el, content: pendingScripture.reference.toUpperCase() };
-        }
-        // Update scripture text (check multiple possible IDs)
-        if (el.id === 'scripture-text' || el.id === 'scripture-quote' || el.id === 'point-1' || el.id === 'verse-text') {
-          console.log('  ✏️ Updating element', el.id, 'with text preview:', pendingScripture.text.substring(0, 50) + '...');
-          return { ...el, content: pendingScripture.text };
-        }
-        return el;
-      });
+      const newItems: ServiceItem[] = [];
+      const parts = pendingScripture.shouldSplit && pendingScripture.parts && pendingScripture.parts.length > 1
+        ? pendingScripture.parts
+        : [pendingScripture.text];
 
-      // Create item with customized template
-      const newItem: ServiceItem = {
-        id: String(Date.now()),
-        type: 'scripture',
-        title: pendingScripture.reference,
-        scriptureReference: pendingScripture.reference,
-        scriptureText: pendingScripture.text,
-        scriptureVersion: pendingScripture.version,
-        order: selectedService.items.length,
-        duration: 3,
-        content: JSON.stringify(customizedVisualData),
-      };
+      // Create a slide for each part
+      parts.forEach((partText, partIndex) => {
+        // Clone template and customize with scripture
+        const customizedVisualData = { ...template.visualData };
+        
+        // Update elements with scripture data
+        customizedVisualData.elements = template.visualData.elements.map((el: any) => {
+          // Update scripture reference (check multiple possible IDs)
+          if (el.id === 'scripture-ref' || el.id === 'header' || el.id === 'reference') {
+            const referenceText = parts.length > 1 
+              ? `${pendingScripture.reference.toUpperCase()} (Part ${partIndex + 1} of ${parts.length})`
+              : pendingScripture.reference.toUpperCase();
+            console.log('  ✏️ Updating element', el.id, 'with reference:', referenceText);
+            return { ...el, content: referenceText };
+          }
+          // Update scripture text (check multiple possible IDs)
+          if (el.id === 'scripture-text' || el.id === 'scripture-quote' || el.id === 'point-1' || el.id === 'verse-text') {
+            console.log('  ✏️ Updating element', el.id, 'with part', partIndex + 1);
+            return { ...el, content: partText };
+          }
+          return el;
+        });
+
+        // Create item with customized template
+        const itemTitle = parts.length > 1
+          ? `${pendingScripture.reference} (${partIndex + 1}/${parts.length})`
+          : pendingScripture.reference;
+
+        const newItem: ServiceItem = {
+          id: `${Date.now()}_${partIndex}`,
+          type: 'scripture',
+          title: itemTitle,
+          scriptureReference: pendingScripture.reference,
+          scriptureText: partText,
+          scriptureVersion: pendingScripture.version,
+          order: selectedService.items.length + partIndex,
+          duration: 3,
+          content: JSON.stringify(customizedVisualData),
+        };
+
+        newItems.push(newItem);
+      });
 
       const updatedService = {
         ...selectedService,
-        items: [...selectedService.items, newItem],
+        items: [...selectedService.items, ...newItems],
       };
 
+      console.log(`✅ Created ${newItems.length} scripture slide(s)`);
       setSelectedService(updatedService);
       setPendingScripture(null); // Clear pending scripture
     } else {

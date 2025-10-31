@@ -16,13 +16,12 @@ export function Sidebar({ currentRoute, onNavigate }: SidebarProps) {
   return (
     <aside className="w-64 bg-brand-skyBlue border-r border-brand-periwinkle flex flex-col">
       {/* Logo/Brand */}
-      <div className="p-6 border-b border-brand-periwinkle flex flex-col items-center">
+      <div className="p-8 border-b border-brand-periwinkle flex flex-col items-center">
         <img 
           src={logo} 
           alt="The Path Logo" 
-          className="w-32 h-auto mb-2"
+          className="w-48 h-auto"
         />
-        <p className="text-sm text-brand-offWhite/80 mt-1">Church Presentations</p>
       </div>
 
       {/* Navigation */}
@@ -58,7 +57,7 @@ export function Sidebar({ currentRoute, onNavigate }: SidebarProps) {
       {/* Footer */}
       <div className="p-4 border-t border-brand-periwinkle">
         <p className="text-xs text-white/60 text-center">
-          The Path v1.0.0
+          The Path v3.1.0
         </p>
       </div>
     </aside>

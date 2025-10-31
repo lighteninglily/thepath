@@ -19,7 +19,7 @@ export interface BackgroundConfig {
 }
 
 /**
- * MOUNTAINS PACK (6 backgrounds)
+ * MOUNTAINS PACK (3 backgrounds)
  * Use for: Powerful, majestic worship songs
  */
 export const MOUNTAINS_CONFIG: BackgroundConfig[] = [
@@ -47,14 +47,14 @@ export const MOUNTAINS_CONFIG: BackgroundConfig[] = [
   },
   {
     id: 'mountain-4',
-    enabled: true,
+    enabled: false,
     name: 'Mountain Lake Dusk',
     url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
     category: 'mountains',
   },
   {
     id: 'mountain-5',
-    enabled: true,
+    enabled: false,
     name: 'Alpine Mountain Vista',
     url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80',
     category: 'mountains',
@@ -69,7 +69,7 @@ export const MOUNTAINS_CONFIG: BackgroundConfig[] = [
   },
   {
     id: 'mountain-7',
-    enabled: true,
+    enabled: false,
     name: 'Rocky Mountain Peaks',
     url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80',
     category: 'mountains',
@@ -77,7 +77,7 @@ export const MOUNTAINS_CONFIG: BackgroundConfig[] = [
   },
   {
     id: 'mountain-8',
-    enabled: true,
+    enabled: false,
     name: 'Dramatic Mountain Landscape',
     url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
     category: 'mountains',
@@ -86,7 +86,7 @@ export const MOUNTAINS_CONFIG: BackgroundConfig[] = [
 ];
 
 /**
- * WAVES PACK (6 backgrounds)
+ * WAVES PACK (3 backgrounds)
  * Use for: Joyful, flowing worship songs
  */
 export const WAVES_CONFIG: BackgroundConfig[] = [
@@ -221,24 +221,24 @@ export const WAVES_CONFIG: BackgroundConfig[] = [
 ];
 
 /**
- * FOREST PACK (9 backgrounds)
+ * FOREST PACK (3 backgrounds - Dark & Dense)
  * Use for: Natural, earthy, peaceful worship songs
- * NOTE: Not currently used by AI, but available for manual selection
+ * Selected for excellent text readability
  */
 export const FOREST_CONFIG: BackgroundConfig[] = [
   {
     id: 'forest-1',
     enabled: true,
     name: 'Sunrays Through Trees',
-    url: 'https://images.unsplash.com/photo-sp-p7uuT0tw?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80',
     category: 'nature',
     notes: 'Forest with sun rays'
   },
   {
     id: 'forest-2',
-    enabled: true,
+    enabled: false,
     name: 'Aerial Forest View',
-    url: 'https://images.unsplash.com/photo-QsWG0kjPQRY?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80',
     category: 'nature',
     notes: 'Aerial photography of forest'
   },
@@ -246,39 +246,39 @@ export const FOREST_CONFIG: BackgroundConfig[] = [
     id: 'forest-3',
     enabled: true,
     name: 'Dense Forest Trees',
-    url: 'https://images.unsplash.com/photo-BFJgf6sRmw8?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80',
     category: 'nature',
     notes: 'Dense forest of trees'
   },
   {
     id: 'forest-4',
-    enabled: true,
+    enabled: false,
     name: 'Green Tree Canopy',
-    url: 'https://images.unsplash.com/photo-ugnrXk1129g?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=1920&q=80',
     category: 'nature',
     notes: 'Aerial view of green trees'
   },
   {
     id: 'forest-5',
-    enabled: true,
+    enabled: false,
     name: 'Tall Trees Daytime',
-    url: 'https://images.unsplash.com/photo-MMJx78V7xS8?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1920&q=80',
     category: 'nature',
     notes: 'Photography of tall trees'
   },
   {
     id: 'forest-6',
-    enabled: true,
+    enabled: false,
     name: 'Lush Green Forest',
-    url: 'https://images.unsplash.com/photo-Zj8cfvy5ylk?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=1920&q=80',
     category: 'nature',
     notes: 'Aerial view of lush forest'
   },
   {
     id: 'forest-7',
-    enabled: true,
+    enabled: false,
     name: 'Lake Surrounded by Pines',
-    url: 'https://images.unsplash.com/photo-ESkw2ayO2As?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=1920&q=80',
     category: 'nature',
     notes: 'Water surrounded by pine trees'
   },
@@ -286,22 +286,22 @@ export const FOREST_CONFIG: BackgroundConfig[] = [
     id: 'forest-8',
     enabled: true,
     name: 'Forest Road with Sunrays',
-    url: 'https://images.unsplash.com/photo-3Kv48NS4WUU?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1920&q=80',
     category: 'nature',
     notes: 'Road through forest with sun rays'
   },
   {
     id: 'forest-9',
-    enabled: true,
+    enabled: false,
     name: 'Green Pine Forest',
-    url: 'https://images.unsplash.com/photo-d6kSvT2xZQo?w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1542202229-7d93c33f5d07?w=1920&q=80',
     category: 'nature',
     notes: 'Green pine trees'
   },
 ];
 
 /**
- * CLOUDS PACK (6 backgrounds)
+ * CLOUDS PACK (3 backgrounds)
  * Use for: Peaceful, reflective worship songs
  */
 export const CLOUDS_CONFIG: BackgroundConfig[] = [
@@ -336,21 +336,21 @@ export const CLOUDS_CONFIG: BackgroundConfig[] = [
   },
   {
     id: 'clouds-5',
-    enabled: true,
+    enabled: false,
     name: 'Serene Sky View',
     url: 'https://images.unsplash.com/photo-1536514498073-50e69d39c6cf?w=1920&q=80',
     category: 'clouds',
   },
   {
     id: 'clouds-6',
-    enabled: true,
+    enabled: false,
     name: 'Peaceful Cloud Cover',
     url: 'https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?w=1920&q=80',
     category: 'clouds',
   },
   {
     id: 'clouds-7',
-    enabled: true,
+    enabled: false,
     name: 'Bright Daytime Clouds',
     url: 'https://images.unsplash.com/photo-1601134467661-3d775b999c8b?w=1920&q=80',
     category: 'clouds',

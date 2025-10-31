@@ -16,7 +16,7 @@
     "build": "tsc && vite build && npm run build:electron",
     "build:electron": "tsc -p tsconfig.electron.json",
     "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && electron-builder --win",
+    "dist:win": "powershell -ExecutionPolicy Bypass -File build-windows-final.ps1",
     "dist:mac": "npm run build && electron-builder --mac",
     "dist:linux": "npm run build && electron-builder --linux",
     "release": "npm run build && electron-builder --publish always",
@@ -100,12 +100,18 @@
         {
           "target": "nsis",
           "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
         }
       ],
-      "icon": "public/icon.ico",
+      "icon": "build/icon.png",
       "publisherName": "The Way Church",
+      "sign": "./no-sign.js",
       "verifyUpdateCodeSignature": false,
-      "sign": null
+      "signAndEditExecutable": false,
+      "signDlls": false
     },
     "nsis": {
       "oneClick": false,

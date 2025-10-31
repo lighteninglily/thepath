@@ -56,10 +56,9 @@ Lyrics: ${lyrics.substring(0, 2000)}
 
 Consider the existing theme packs:
 - mountains: Blue/purple mountain landscapes (powerful, majestic)
-- waves: Teal/blue ocean waves (peaceful, flowing)
-- clouds: Soft blue/white sky clouds (hopeful, light)
-- nature: Green forest/nature scenes (calm, grounded)
-- abstract: Modern abstract patterns (contemporary, vibrant)
+- waves: Teal/blue ocean waves (joyful, flowing)
+- clouds: Soft blue/white sky clouds (peaceful, reflective)
+- forest: Green forest/nature scenes (calm, grounded)
 
 Return this exact JSON structure:
 {
@@ -69,7 +68,7 @@ Return this exact JSON structure:
   "colorSuggestion": "warm|cool|vibrant|soft|dark|light",
   "recommendedStyle": "modern|traditional|minimalist|bold|elegant",
   "season": "christmas|easter|general",
-  "suggestedThemePack": "mountains|waves|clouds|nature|abstract"
+  "suggestedThemePack": "mountains|waves|clouds|forest"
 }`
       }],
       temperature: 1,
@@ -96,11 +95,13 @@ Return this exact JSON structure:
         content: `Break these worship lyrics into presentation slides. Return ONLY valid JSON:
 
 CRITICAL RULES:
-- MAXIMUM 6 lines of text per slide (NEVER more than 6 lines!)
-- Each slide must be readable at a distance
-- Break at natural phrase boundaries
+- Aim for 15-25 slides total for a typical song (NEVER more than 30!)
+- Each slide should have 4-6 lines of text (use the FULL 6 lines!)
+- Keep related phrases together - don't over-split
+- Break at natural section boundaries (verse/chorus/bridge)
 - Repeat choruses as separate slides
 - Identify section types (verse, chorus, bridge, intro, outro)
+- COMBINE short phrases into fuller slides
 
 EXAMPLE GOOD SLIDE:
 "Amazing grace how sweet the sound
@@ -146,12 +147,87 @@ Return this exact JSON structure:
   }
 
   /**
-   * Look up scripture text using AI
+   * Detect song structure and chorus for auto-duplication
+   */
+  async detectSongStructure(lyrics: string): Promise<{
+    hasChorus: boolean;
+    chorusLines?: string[];
+    chorusStartIndex?: number;
+    chorusEndIndex?: number;
+    recommendedDuplications: number;
+    structure: Array<{
+      type: 'verse' | 'chorus' | 'bridge' | 'pre-chorus' | 'outro';
+      startLine: number;
+      endLine: number;
+    }>;
+  }> {
+    if (!this.client) {
+      throw new Error('OpenAI not configured');
+    }
+
+    const response = await this.client.chat.completions.create({
+      model: 'gpt-5-nano',
+      temperature: 1,
+      verbosity: 'low',
+      reasoning_effort: 'minimal',
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: `You are a worship song structure analyzer. Analyze lyrics to detect:
+1. Song structure (verse, chorus, bridge, etc.)
+2. Chorus location and content
+3. Recommended chorus repetitions
+
+Return JSON format:
+{
+  "hasChorus": true/false,
+  "chorusLines": ["line1", "line2", ...],
+  "structure": [
+    { "type": "verse", "startLine": 0, "endLine": 7 },
+    { "type": "chorus", "startLine": 8, "endLine": 15 },
+    ...
+  ],
+  "recommendedDuplications": 2
+}
+
+Rules:
+- Chorus typically repeats 2-4 times in worship songs
+- Look for repeated lyric patterns
+- Consider song length (longer songs = more repeats)
+- Bridge usually appears once before final chorus
+`,
+        },
+        {
+          role: 'user',
+          content: `Analyze this worship song structure:\n\n${lyrics}`,
+        },
+      ],
+    });
+
+    // Strip markdown code blocks if present
+    let content = response.choices[0].message.content || '{}';
+    content = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    
+    const result = JSON.parse(content);
+    
+    return {
+      hasChorus: result.hasChorus || false,
+      chorusLines: result.chorusLines,
+      structure: result.structure || [],
+      recommendedDuplications: result.recommendedDuplications || 2,
+      chorusStartIndex: result.structure?.find((s: any) => s.type === 'chorus')?.startLine,
+      chorusEndIndex: result.structure?.find((s: any) => s.type === 'chorus')?.endLine,
+    };
+  }
+
+  /**
+   * Look up scripture text using AI with intelligent splitting for long passages
    */
   async lookupScripture(
     reference: string,
     version: string = 'NIV'
-  ): Promise<string> {
+  ): Promise<{ fullText: string; parts: string[]; shouldSplit: boolean }> {
     if (!this.client) {
       throw new Error('OpenAI not configured');
     }
@@ -161,24 +237,68 @@ Return this exact JSON structure:
       messages: [
         {
           role: 'system',
-          content: `You are a helpful assistant that provides accurate Bible verses. When given a scripture reference, provide ONLY the verse text from the ${version} translation, without any commentary, explanation, or the reference itself. If the reference is invalid or unclear, explain the issue briefly.`
+          content: `You are a helpful assistant that provides accurate Bible verses optimized for presentation slides.
+
+INSTRUCTIONS:
+1. Provide the verse text from the ${version} translation
+2. If the text is longer than 150 words, split it into logical parts for separate slides
+3. Split at natural boundaries: sentence breaks, verse boundaries, or thought transitions
+4. Each part should be 100-200 words for optimal readability on screen
+5. Return as JSON with this exact format:
+
+{
+  "fullText": "complete scripture text",
+  "parts": ["part 1 text", "part 2 text", ...],
+  "shouldSplit": true/false
+}
+
+For short passages (under 150 words), set shouldSplit to false and parts array should contain just the full text.
+For invalid references, return an error in the fullText field.`
         },
         {
           role: 'user',
-          content: `Please provide the text for ${reference} from the ${version} translation.`
+          content: `Please provide the text for ${reference} from the ${version} translation, and determine if it should be split for presentation slides.`
         }
       ],
       temperature: 0.3,
-      max_tokens: 500,
+      max_tokens: 1500,
+      response_format: { type: "json_object" }
     });
 
-    const text = response.choices[0]?.message?.content?.trim() || '';
+    const content = response.choices[0]?.message?.content?.trim() || '';
     
-    if (!text) {
+    if (!content) {
       throw new Error('No response from AI');
     }
 
-    return text;
+    try {
+      const result = JSON.parse(content);
+      
+      // Validate structure
+      if (!result.fullText || !Array.isArray(result.parts)) {
+        throw new Error('Invalid response format from AI');
+      }
+
+      // Ensure shouldSplit is boolean
+      result.shouldSplit = result.shouldSplit === true;
+
+      console.log('📖 Scripture lookup result:', {
+        reference,
+        wordCount: result.fullText.split(' ').length,
+        shouldSplit: result.shouldSplit,
+        partsCount: result.parts.length
+      });
+
+      return result;
+    } catch (parseError) {
+      console.error('❌ Failed to parse AI response:', content);
+      // Fallback: treat as single unsplit text
+      return {
+        fullText: content,
+        parts: [content],
+        shouldSplit: false
+      };
+    }
   }
 
   /**

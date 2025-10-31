@@ -4,8 +4,9 @@ import type { Slide } from '../types';
 /**
  * Parse lyrics text into structured slides
  * Splits by double newline (blank lines between sections)
+ * Automatically adds a title slide at the beginning
  */
-export function parseLyricsIntoSlides(lyrics: string): Slide[] {
+export function parseLyricsIntoSlides(lyrics: string, title?: string, artist?: string): Slide[] {
   if (!lyrics || lyrics.trim().length === 0) {
     return [];
   }
@@ -75,7 +76,32 @@ export function parseLyricsIntoSlides(lyrics: string): Slide[] {
     console.log(`  Slide ${index + 1}: ${type}, ${lineCount} lines`);
   });
 
-  console.log(`🎵 Created ${slides.length} slides total`);
+  console.log(`🎵 Created ${slides.length} lyric slides`);
+
+  // ⭐ ADD TITLE SLIDE at the beginning (if title provided)
+  if (title && title.trim()) {
+    const titleContent = artist && artist.trim() 
+      ? `${title}\n${artist}` 
+      : title;
+    
+    const titleSlide: Slide = {
+      id: uuidv4(),
+      type: 'title',
+      content: titleContent,
+      order: -1,  // Will be reordered
+    };
+
+    // Update order for all other slides
+    slides.forEach((slide, index) => {
+      slide.order = index;
+    });
+
+    // Insert title slide at beginning
+    slides.unshift(titleSlide);
+    console.log(`🎵 Added title slide: "${titleContent}"`);
+  }
+
+  console.log(`✅ Total slides (with title): ${slides.length}`);
 
   return slides;
 }

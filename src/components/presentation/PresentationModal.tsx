@@ -18,7 +18,21 @@ export function PresentationModal({ song, onClose }: PresentationModalProps) {
   const [isBlank, setIsBlank] = useState(false);
 
   // Get slides (parse if not already done)
-  const slides = song.slidesData || parseLyricsIntoSlides(song.lyrics);
+  console.log('🎭 PRESENTATION DEBUG:');
+  console.log('  Song:', song.title);
+  console.log('  Has slidesData:', !!song.slidesData);
+  console.log('  SlidesData length:', song.slidesData?.length || 0);
+  if (song.slidesData) {
+    song.slidesData.forEach((slide, idx) => {
+      console.log(`  Slide ${idx + 1}:`, {
+        hasVisualData: !!slide.visualData,
+        backgroundId: slide.backgroundId,
+        visualDataBg: slide.visualData?.background?.type
+      });
+    });
+  }
+  
+  const slides = song.slidesData || parseLyricsIntoSlides(song.lyrics, song.title, song.artist || undefined);
   
   // Get or assign background and layouts
   // NEW: Check if slides have embedded background/layout data
@@ -30,6 +44,18 @@ export function PresentationModal({ song, onClose }: PresentationModalProps) {
         if (bg) {
           console.log(`✅ Slide ${index + 1} using saved background:`, bg.name);
           return bg;
+        } else {
+          // Background ID not found - find replacement by category
+          console.warn(`⚠️ Background ${slide.backgroundId} not found, using fallback`);
+          if (slide.backgroundId.startsWith('forest-') || slide.backgroundId.startsWith('nature-')) {
+            return WORSHIP_BACKGROUNDS.find(b => b.category === 'forest') || null;
+          } else if (slide.backgroundId.startsWith('waves-')) {
+            return WORSHIP_BACKGROUNDS.find(b => b.category === 'waves') || null;
+          } else if (slide.backgroundId.startsWith('mountain-')) {
+            return WORSHIP_BACKGROUNDS.find(b => b.category === 'mountains') || null;
+          } else if (slide.backgroundId.startsWith('clouds-') || slide.backgroundId.startsWith('sky-')) {
+            return WORSHIP_BACKGROUNDS.find(b => b.category === 'clouds') || null;
+          }
         }
       }
       // Otherwise use song's default background

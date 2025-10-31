@@ -10,7 +10,7 @@ export function AddItemMenu({ onAddItem }: AddItemMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { type: 'song' as const, icon: Music, label: 'Song', color: 'purple' },
+    { type: 'song' as const, icon: Music, label: 'Song', color: 'skyBlue' },
     { type: 'scripture' as const, icon: BookOpen, label: 'Scripture', color: 'blue' },
     { type: 'welcome' as const, icon: Image, label: 'Welcome', color: 'green' },
     { type: 'announcement' as const, icon: Megaphone, label: 'Announcement', color: 'yellow' },
@@ -53,7 +53,7 @@ export function AddItemMenu({ onAddItem }: AddItemMenuProps) {
                       setIsOpen(false);
                     }}
                     className={`p-3 rounded-lg border-2 transition-all hover:shadow-md text-left flex items-center gap-3
-                      ${item.color === 'purple' ? 'border-purple-200 hover:bg-purple-50' : ''}
+                      ${item.color === 'skyBlue' ? 'border-brand-powderBlue hover:bg-brand-mistyBlue' : ''}
                       ${item.color === 'blue' ? 'border-blue-200 hover:bg-blue-50' : ''}
                       ${item.color === 'green' ? 'border-green-200 hover:bg-green-50' : ''}
                       ${item.color === 'yellow' ? 'border-yellow-200 hover:bg-yellow-50' : ''}
@@ -64,7 +64,7 @@ export function AddItemMenu({ onAddItem }: AddItemMenuProps) {
                     `}
                   >
                     <Icon size={20} className={`
-                      ${item.color === 'purple' ? 'text-purple-600' : ''}
+                      ${item.color === 'skyBlue' ? 'text-brand-skyBlue' : ''}
                       ${item.color === 'blue' ? 'text-blue-600' : ''}
                       ${item.color === 'green' ? 'text-green-600' : ''}
                       ${item.color === 'yellow' ? 'text-yellow-600' : ''}

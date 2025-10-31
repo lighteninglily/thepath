@@ -33,9 +33,9 @@ export function LibraryPage() {
     setEditingSong(null);
   };
 
-  const handleSubmit = async (data: CreateSongInput) => {
+  const handleSubmit = async (data: CreateSongInput, shouldClose: boolean = true) => {
     try {
-      console.log('Submitting song:', data);
+      console.log('Submitting song:', data, 'shouldClose:', shouldClose);
       
       if (editingSong) {
         // UPDATE existing song
@@ -53,7 +53,10 @@ export function LibraryPage() {
         console.log('✅ Song created:', result);
       }
       
-      handleCloseModal();
+      // Only close modal if explicitly requested (manual save, not autosave)
+      if (shouldClose) {
+        handleCloseModal();
+      }
     } catch (error) {
       console.error('❌ Error saving song:', error);
       alert('Failed to save song. Please try again.');
@@ -141,38 +144,39 @@ export function LibraryPage() {
             </h2>
             
             <p className="text-brand-umber mb-8 max-w-md mx-auto">
-              Start building your worship library by adding songs manually. 
+              Start building your worship library with AI-powered Quick Create or add songs manually. 
               You can add lyrics, choose templates, and organize with tags.
             </p>
 
-            <button
-              onClick={() => handleOpenModal()}
-              className="
-                inline-flex items-center gap-2 px-6 py-3 rounded-lg
-                bg-brand-skyBlue text-white
-                hover:bg-brand-powderBlue
-                transition-all duration-200
-                shadow-md hover:shadow-lg
-                font-medium
-              "
-            >
-              <Plus size={20} />
-              Add Your First Song
-            </button>
-
-            <div className="grid grid-cols-3 gap-4 mt-12 max-w-xl mx-auto">
-              <div className="bg-white rounded-lg p-4 border border-brand-warmGray">
-                <div className="text-3xl font-bold text-brand-skyBlue">0</div>
-                <div className="text-sm text-brand-umber mt-1">Songs</div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-brand-warmGray">
-                <div className="text-3xl font-bold text-brand-taupe">5</div>
-                <div className="text-sm text-brand-umber mt-1">Templates</div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-brand-warmGray">
-                <div className="text-3xl font-bold text-brand-clay">0</div>
-                <div className="text-sm text-brand-umber mt-1">Services</div>
-              </div>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => setShowQuickGenerate(true)}
+                className="
+                  inline-flex items-center gap-2 px-6 py-3 rounded-lg
+                  bg-brand-skyBlue text-white
+                  hover:bg-brand-powderBlue
+                  transition-all duration-200
+                  shadow-md hover:shadow-lg
+                  font-medium
+                "
+              >
+                <Zap size={20} />
+                Quick Create
+              </button>
+              <button
+                onClick={() => handleOpenModal()}
+                className="
+                  inline-flex items-center gap-2 px-6 py-3 rounded-lg
+                  bg-brand-clay text-white
+                  hover:bg-brand-umber
+                  transition-all duration-200
+                  shadow-md hover:shadow-lg
+                  font-medium
+                "
+              >
+                <Plus size={20} />
+                Add Manually
+              </button>
             </div>
           </div>
         </div>
@@ -183,6 +187,12 @@ export function LibraryPage() {
           onSubmit={handleSubmit}
           song={editingSong}
           isLoading={createSong.isPending || updateSong.isPending}
+        />
+
+        <QuickGenerateModal
+          isOpen={showQuickGenerate}
+          onClose={() => setShowQuickGenerate(false)}
+          onComplete={handleQuickGenerateComplete}
         />
       </>
     );

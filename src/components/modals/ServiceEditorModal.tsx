@@ -1,4 +1,4 @@
-import { X, Plus, Clock, Music, Play } from 'lucide-react';
+import { X, Plus, Clock, Music, Play, BookOpen, Megaphone, MessageSquare, DollarSign, Hand, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ServiceItemCard } from '../planner/ServiceItemCard';
 import { EditItemModal } from './EditItemModal';
@@ -274,39 +274,45 @@ export function ServiceEditorModal({
                 <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-brand-warmGray z-10 min-w-[200px]">
                   <button
                     onClick={() => { onAddItem('scripture'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-blue-50 text-brand-charcoal first:rounded-t-lg"
+                    className="w-full text-left px-4 py-2 hover:bg-blue-50 text-brand-charcoal first:rounded-t-lg flex items-center gap-3 group"
                   >
-                    📖 Scripture Reading
+                    <BookOpen size={18} className="text-blue-600 group-hover:scale-110 transition-transform" />
+                    <span>Scripture Reading</span>
                   </button>
                   <button
                     onClick={() => { onAddItem('announcement'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-yellow-50 text-brand-charcoal"
+                    className="w-full text-left px-4 py-2 hover:bg-yellow-50 text-brand-charcoal flex items-center gap-3 group"
                   >
-                    📢 Announcement
+                    <Megaphone size={18} className="text-yellow-600 group-hover:scale-110 transition-transform" />
+                    <span>Announcement</span>
                   </button>
                   <button
                     onClick={() => { onAddItem('sermon'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-orange-50 text-brand-charcoal"
+                    className="w-full text-left px-4 py-2 hover:bg-orange-50 text-brand-charcoal flex items-center gap-3 group"
                   >
-                    💬 Sermon
+                    <MessageSquare size={18} className="text-orange-600 group-hover:scale-110 transition-transform" />
+                    <span>Sermon</span>
                   </button>
                   <button
                     onClick={() => { onAddItem('offering'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-green-50 text-brand-charcoal"
+                    className="w-full text-left px-4 py-2 hover:bg-emerald-50 text-brand-charcoal flex items-center gap-3 group"
                   >
-                    💰 Offering
+                    <DollarSign size={18} className="text-emerald-600 group-hover:scale-110 transition-transform" />
+                    <span>Offering</span>
                   </button>
                   <button
                     onClick={() => { onAddItem('welcome'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-green-50 text-brand-charcoal"
+                    className="w-full text-left px-4 py-2 hover:bg-green-50 text-brand-charcoal flex items-center gap-3 group"
                   >
-                    👋 Welcome
+                    <Hand size={18} className="text-green-600 group-hover:scale-110 transition-transform" />
+                    <span>Welcome</span>
                   </button>
                   <button
                     onClick={() => { onAddItem('closing'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-brand-charcoal last:rounded-b-lg"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-brand-charcoal last:rounded-b-lg flex items-center gap-3 group"
                   >
-                    ✅ Closing
+                    <Check size={18} className="text-gray-600 group-hover:scale-110 transition-transform" />
+                    <span>Closing</span>
                   </button>
                 </div>
               )}

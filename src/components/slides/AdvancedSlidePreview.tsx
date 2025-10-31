@@ -69,7 +69,7 @@ function renderFullBleedLayout(
       )}
       
       {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0 bg-black/50" />
       
       {/* Text */}
       <div className="absolute inset-0 flex items-center justify-center p-12">
@@ -78,7 +78,7 @@ function renderFullBleedLayout(
           fontSize,
           lineHeight: '1.4',
           textAlign: 'left',
-          textShadow: '2px 2px 8px rgba(0,0,0,0.8)',
+          textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.8)',
           fontWeight: '500',
           maxWidth: '80%',
         }}>
@@ -232,7 +232,7 @@ function renderGradientOverlay(
           fontSize,
           lineHeight: '1.4',
           textAlign: 'center',
-          textShadow: '2px 2px 6px rgba(0,0,0,0.8)',
+          textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.8)',
           fontWeight: '600',
         }}>
           {lines.map((line, i) => (
@@ -291,12 +291,57 @@ function renderVisualSlide(visualData: any, className: string) {
       }}
     >
       {/* Background */}
+      {(() => {
+        console.log('🎨 DEBUG - Background object:', background);
+        console.log('🎨 DEBUG - Background type:', background.type);
+        console.log('🎨 DEBUG - Background imageId:', background.imageId);
+        console.log('🎨 DEBUG - Background imageUrl:', background.imageUrl);
+      })()}
       {background.type === 'image' && (background.imageId || background.imageUrl) ? (
         (() => {
           // Lookup actual background URL from ID (support both imageId and imageUrl)
           const bgId = background.imageId || background.imageUrl;
           const bg = WORSHIP_BACKGROUNDS.find(b => b.id === bgId);
-          const imageUrl = bg?.url || bgId;
+          
+          // ✅ FIX: If background not found by ID, try to find a suitable replacement
+          let imageUrl = bg?.url;
+          
+          if (!bg) {
+            console.warn('⚠️ Background ID not found:', bgId, '- using fallback');
+            
+            // Try to find a replacement based on category
+            if (bgId.startsWith('nature-') || bgId.startsWith('forest-')) {
+              // Old nature/forest IDs → Use first available forest background
+              const forestBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'forest');
+              imageUrl = forestBg?.url;
+              console.log('🌲 Using forest fallback:', forestBg?.id);
+            } else if (bgId.startsWith('waves-')) {
+              // Old wave IDs → Use first available wave background
+              const wavesBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'waves');
+              imageUrl = wavesBg?.url;
+              console.log('🌊 Using waves fallback:', wavesBg?.id);
+            } else if (bgId.startsWith('mountain-')) {
+              // Old mountain IDs → Use first available mountain background
+              const mountainBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'mountains');
+              imageUrl = mountainBg?.url;
+              console.log('🏔️ Using mountain fallback:', mountainBg?.id);
+            } else if (bgId.startsWith('clouds-') || bgId.startsWith('sky-')) {
+              // Old cloud/sky IDs → Use first available cloud background
+              const cloudBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'clouds');
+              imageUrl = cloudBg?.url;
+              console.log('☁️ Using cloud fallback:', cloudBg?.id);
+            } else {
+              // Last resort: use the ID as a URL if it looks like a URL
+              if (bgId.startsWith('http')) {
+                imageUrl = bgId;
+              } else {
+                // Absolute fallback: first available background
+                imageUrl = WORSHIP_BACKGROUNDS[0]?.url;
+                console.log('🎨 Using generic fallback:', WORSHIP_BACKGROUNDS[0]?.id);
+              }
+            }
+          }
+          
           console.log('🖼️ Rendering background:', bgId, '→', imageUrl);
           return (
             <div 
@@ -314,6 +359,23 @@ function renderVisualSlide(visualData: any, className: string) {
         <div 
           className="absolute inset-0"
           style={{ backgroundColor: background.color || '#000000' }}
+        />
+      )}
+      
+      {/* Dark overlay for readability (only for image backgrounds with no overlay element) */}
+      {background.type === 'image' && !background.overlay?.enabled && (
+        <div className="absolute inset-0 bg-black/40" style={{ zIndex: 1 }} />
+      )}
+      
+      {/* Background overlay (if specified in background config) */}
+      {background.type === 'image' && background.overlay?.enabled && (
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundColor: background.overlay.color || '#000000',
+            opacity: (background.overlay.opacity || 40) / 100,
+            zIndex: 1,
+          }}
         />
       )}
       

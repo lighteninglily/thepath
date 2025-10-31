@@ -30,7 +30,7 @@ export function AddSongToServiceModal({ isOpen, onClose, songs, onAddSong }: Add
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-brand-warmGray">
           <div className="flex items-center gap-3">
-            <Music size={24} className="text-purple-600" />
+            <Music size={24} className="text-brand-skyBlue" />
             <div>
               <h2 className="text-xl font-bold text-brand-charcoal">Add Song to Service</h2>
               <p className="text-sm text-brand-umber mt-0.5">
@@ -76,11 +76,11 @@ export function AddSongToServiceModal({ isOpen, onClose, songs, onAddSong }: Add
                 <button
                   key={song.id}
                   onClick={() => handleAddSong(song)}
-                  className="w-full text-left p-4 rounded-lg border border-brand-warmGray hover:border-purple-300 hover:bg-purple-50 transition-all group"
+                  className="w-full text-left p-4 rounded-lg border border-brand-warmGray hover:border-brand-powderBlue hover:bg-brand-mistyBlue transition-all group"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-brand-charcoal group-hover:text-purple-700 truncate">
+                      <h3 className="font-semibold text-brand-charcoal group-hover:text-brand-skyBlue truncate">
                         {song.title}
                       </h3>
                       <p className="text-sm text-brand-umber truncate">
@@ -89,7 +89,7 @@ export function AddSongToServiceModal({ isOpen, onClose, songs, onAddSong }: Add
                     </div>
                     <Plus 
                       size={20} 
-                      className="ml-4 text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" 
+                      className="ml-4 text-brand-skyBlue opacity-0 group-hover:opacity-100 transition-opacity" 
                     />
                   </div>
                 </button>

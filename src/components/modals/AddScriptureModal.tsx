@@ -5,13 +5,21 @@ import { openaiService } from '../../services/openaiService';
 interface AddScriptureModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddScripture: (scripture: { reference: string; text: string; version: string }) => void;
+  onAddScripture: (scripture: { 
+    reference: string; 
+    text: string; 
+    version: string;
+    parts?: string[];
+    shouldSplit?: boolean;
+  }) => void;
 }
 
 export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScriptureModalProps) {
   const [reference, setReference] = useState('');
   const [version, setVersion] = useState('NIV');
   const [scriptureText, setScriptureText] = useState('');
+  const [scriptureParts, setScriptureParts] = useState<string[]>([]);
+  const [shouldSplit, setShouldSplit] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,20 +34,29 @@ export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScript
     setLoading(true);
     setError('');
     setScriptureText('');
+    setScriptureParts([]);
+    setShouldSplit(false);
 
     try {
       console.log('🔍 Looking up scripture:', reference, version);
       
-      const text = await openaiService.lookupScripture(reference, version);
+      const result = await openaiService.lookupScripture(reference, version);
 
       // Check if response looks like an error message
-      if (text.toLowerCase().includes('cannot find') || text.toLowerCase().includes('invalid')) {
-        setError(text);
+      if (result.fullText.toLowerCase().includes('cannot find') || result.fullText.toLowerCase().includes('invalid')) {
+        setError(result.fullText);
         return;
       }
 
-      setScriptureText(text);
-      console.log('✅ Scripture found:', text.substring(0, 50) + '...');
+      console.log('✅ Scripture found:', {
+        wordCount: result.fullText.split(' ').length,
+        shouldSplit: result.shouldSplit,
+        partsCount: result.parts.length
+      });
+      
+      setScriptureText(result.fullText);
+      setScriptureParts(result.parts);
+      setShouldSplit(result.shouldSplit);
 
     } catch (err) {
       console.error('❌ Error looking up scripture:', err);
@@ -59,11 +76,15 @@ export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScript
       reference,
       text: scriptureText,
       version,
+      parts: scriptureParts,
+      shouldSplit: shouldSplit,
     });
 
     // Reset and close
     setReference('');
     setScriptureText('');
+    setScriptureParts([]);
+    setShouldSplit(false);
     setError('');
     onClose();
   };
@@ -161,10 +182,40 @@ export function AddScriptureModal({ isOpen, onClose, onAddScripture }: AddScript
               <label className="block text-sm font-medium text-brand-charcoal">
                 Scripture Text ({version})
               </label>
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-brand-charcoal leading-relaxed whitespace-pre-wrap">
-                  {scriptureText}
-                </p>
+              
+              {/* Split Notice */}
+              {shouldSplit && scriptureParts.length > 1 && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800 font-medium">
+                    📖 This scripture will be split into {scriptureParts.length} slides for better readability
+                  </p>
+                </div>
+              )}
+              
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg max-h-[300px] overflow-y-auto">
+                {shouldSplit && scriptureParts.length > 1 ? (
+                  // Show parts with labels
+                  <div className="space-y-4">
+                    {scriptureParts.map((part, index) => (
+                      <div key={index} className="space-y-1">
+                        <p className="text-xs font-semibold text-blue-700">
+                          Part {index + 1} of {scriptureParts.length}:
+                        </p>
+                        <p className="text-brand-charcoal leading-relaxed whitespace-pre-wrap">
+                          {part}
+                        </p>
+                        {index < scriptureParts.length - 1 && (
+                          <hr className="my-2 border-blue-200" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // Show as single text
+                  <p className="text-brand-charcoal leading-relaxed whitespace-pre-wrap">
+                    {scriptureText}
+                  </p>
+                )}
               </div>
               <p className="text-xs text-brand-umber italic">
                 ✓ Found! Click "Add to Service" to add this scripture.

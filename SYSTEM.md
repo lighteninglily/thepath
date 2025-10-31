@@ -1,7 +1,7 @@
 # The Path - System Architecture
 
-**Last Updated**: October 28, 2025  
-**Version**: 1.0 - Phase 1 MVP
+**Last Updated**: October 31, 2025  
+**Version**: 3.1.0 - Production Ready
 
 ---
 
@@ -455,6 +455,206 @@ npm run build:all  # Build for all platforms
 - Telemetry (optional, opt-in)
 - Plugin system for extensibility
 - Multi-language support (i18n)
+
+---
+
+## Recent System Improvements (v3.1.0)
+
+### Visual Editor & Presentation Fixes
+
+#### 1. Properties Panel Reset Bug Fix (Critical)
+**Problem**: When selecting text elements in the Visual Editor, their font properties (size, family, weight) would revert to default values (48px, Outfit), causing text to visually shrink and requiring manual readjustment.
+
+**Root Cause**: The `handleUpdateElement` function in `VisualItemEditorModal.tsx` was syncing properties from top-level element properties (which were `undefined`) into the `style` object, overwriting existing style values.
+
+**Solution**:
+```typescript
+// BEFORE (Line 388)
+fontSize: updates.fontSize !== undefined ? updates.fontSize : el.fontSize
+// el.fontSize was undefined, so style.fontSize became undefined
+
+// AFTER (Line 388)
+fontSize: updates.fontSize !== undefined ? updates.fontSize : (el.style?.fontSize || el.fontSize)
+// Checks style FIRST, preserving existing values
+```
+
+**Impact**: Text elements now maintain their formatting when clicked, dragged, or edited. No more unexpected size changes.
+
+**Files Modified**:
+- `src/components/modals/VisualItemEditorModal.tsx` (lines 387-392)
+
+---
+
+#### 2. Logo Rendering Fix
+**Problem**: Logo and image elements displayed correctly in Audience View but were missing in Presenter View.
+
+**Root Cause**: `ServiceItemSlidePreview.tsx` only had rendering logic for `text` and `shape` elements, but not `image` elements.
+
+**Solution**: Added image element rendering:
+```typescript
+// Render image elements (logos, icons, etc.)
+if (element.type === 'image') {
+  return (
+    <img
+      src={element.content || element.imageUrl || element.src}
+      style={{
+        left: `${(element.position.x / 1920) * 100}%`,
+        top: `${(element.position.y / 1080) * 100}%`,
+        width: `${(element.size.width / 1920) * 100}%`,
+        height: `${(element.size.height / 1080) * 100}%`,
+        objectFit: 'contain',
+      }}
+    />
+  );
+}
+```
+
+**Impact**: Logos, church branding, and custom images now render correctly in all views.
+
+**Files Modified**:
+- `src/components/slides/ServiceItemSlidePreview.tsx` (lines 319-339)
+
+---
+
+#### 3. Overlay Logic Correction
+**Problem**: Dark overlay (for text readability) was being applied to ALL slides - including announcements, scripture, and welcome slides - making backgrounds too dark where they shouldn't be.
+
+**Requirement**: Overlays should ONLY be applied to:
+- ✅ Song title slides
+- ✅ Song lyric slides
+- ❌ NOT on announcements
+- ❌ NOT on scripture
+- ❌ NOT on custom service items
+
+**Solution**: Added `isSong` parameter to overlay calculation:
+```typescript
+// Calculate overlay opacity - ONLY apply to SONG slides
+const overlayOpacity = isSong && background.type === 'image' 
+  ? (background.overlay?.enabled === false 
+      ? 0 
+      : Math.max(background.overlay.opacity / 100, 0.5))
+  : 0;  // No overlay for non-song items
+```
+
+**Impact**: 
+- Song slides maintain 50% dark overlay for text readability
+- Announcement/scripture slides show backgrounds clearly without darkening
+- Better visual consistency with user expectations
+
+**Files Modified**:
+- `src/components/slides/ServiceItemSlidePreview.tsx` (lines 98, 124-132, 357)
+- `src/pages/AudienceViewPage.tsx` (lines 189-206)
+
+---
+
+#### 4. Beautiful Title Slides (Typography Enhancement)
+**Problem**: Song title slides used a single bold font for both song title and artist name, lacking visual elegance and hierarchy.
+
+**Design Goal**: Create beautiful, professional-looking title slides with:
+- Script font for song title (elegant, eye-catching)
+- Clean sans-serif for artist name (subtle, readable)
+- Proper visual hierarchy
+
+**Implementation**: AI-generated title slides with dual typography:
+```typescript
+// Song Title - Beautiful script font (Allura)
+{
+  type: 'text',
+  content: lyricsResult.title,
+  position: { x: 160, y: 350 },
+  size: { width: 1600, height: 200 },
+  style: {
+    fontSize: 120,
+    fontFamily: 'Allura',  // Script font
+    fontWeight: 400,
+    color: '#ffffff',
+    textAlign: 'center',
+    textShadow: '4px 4px 20px rgba(0, 0, 0, 0.9)'
+  }
+}
+
+// Artist Name - Clean modern font (Outfit)
+{
+  type: 'text',
+  content: lyricsResult.artist,
+  position: { x: 160, y: 580 },
+  size: { width: 1600, height: 100 },
+  style: {
+    fontSize: 48,
+    fontFamily: 'Outfit',  // Sans-serif
+    fontWeight: 400,
+    color: '#ffffff',
+    textAlign: 'center',
+    textShadow: '3px 3px 12px rgba(0, 0, 0, 0.9)'
+  }
+}
+```
+
+**Typography System**:
+- **Allura**: Script font for song titles (elegant, flowing)
+- **Outfit**: Sans-serif for artist names (clean, modern)
+- **Inter**: Default UI font (readable, versatile)
+
+**Impact**: Song title slides now have professional, beautiful typography with proper visual hierarchy. Automatically applied when songs are generated via AI.
+
+**Files Modified**:
+- `src/services/slideGeneratorService.ts` (lines 280-345)
+- `src/styles/globals.css` (added Allura font import)
+
+---
+
+### Visual Editor Data Structure
+
+The Visual Editor uses a standardized data format for all slides:
+
+```typescript
+interface VisualSlide {
+  background: {
+    type: 'image' | 'solid' | 'gradient';
+    imageUrl?: string;
+    imageId?: string;
+    color?: string;
+    overlay?: {
+      enabled: boolean;
+      color: string;
+      opacity: number;  // 0-100
+      blendMode: 'normal' | 'multiply' | 'screen';
+    };
+  };
+  elements: Array<{
+    id: string;
+    type: 'text' | 'shape' | 'image';
+    position: { x: number; y: number };  // 1920x1080 canvas
+    size: { width: number; height: number };
+    rotation?: number;
+    opacity?: number;
+    zIndex?: number;
+    visible?: boolean;
+    
+    // Text-specific
+    content?: string;
+    style?: {
+      fontSize?: number;
+      fontFamily?: string;
+      fontWeight?: number;
+      color?: string;
+      textAlign?: 'left' | 'center' | 'right';
+      lineHeight?: number;
+      textShadow?: string;
+    };
+    
+    // Image-specific
+    imageUrl?: string;
+    src?: string;
+  }>;
+}
+```
+
+**Key Principles**:
+1. **Dual Storage**: Properties can exist at top-level OR in `style` object - always check `style` first
+2. **1920x1080 Canvas**: All positions/sizes are absolute pixels on a standard canvas
+3. **Percentage Rendering**: Renderer converts to percentages for responsive display
+4. **Z-Index Layering**: Elements sorted by zIndex for proper overlap rendering
 
 ---
 

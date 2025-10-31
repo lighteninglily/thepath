@@ -79,8 +79,8 @@ export function ServiceItemSlidePreview({ item, slideIndex = 0, songData, classN
         }
         
         console.log('✅ Rendering visual slide with', visualData.elements.length, 'elements');
-        // For template items, we don't have a 'slide' object, just pass undefined
-        return renderVisualSlide(visualData, className, undefined);
+        // For template items (announcements, scripture, etc.), NO overlay
+        return renderVisualSlide(visualData, className, undefined, false);
       }
       console.log('⚠️ Visual data structure incomplete, falling back to simple');
     } catch (e) {
@@ -95,11 +95,12 @@ export function ServiceItemSlidePreview({ item, slideIndex = 0, songData, classN
 }
 
 // Render visual editor slide data
-function renderVisualSlide(visualData: any, className: string, slide?: any) {
+function renderVisualSlide(visualData: any, className: string, slide?: any, isSong: boolean = false) {
   console.log('🎨 renderVisualSlide received:', {
     hasBackground: !!visualData?.background,
     background: visualData?.background,
-    elementCount: visualData?.elements?.length
+    elementCount: visualData?.elements?.length,
+    isSong
   });
   
   if (!visualData || !visualData.background || !visualData.elements) {
@@ -120,8 +121,9 @@ function renderVisualSlide(visualData: any, className: string, slide?: any) {
   
   const { background } = visualData;
   
-  // Calculate overlay opacity (ALWAYS 50% minimum for image backgrounds)
-  const overlayOpacity = background.type === 'image' 
+  // Calculate overlay opacity - ONLY apply to SONG slides (title + lyrics)
+  // Announcements, scripture, and other items should NOT have overlay
+  const overlayOpacity = isSong && background.type === 'image' 
     ? (background.overlay?.enabled === false 
         ? 0 
         : background.overlay?.opacity 
@@ -316,6 +318,28 @@ function renderVisualSlide(visualData: any, className: string, slide?: any) {
               );
             }
             
+            // Render image elements (logos, icons, etc.)
+            if (element.type === 'image') {
+              return (
+                <img
+                  key={element.id}
+                  src={element.content || element.imageUrl || element.src}
+                  alt=""
+                  className="absolute"
+                  style={{
+                    left: `${(element.position.x / 1920) * 100}%`,
+                    top: `${(element.position.y / 1080) * 100}%`,
+                    width: `${(element.size.width / 1920) * 100}%`,
+                    height: `${(element.size.height / 1080) * 100}%`,
+                    transform: `rotate(${element.rotation || 0}deg)`,
+                    opacity: element.opacity !== undefined ? element.opacity : 1,
+                    zIndex: element.zIndex || 1,
+                    objectFit: 'contain',
+                  }}
+                />
+              );
+            }
+            
             return null;
           })}
       </div>
@@ -329,7 +353,8 @@ function renderSongSlide(slide: any, song: Song, className: string) {
   if (slide.visualData) {
     const visualData = slide.visualData;
     if (visualData.elements && visualData.background) {
-      return renderVisualSlide(visualData, className, slide);
+      // Song slides (title + lyrics) GET overlay for text readability
+      return renderVisualSlide(visualData, className, slide, true);
     }
   }
   

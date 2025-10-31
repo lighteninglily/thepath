@@ -186,9 +186,11 @@ export function AudienceViewPage() {
       
       const backgroundStyle = getBackgroundStyle(background);
       
-      // Calculate overlay opacity (ALWAYS 50% minimum for image backgrounds)
+      // Calculate overlay opacity - ONLY apply to SONG slides (title + lyrics)
+      // Announcements, scripture, and other items should NOT have overlay
+      const isSong = currentItem?.type === 'song';
       const hasImageBackground = background?.imageUrl || backgroundStyle.backgroundImage;
-      const overlayOpacity = hasImageBackground
+      const overlayOpacity = isSong && hasImageBackground
         ? (background?.overlay?.enabled === false 
             ? 0 
             : background?.overlay?.opacity 
@@ -197,6 +199,7 @@ export function AudienceViewPage() {
         : 0;
       
       console.log('📺 Audience overlay:', {
+        isSong,
         hasImageBackground,
         overlayData: background?.overlay,
         calculatedOpacity: overlayOpacity

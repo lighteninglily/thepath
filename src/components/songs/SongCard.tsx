@@ -28,7 +28,7 @@ export function SongCard({ song, onEdit, onDelete, onPresent }: SongCardProps) {
           
           <div className="flex flex-wrap gap-2">
             {song.designTheme && (
-              <span className="text-xs px-2 py-1 rounded bg-purple-50 text-purple-600 flex items-center gap-1">
+              <span className="text-xs px-2 py-1 rounded bg-brand-mistyBlue text-brand-skyBlue flex items-center gap-1">
                 <Palette size={12} />
                 Designed
               </span>

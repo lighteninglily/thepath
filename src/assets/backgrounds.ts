@@ -7,7 +7,7 @@ export interface BackgroundImage {
   id: string;
   name: string;
   url: string;
-  category: 'mountains' | 'nature' | 'water' | 'sky' | 'abstract' | 'light' | 'waves' | 'clouds' | 'cross' | 'worship';
+  category: 'mountains' | 'forest' | 'water' | 'sky' | 'abstract' | 'light' | 'waves' | 'clouds' | 'cross' | 'worship';
   textColor: 'light' | 'dark'; // Which text color works best
   mood: 'peaceful' | 'powerful' | 'joyful' | 'reflective';
   palette?: string; // Color palette description
@@ -31,15 +31,6 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
     palette: 'Blue/teal tones',
   },
   {
-    id: 'mountain-2',
-    name: 'Snowy Mountain Peaks',
-    url: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1920&q=80',
-    category: 'mountains',
-    textColor: 'light',
-    mood: 'peaceful',
-    palette: 'Blue/white tones',
-  },
-  {
     id: 'mountain-3',
     name: 'Misty Mountain Range',
     url: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1920&q=80',
@@ -47,15 +38,6 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
     textColor: 'light',
     mood: 'reflective',
     palette: 'Blue/gray tones',
-  },
-  {
-    id: 'mountain-4',
-    name: 'Mountain Lake Dusk',
-    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
-    category: 'mountains',
-    textColor: 'light',
-    mood: 'peaceful',
-    palette: 'Blue/purple tones',
   },
   {
     id: 'mountain-5',
@@ -66,48 +48,31 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
     mood: 'powerful',
     palette: 'Blue/purple tones',
   },
-  {
-    id: 'mountain-6',
-    name: 'Blue Hour Mountains',
-    url: 'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=1920&q=80',
-    category: 'mountains',
-    textColor: 'light',
-    mood: 'peaceful',
-    palette: 'Deep blue tones',
-  },
 
   // Nature - Peaceful & Green (Forests, fields, trees only)
   {
-    id: 'nature-1',
-    name: 'Forest Path Sunlight',
+    id: 'forest-1',
+    name: 'Sunrays Through Trees',
     url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80',
-    category: 'nature',
+    category: 'forest',
     textColor: 'light',
     mood: 'peaceful',
   },
   {
-    id: 'nature-2',
-    name: 'Green Meadow Field',
-    url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=80',
-    category: 'nature',
-    textColor: 'dark',
-    mood: 'joyful',
-  },
-  {
-    id: 'nature-3',
-    name: 'Forest Trees',
-    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&q=80',
-    category: 'nature',
+    id: 'forest-3',
+    name: 'Dense Forest Trees',
+    url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80',
+    category: 'forest',
     textColor: 'light',
     mood: 'peaceful',
   },
   {
-    id: 'nature-4',
-    name: 'Sunlit Green Leaves',
-    url: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=1920&q=80',
-    category: 'nature',
-    textColor: 'dark',
-    mood: 'joyful',
+    id: 'forest-8',
+    name: 'Forest Road with Sunrays',
+    url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1920&q=80',
+    category: 'forest',
+    textColor: 'light',
+    mood: 'peaceful',
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -139,33 +104,6 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
     textColor: 'light',
     mood: 'powerful',
     palette: 'Deep blue/teal',
-  },
-  {
-    id: 'waves-4',
-    name: 'Calm Blue Waters',
-    url: 'https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?w=1920&q=80',
-    category: 'waves',
-    textColor: 'light',
-    mood: 'reflective',
-    palette: 'Blue/teal',
-  },
-  {
-    id: 'waves-5',
-    name: 'Ocean Horizon',
-    url: 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=1920&q=80',
-    category: 'waves',
-    textColor: 'light',
-    mood: 'peaceful',
-    palette: 'Teal/blue',
-  },
-  {
-    id: 'waves-6',
-    name: 'Deep Sea Blue',
-    url: 'https://images.unsplash.com/photo-1551244072-5d12893278ab?w=1920&q=80',
-    category: 'waves',
-    textColor: 'light',
-    mood: 'reflective',
-    palette: 'Deep blue',
   },
 
   // Water - Lakes & Rivers (kept for variety)
@@ -199,15 +137,6 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
     palette: 'Light blue/white',
   },
   {
-    id: 'clouds-2',
-    name: 'Wispy Cloud Layers',
-    url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&q=80',
-    category: 'clouds',
-    textColor: 'dark',
-    mood: 'joyful',
-    palette: 'Blue/white',
-  },
-  {
     id: 'clouds-3',
     name: 'Gentle Sky Clouds',
     url: 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5?w=1920&q=80',
@@ -222,26 +151,8 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
     url: 'https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=1920&q=80',
     category: 'clouds',
     textColor: 'dark',
-    mood: 'joyful',
-    palette: 'Light blue/white',
-  },
-  {
-    id: 'clouds-5',
-    name: 'Serene Sky View',
-    url: 'https://images.unsplash.com/photo-1536514498073-50e69d39c6cf?w=1920&q=80',
-    category: 'clouds',
-    textColor: 'dark',
-    mood: 'peaceful',
-    palette: 'Blue/white',
-  },
-  {
-    id: 'clouds-6',
-    name: 'Peaceful Cloud Cover',
-    url: 'https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?w=1920&q=80',
-    category: 'clouds',
-    textColor: 'light',
     mood: 'reflective',
-    palette: 'Blue/gray/white',
+    palette: 'Light blue/white',
   },
 
   // Sky - General (kept for variety)

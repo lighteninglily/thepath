@@ -21,7 +21,7 @@ export const BACKGROUND_PACKS: BackgroundPack[] = [
   {
     id: 'mountains',
     name: '🏔️ Mountains',
-    description: '6 majestic peaks - Blue/purple tones, consistent palette',
+    description: '3 majestic peaks - Blue/purple tones, consistent palette',
     textColor: 'light',
     mood: 'powerful',
     backgrounds: WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'mountains'),
@@ -29,7 +29,7 @@ export const BACKGROUND_PACKS: BackgroundPack[] = [
   {
     id: 'waves',
     name: '🌊 Ocean Waves',
-    description: '6 ocean scenes - Teal/blue tones, consistent palette',
+    description: '3 ocean scenes - Teal/blue tones, consistent palette',
     textColor: 'light',
     mood: 'peaceful',
     backgrounds: WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'waves'),
@@ -37,7 +37,7 @@ export const BACKGROUND_PACKS: BackgroundPack[] = [
   {
     id: 'clouds',
     name: '☁️ Clouds',
-    description: '6 sky scenes - Soft blue/white tones, consistent palette',
+    description: '3 sky scenes - Soft blue/white tones, consistent palette',
     textColor: 'dark',
     mood: 'peaceful',
     backgrounds: WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'clouds'),
@@ -47,12 +47,12 @@ export const BACKGROUND_PACKS: BackgroundPack[] = [
   // OTHER PACKS
   // ═══════════════════════════════════════════════════════════
   {
-    id: 'nature',
-    name: '🌲 Nature',
-    description: '4 forest & field scenes - Green tones',
+    id: 'forest',
+    name: '🌲 Forest',
+    description: '3 dark forest scenes - Green tones',
     textColor: 'light',
     mood: 'peaceful',
-    backgrounds: WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'nature'),
+    backgrounds: WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'forest'),
   },
   {
     id: 'water',
@@ -81,13 +81,13 @@ export const BACKGROUND_PACKS: BackgroundPack[] = [
   {
     id: 'mixed-variety',
     name: '🎭 Mixed Variety',
-    description: '10 backgrounds - Mountains, waves & nature mix',
+    description: '10 backgrounds - Mountains, waves & forest mix',
     textColor: 'light',
     mood: 'powerful',
     backgrounds: [
       ...WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'mountains').slice(0, 4),
       ...WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'waves').slice(0, 4),
-      ...WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'nature').slice(0, 2),
+      ...WORSHIP_BACKGROUNDS.filter(bg => bg.category === 'forest').slice(0, 2),
     ],
   },
 ];

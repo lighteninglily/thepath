@@ -1,12 +1,11 @@
 // React import not needed in this file
-import { Search, Play } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface TopBarProps {
   title: string;
-  onStartPresentation?: () => void;
 }
 
-export function TopBar({ title, onStartPresentation }: TopBarProps) {
+export function TopBar({ title }: TopBarProps) {
   return (
     <header className="h-16 bg-white border-b border-brand-warmGray flex items-center justify-between px-6 shadow-sm">
       {/* Title */}
@@ -36,23 +35,6 @@ export function TopBar({ title, onStartPresentation }: TopBarProps) {
           />
         </div>
 
-        {/* Start Presentation Button */}
-        {onStartPresentation && (
-          <button
-            onClick={onStartPresentation}
-            className="
-              flex items-center gap-2 px-4 py-2 rounded-lg
-              bg-brand-skyBlue text-white
-              hover:bg-brand-powderBlue
-              transition-all duration-200
-              shadow-md hover:shadow-lg
-              font-medium
-            "
-          >
-            <Play size={18} />
-            <span>Present</span>
-          </button>
-        )}
       </div>
     </header>
   );
