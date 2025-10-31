@@ -1,0 +1,41 @@
+FEATURE: Beautiful drag & drop slide reordering
+
+Added smooth, visual drag & drop to slide navigator using @dnd-kit
+
+VISUAL EFFECTS:
+✨ Drag handle appears on hover (left side of thumbnail)
+✨ Cursor changes to "grab" when hovering handle
+✨ Slide becomes semi-transparent (50% opacity) while dragging
+✨ Scales up slightly when picked up (105%)
+✨ Massive shadow effect during drag
+✨ Beautiful drag overlay follows cursor showing slide preview
+✨ "Moving..." badge on dragged slide
+✨ Smooth animations during reorder
+✨ Blue highlight shows drop target
+✨ Auto-scroll when dragging near top/bottom edges
+
+IMPLEMENTATION:
+- Installed @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities
+- Created SortableSlideItem component with useSortable hook
+- 8px movement threshold before drag activates (prevents accidental drags)
+- DragOverlay shows floating preview of slide being moved
+- Maintains all existing functionality (click, duplicate, delete)
+- Works with keyboard (accessible)
+
+USER EXPERIENCE:
+1. Hover over slide thumbnail
+2. Drag handle appears on left (⋮⋮ icon)
+3. Click and hold drag handle
+4. Slide becomes semi-transparent
+5. Drag preview floats under cursor
+6. Drop between any two slides
+7. Smooth animation to new position
+8. Auto-saves immediately
+
+STILL WORKS:
+✅ Keyboard shortcuts (Ctrl+↑/↓)
+✅ Click to select slide
+✅ Duplicate/delete buttons
+✅ All existing functionality
+
+This makes slide reordering incredibly intuitive and satisfying!

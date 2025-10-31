@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Eye, Edit, Sparkles } from 'lucide-react';
+import { X, Edit, Sparkles } from 'lucide-react';
 import { parseLyricsIntoSlides } from '../../utils/lyricsParser';
 import { TemplateSelector } from '../templates/TemplateSelector';
 import { BackgroundPicker } from '../backgrounds/BackgroundPicker';
@@ -40,7 +40,6 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
     tempo: null,
     tags: [],
   });
-  const [showPreview, setShowPreview] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DesignTemplate | null>(null);
   const [selectedBackground, setSelectedBackground] = useState<BackgroundImage | null>(null);
   const [selectedPack, setSelectedPack] = useState<BackgroundPack | null>(null);
@@ -410,37 +409,9 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
         {/* Tabs for Form/Preview */}
         <div className="border-b border-brand-warmGray px-6">
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowPreview(false);
-              }}
-              className={`px-4 py-3 border-b-2 transition-colors ${
-                !showPreview
-                  ? 'border-brand-skyBlue text-brand-skyBlue font-medium'
-                  : 'border-transparent text-brand-umber hover:text-brand-charcoal'
-              }`}
-            >
+            <div className="px-4 py-3 border-b-2 border-brand-skyBlue text-brand-skyBlue font-medium">
               Song Details
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowPreview(true);
-              }}
-              className={`px-4 py-3 border-b-2 transition-colors flex items-center gap-2 ${
-                showPreview
-                  ? 'border-brand-skyBlue text-brand-skyBlue font-medium'
-                  : 'border-transparent text-brand-umber hover:text-brand-charcoal'
-              }`}
-            >
-              <Eye size={18} />
-              Preview Slides ({currentSlides.length})
-            </button>
+            </div>
             <button
               type="button"
               onClick={(e) => {
@@ -472,8 +443,7 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6">
-          {!showPreview ? (
-            <div className="space-y-6">
+          <div className="space-y-6">
             {/* Title */}
             <div>
               <label className="block text-sm font-medium text-brand-charcoal mb-2">
@@ -745,80 +715,6 @@ Was blind, but now I see"
               )}
             </div>
           </div>
-          ) : (
-            /* Preview Mode - 30,000 Foot Overview */
-            <div className="space-y-4">
-              <div className="bg-brand-skyBlue/10 border border-brand-skyBlue/20 rounded-lg p-4">
-                <p className="text-sm text-brand-charcoal">
-                  <strong>{currentSlides.length} slides</strong> in your song.
-                  {selectedTemplate && (
-                    <span className="ml-2">
-                      Using <strong>{selectedTemplate.name}</strong> template.
-                    </span>
-                  )}
-                </p>
-              </div>
-
-              {currentSlides.length === 0 ? (
-                <div className="text-center py-12 text-brand-umber">
-                  <p>Add some lyrics to see the slide preview</p>
-                </div>
-              ) : (
-                /* Grid Overview - Similar to AI Generation Preview */
-                <div className="grid grid-cols-4 gap-4">
-                  {currentSlides.map((slide, index) => (
-                    <div
-                      key={slide.id}
-                      className="border-2 border-brand-warmGray rounded-lg overflow-hidden hover:border-brand-skyBlue transition-colors cursor-pointer"
-                    >
-                      {/* Thumbnail Preview */}
-                      <div className="bg-gray-100 aspect-video relative">
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            backgroundImage: slide.visualData?.background?.imageUrl 
-                              ? `url(${slide.visualData.background.imageUrl})` 
-                              : slide.backgroundId
-                              ? `url(${slide.backgroundId})`
-                              : 'linear-gradient(135deg, #A8C5DD 0%, #C5D9E8 100%)',
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                          }}
-                        >
-                          <div className="absolute inset-0 flex items-center justify-center p-2">
-                            <p
-                              className="text-white font-bold text-center text-xs leading-tight"
-                              style={{
-                                fontSize: `${(slide.visualData?.elements?.[0]?.style?.fontSize || 64) / 12}px`,
-                                textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
-                              }}
-                            >
-                              {slide.content || slide.visualData?.elements?.[0]?.content}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Slide Info */}
-                      <div className="p-2 bg-white">
-                        <p className="text-center text-sm font-semibold text-gray-800">
-                          Slide {index + 1}
-                        </p>
-                        <p className="text-center text-xs text-gray-500 truncate">
-                          {(slide.content || slide.visualData?.elements?.[0]?.content || '').split('\n')[0]}...
-                        </p>
-                        {slide.type && (
-                          <p className="text-center text-xs text-brand-skyBlue mt-1 font-medium">
-                            {slide.type}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Footer */}
