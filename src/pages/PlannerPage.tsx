@@ -24,7 +24,8 @@ export function PlannerPage() {
   const [showAddWelcomeModal, setShowAddWelcomeModal] = useState(false);
   const [showAddClosingModal, setShowAddClosingModal] = useState(false);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
-  const [templateCategory, setTemplateCategory] = useState<'sermon' | 'announcement' | 'scripture' | 'welcome' | 'closing' | 'generic'>('announcement');
+  const [pendingAIContent, setPendingAIContent] = useState<any>(null);
+  const [templateCategory, setTemplateCategory] = useState<'sermon' | 'offering' | 'announcement' | 'scripture' | 'welcome' | 'closing' | 'generic'>('announcement');
   const [pendingScripture, setPendingScripture] = useState<{ 
     reference: string; 
     text: string; 
@@ -184,94 +185,65 @@ export function PlannerPage() {
   const handleAddSermon = (sermon: { title: string; scripture?: string; points?: string[]; aiGenerated: any }) => {
     if (!selectedService) return;
     
-    console.log('🎤 handleAddSermon called');
+    console.log('🎤 handleAddSermon called - opening template picker');
     
-    // For now, just create a basic item - will enhance with template generation next
-    const newItem: ServiceItem = {
-      id: String(Date.now()),
+    // Store AI content and open template picker
+    setPendingAIContent({
       type: 'sermon',
       title: sermon.title,
-      order: selectedService.items.length,
-      duration: 20,
-      // Store AI data for later template integration
-      content: JSON.stringify(sermon.aiGenerated)
-    };
-    
-    const updatedService = {
-      ...selectedService,
-      items: [...selectedService.items, newItem],
-    };
-    
-    setSelectedService(updatedService);
+      aiGenerated: sermon.aiGenerated,
+      duration: 20
+    });
+    setTemplateCategory('sermon');
+    setShowTemplatePicker(true);
     setShowAddSermonModal(false);
   };
 
   const handleAddOffering = (offering: { theme: string; aiGenerated: any }) => {
     if (!selectedService) return;
     
-    console.log('💰 handleAddOffering called');
+    console.log('💰 handleAddOffering called - opening template picker');
     
-    const newItem: ServiceItem = {
-      id: String(Date.now()),
+    setPendingAIContent({
       type: 'offering',
       title: offering.aiGenerated.title || 'Offering',
-      order: selectedService.items.length,
-      duration: 5,
-      content: JSON.stringify(offering.aiGenerated)
-    };
-    
-    const updatedService = {
-      ...selectedService,
-      items: [...selectedService.items, newItem],
-    };
-    
-    setSelectedService(updatedService);
+      aiGenerated: offering.aiGenerated,
+      duration: 5
+    });
+    setTemplateCategory('offering');
+    setShowTemplatePicker(true);
     setShowAddOfferingModal(false);
   };
 
   const handleAddWelcome = (welcome: { churchName: string; serviceType: string; aiGenerated: any }) => {
     if (!selectedService) return;
     
-    console.log('👋 handleAddWelcome called');
+    console.log('👋 handleAddWelcome called - opening template picker');
     
-    const newItem: ServiceItem = {
-      id: String(Date.now()),
+    setPendingAIContent({
       type: 'welcome',
       title: 'Welcome',
-      order: selectedService.items.length,
-      duration: 2,
-      content: JSON.stringify(welcome.aiGenerated)
-    };
-    
-    const updatedService = {
-      ...selectedService,
-      items: [...selectedService.items, newItem],
-    };
-    
-    setSelectedService(updatedService);
+      aiGenerated: welcome.aiGenerated,
+      duration: 2
+    });
+    setTemplateCategory('welcome');
+    setShowTemplatePicker(true);
     setShowAddWelcomeModal(false);
   };
 
   const handleAddClosing = (closing: { includeBenediction: boolean; nextWeekPreview?: string; aiGenerated: any }) => {
     if (!selectedService) return;
     
-    console.log('✅ handleAddClosing called');
+    console.log('✅ handleAddClosing called - opening template picker');
     
-    const newItem: ServiceItem = {
-      id: String(Date.now()),
+    setPendingAIContent({
       type: 'closing',
       title: 'Closing',
-      order: selectedService.items.length,
-      duration: 3,
-      content: JSON.stringify(closing.aiGenerated)
-    };
-    
-    const updatedService = {
-      ...selectedService,
-      items: [...selectedService.items, newItem],
-    };
-    
-    setSelectedService(updatedService);
+      aiGenerated: closing.aiGenerated,
+      duration: 3
+    });
+    setTemplateCategory('closing');
+    setShowTemplatePicker(true);
     setShowAddClosingModal(false);
   };
 
@@ -397,8 +369,87 @@ export function PlannerPage() {
       console.log(`✅ Created ${newItems.length} scripture slide(s)`);
       setSelectedService(updatedService);
       setPendingScripture(null); // Clear pending scripture
+    } else if (pendingAIContent && ['sermon', 'offering', 'welcome', 'closing'].includes(template.category)) {
+      // AI-generated content - populate template with AI data
+      console.log('🤖 Populating template with AI content:', pendingAIContent.type);
+      
+      const customizedVisualData = { ...template.visualData };
+      const aiData = pendingAIContent.aiGenerated;
+      
+      // Populate template elements with AI content
+      customizedVisualData.elements = template.visualData.elements.map((el: any) => {
+        // For sermon slides
+        if (pendingAIContent.type === 'sermon') {
+          if (el.id === 'sermon-title' || el.id === 'title' || el.id === 'main-title') {
+            return { ...el, content: aiData.titleSlide?.title || pendingAIContent.title };
+          }
+          if (el.id === 'scripture-ref' || el.id === 'subtitle') {
+            return { ...el, content: aiData.titleSlide?.subtitle || '' };
+          }
+        }
+        
+        // For offering slides
+        if (pendingAIContent.type === 'offering') {
+          if (el.id === 'title' || el.id === 'main-title') {
+            return { ...el, content: aiData.title };
+          }
+          if (el.id === 'subtitle' || el.id === 'message') {
+            return { ...el, content: aiData.message };
+          }
+          if (el.id === 'scripture' && aiData.scripture) {
+            return { ...el, content: aiData.scripture };
+          }
+        }
+        
+        // For welcome slides
+        if (pendingAIContent.type === 'welcome') {
+          if (el.id === 'main-text' || el.id === 'welcome-text') {
+            return { ...el, content: aiData.mainMessage };
+          }
+          if (el.id === 'subtitle' || el.id === 'tagline' || el.id === 'greeting') {
+            return { ...el, content: aiData.subtitle || aiData.greeting };
+          }
+        }
+        
+        // For closing slides
+        if (pendingAIContent.type === 'closing') {
+          if (el.id === 'main-message' || el.id === 'closing-text') {
+            return { ...el, content: aiData.title };
+          }
+          if (el.id === 'subtitle' || el.id === 'message') {
+            return { ...el, content: aiData.message };
+          }
+          if (el.id === 'scripture' || el.id === 'benediction' && aiData.benediction) {
+            return { ...el, content: aiData.benediction };
+          }
+          if (el.id === 'next-service' || el.id === 'next-week' && aiData.nextWeek) {
+            return { ...el, content: aiData.nextWeek };
+          }
+        }
+        
+        return el;
+      });
+      
+      const newItem: ServiceItem = {
+        id: String(Date.now()),
+        type: pendingAIContent.type as any,
+        title: pendingAIContent.title,
+        order: selectedService.items.length,
+        duration: pendingAIContent.duration,
+        content: JSON.stringify(customizedVisualData),
+      };
+
+      const updatedService = {
+        ...selectedService,
+        items: [...selectedService.items, newItem],
+      };
+
+      console.log('✅ Created AI-populated slide!');
+      setSelectedService(updatedService);
+      setPendingAIContent(null); // Clear pending AI content
+      setShowTemplatePicker(false);
     } else {
-      // Regular template (announcement, sermon, etc.)
+      // Regular template (announcement, etc.)
       const newItem: ServiceItem = {
         id: String(Date.now()),
         type: template.category as any,
@@ -414,6 +465,7 @@ export function PlannerPage() {
       };
 
       setSelectedService(updatedService);
+      setShowTemplatePicker(false);
     }
   };
 
