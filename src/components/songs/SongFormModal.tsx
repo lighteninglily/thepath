@@ -268,7 +268,10 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
 
   // Initialize slide backgrounds and layouts when slides change
   useEffect(() => {
-    if (currentSlides.length > 0 && (slideBackgrounds.length === 0 || slideBackgrounds.length !== currentSlides.length)) {
+    // Don't auto-initialize if we're loading an existing song with saved slide data
+    const hasExistingSlidesWithLayout = song?.slidesData && song.slidesData.some((s: any) => s.layout);
+    
+    if (currentSlides.length > 0 && !hasExistingSlidesWithLayout && (slideBackgrounds.length === 0 || slideBackgrounds.length !== currentSlides.length)) {
       console.log('🔄 Auto-initializing backgrounds and layouts for', currentSlides.length, 'slides');
       
       let newBackgrounds: (BackgroundImage | null)[];
@@ -298,7 +301,7 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
       setSlideBackgrounds(newBackgrounds);
       setSlideLayouts(newLayouts);
     }
-  }, [currentSlides.length, selectedBackground, selectedPack, selectedLook, usePacks, useQuickLooks, slideBackgrounds.length]);
+  }, [currentSlides.length, selectedBackground, selectedPack, selectedLook, usePacks, useQuickLooks, slideBackgrounds.length, song]);
 
   const handleOpenSlideEditor = () => {
     console.log('Opening slide editor...');
