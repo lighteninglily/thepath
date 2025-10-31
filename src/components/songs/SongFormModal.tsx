@@ -121,7 +121,9 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
         setSlideBackgrounds(extractedBackgrounds);
         setSlideLayouts(extractedLayouts);
         console.log('✅ Loaded backgrounds:', extractedBackgrounds.filter(b => b).length);
+        console.log('📋 Full backgrounds array:', extractedBackgrounds.map((b, i) => `[${i}]: ${b?.name || 'none'}`));
         console.log('✅ Loaded layouts:', extractedLayouts.length);
+        console.log('📋 Full layouts array:', extractedLayouts);
       }
       
       console.log('✅ FormData populated');
@@ -306,8 +308,23 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
   const handleOpenSlideEditor = () => {
     console.log('Opening slide editor...');
     console.log('Current slides:', currentSlides.length);
+    console.log('Existing slideBackgrounds:', slideBackgrounds.length);
+    console.log('Existing slideLayouts:', slideLayouts.length);
     
-    // ALWAYS ensure we have backgrounds and layouts matching current slides
+    // Check if we already have backgrounds/layouts loaded (from existing song)
+    const hasLoadedData = slideBackgrounds.length === currentSlides.length && slideLayouts.length === currentSlides.length;
+    
+    if (hasLoadedData) {
+      // Use existing backgrounds/layouts (from database)
+      console.log('✅ Using loaded backgrounds/layouts from existing song');
+      console.log('🎨 Backgrounds:', slideBackgrounds.map((b, i) => `[${i}]: ${b?.name || 'none'}`));
+      console.log('📐 Layouts:', slideLayouts);
+      setShowSlideEditor(true);
+      return;
+    }
+    
+    // Otherwise, create new backgrounds/layouts for new song
+    console.log('🆕 Creating new backgrounds/layouts for new song');
     let newBackgrounds: (BackgroundImage | null)[];
     let newLayouts: LayoutType[];
     
@@ -327,7 +344,9 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
     }
     
     console.log('Setting backgrounds:', newBackgrounds.length);
+    console.log('🎨 Backgrounds being passed to editor:', newBackgrounds.map((b, i) => `[${i}]: ${b?.name || 'none'}`));
     console.log('Setting layouts:', newLayouts.length);
+    console.log('📐 Layouts being passed to editor:', newLayouts);
     
     setSlideBackgrounds(newBackgrounds);
     setSlideLayouts(newLayouts);
