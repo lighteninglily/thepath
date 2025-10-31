@@ -56,12 +56,22 @@ export function AddSermonModal({ onClose, onSave }: AddSermonModalProps) {
     console.log('Saving from Visual Editor:', visualSlides);
     if (visualSlides.length > 0) {
       const updatedSlide = visualSlides[0];
+      
+      // Convert elements back from pixels to percentages for template storage
+      const convertedElements = updatedSlide.elements.map((el: any) => ({
+        ...el,
+        x: el.x / 19.2, // pixels to %
+        y: el.y / 10.8,
+        width: el.width / 19.2,
+        height: el.height / 10.8,
+      }));
+      
       const newSlides = [...sermonSlides];
       newSlides[editingSlideIndex] = {
         ...newSlides[editingSlideIndex],
         visualData: {
           background: updatedSlide.background,
-          elements: updatedSlide.elements,
+          elements: convertedElements,
         },
       };
       setSermonSlides(newSlides);
@@ -72,11 +82,49 @@ export function AddSermonModal({ onClose, onSave }: AddSermonModalProps) {
   if (step === 'visual-editor') {
     // Convert sermon slide to Visual Editor format
     const currentSlide = sermonSlides[editingSlideIndex];
+    
+    // Convert template elements (percentage-based) to Visual Editor format (pixel-based)
+    const convertedElements = (currentSlide.visualData?.elements || []).map((el: any, idx: number) => {
+      // Convert percentage coordinates to pixels (1920x1080 canvas)
+      const pixelX = (el.x || 0) * 19.2; // % to pixels
+      const pixelY = (el.y || 0) * 10.8;
+      const pixelWidth = (el.width || 100) * 19.2;
+      const pixelHeight = (el.height || 20) * 10.8;
+      
+      return {
+        id: el.id || `element_${Date.now()}_${idx}`,
+        type: el.type || 'text',
+        content: el.content || '',
+        x: pixelX,
+        y: pixelY,
+        width: pixelWidth,
+        height: pixelHeight,
+        rotation: el.rotation || 0,
+        opacity: el.opacity !== undefined ? el.opacity : 1,
+        zIndex: el.zIndex || 10,
+        locked: false,
+        visible: true,
+        style: {
+          fontSize: el.style?.fontSize || 48,
+          fontFamily: el.style?.fontFamily || 'Inter',
+          fontWeight: el.style?.fontWeight || 400,
+          color: el.style?.color || '#000000',
+          textAlign: el.style?.textAlign || 'left',
+          backgroundColor: el.style?.backgroundColor || 'transparent',
+          borderRadius: el.style?.borderRadius || 0,
+          padding: el.style?.padding || 0,
+          lineHeight: el.style?.lineHeight || 1.2,
+          letterSpacing: el.style?.letterSpacing || 0,
+          textTransform: el.style?.textTransform || 'none',
+        },
+      };
+    });
+    
     const visualSlide: VisualSlide = {
       id: currentSlide.id,
       content: currentSlide.content,
       order: editingSlideIndex,
-      elements: currentSlide.visualData?.elements || [],
+      elements: convertedElements,
       background: currentSlide.visualData?.background || { type: 'color', value: '#000000' },
       aspectRatio: '16:9',
       padding: { top: 0, right: 0, bottom: 0, left: 0 },
