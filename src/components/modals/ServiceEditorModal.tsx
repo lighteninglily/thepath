@@ -15,6 +15,8 @@ interface ServiceEditorModalProps {
   onAddSong: () => void;
   onAddItem: (type: string) => void;
   autoOpenVisualEditorForItemId?: string | null;
+  autoStartPresentation?: boolean;
+  onPresentationStarted?: () => void;
 }
 
 export function ServiceEditorModal({ 
@@ -24,7 +26,9 @@ export function ServiceEditorModal({
   onSave,
   onAddSong,
   onAddItem,
-  autoOpenVisualEditorForItemId
+  autoOpenVisualEditorForItemId,
+  autoStartPresentation,
+  onPresentationStarted
 }: ServiceEditorModalProps) {
   const [items, setItems] = useState<ServiceItem[]>([]);
   const [initialItems, setInitialItems] = useState<ServiceItem[]>([]);
@@ -45,7 +49,7 @@ export function ServiceEditorModal({
       }
     }
   }, [autoOpenVisualEditorForItemId, items]);
-
+  
   useEffect(() => {
     if (service && isOpen) {
       console.log('📖 Loading service into editor:', {
@@ -216,6 +220,18 @@ export function ServiceEditorModal({
       }
     }
   };
+
+  // Auto-start presentation when requested from PlannerPage Present button
+  useEffect(() => {
+    if (autoStartPresentation && isOpen && items.length > 0 && !isPresentationMode) {
+      console.log('🎭 Auto-starting presentation from PlannerPage...');
+      // Small delay to ensure modal is fully loaded
+      setTimeout(() => {
+        handleStartPresentation();
+        onPresentationStarted?.();
+      }, 300);
+    }
+  }, [autoStartPresentation, isOpen, items.length]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">

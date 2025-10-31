@@ -592,6 +592,18 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
       locked: false,
       rotation: 0,
       opacity: 1,
+      style: {
+        color: '#ffd700',
+        fontFamily: 'Inter',
+        fontSize: 36,
+        fontWeight: 600,
+        fontStyle: 'normal',
+        textAlign: 'center',
+        lineHeight: 1.2,
+        letterSpacing: 0,
+        textTransform: 'none',
+        textDecoration: 'none',
+      }
     };
     
     // Create scripture text element
@@ -611,6 +623,18 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
       locked: false,
       rotation: 0,
       opacity: 1,
+      style: {
+        color: '#ffffff',
+        fontFamily: 'Georgia, serif',
+        fontSize: 48,
+        fontWeight: 400,
+        fontStyle: 'normal',
+        textAlign: 'center',
+        lineHeight: 1.4,
+        letterSpacing: 0,
+        textTransform: 'none',
+        textDecoration: 'none',
+      }
     };
     
     const updatedSlide = {

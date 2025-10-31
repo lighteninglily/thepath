@@ -12,7 +12,6 @@ import { TemplatePickerModal } from '../components/modals/TemplatePickerModal';
 import type { SlideTemplate } from '../config/slideTemplatesFixed';
 import { useServices, useCreateService, useUpdateService, useDeleteService, useDuplicateService } from '../hooks/useServices';
 import { useSongs } from '../hooks/useSongs';
-import { useServicePresentationStore } from '../store/servicePresentationStore';
 import type { Service, ServiceItem } from '../types/service';
 
 export function PlannerPage() {
@@ -26,6 +25,7 @@ export function PlannerPage() {
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [pendingAIContent, setPendingAIContent] = useState<any>(null);
   const [autoOpenItemId, setAutoOpenItemId] = useState<string | null>(null);
+  const [autoStartPresentation, setAutoStartPresentation] = useState(false);
   const [templateCategory, setTemplateCategory] = useState<'sermon' | 'offering' | 'announcement' | 'scripture' | 'welcome' | 'closing' | 'generic'>('announcement');
   const [pendingScripture, setPendingScripture] = useState<{ 
     reference: string; 
@@ -42,7 +42,6 @@ export function PlannerPage() {
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
   const duplicateService = useDuplicateService();
-  const { startPresentation } = useServicePresentationStore();
 
   const handleCreateService = async (data: { name: string; date: string }) => {
     console.log('🔵 handleCreateService called with:', data);
@@ -115,28 +114,11 @@ export function PlannerPage() {
       return;
     }
     
-    // Start presentation in dual-screen mode
-    startPresentation(service, 'dual');
-    
-    // Small delay to ensure store is updated
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Open audience window (projection screen) with correct hash route
-    const audienceWindow = window.open('/#/audience', 'audience', 'fullscreen=yes');
-    if (!audienceWindow) {
-      alert('Please allow popups to open the projection screen');
-    } else {
-      console.log('✅ Audience window opened successfully');
-      // Force audience window to reload after a moment to pick up state
-      setTimeout(() => {
-        if (audienceWindow && !audienceWindow.closed) {
-          audienceWindow.location.reload();
-        }
-      }, 500);
-    }
-    
-    // Open the service editor modal for presenter controls
+    // Open service in editor and auto-start presentation
     setSelectedService(service);
+    setAutoStartPresentation(true);
+    
+    console.log('✅ Service opened - will auto-start presentation');
   };
 
   const handleAddSong = (song: any) => {
@@ -652,11 +634,14 @@ export function PlannerPage() {
         onClose={() => {
           setSelectedService(null);
           setAutoOpenItemId(null);
+          setAutoStartPresentation(false);
         }}
         onSave={handleSaveService}
         onAddSong={() => setShowAddSongModal(true)}
         onAddItem={handleAddItem}
         autoOpenVisualEditorForItemId={autoOpenItemId}
+        autoStartPresentation={autoStartPresentation}
+        onPresentationStarted={() => setAutoStartPresentation(false)}
       />
 
       {/* Add Song Modal */}
