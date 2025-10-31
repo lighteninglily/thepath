@@ -1,4 +1,4 @@
-import { X, Save, Type, Undo, Redo, Copy, Files, ArrowUp, ArrowDown, RefreshCw, Image as ImageIcon } from 'lucide-react';
+import { X, Save, Type, Undo, Redo, Copy, Files, ArrowUp, ArrowDown, RefreshCw, Image as ImageIcon, Palette } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { VisualCanvas } from '../designer/VisualCanvas';
 import { useHistory } from '../../hooks/useHistory';
@@ -8,6 +8,7 @@ import { uploadImageFile, getAllImages, type StoredImage } from '../../utils/ima
 import { AssetPickerModal } from './AssetPickerModal';
 import { getRecommendedSize } from '../../utils/brandAssetStorage';
 import type { BrandAsset } from '../../types/brandAsset';
+import { FONT_COMBINATIONS, applyFontCombination, isLikelyHeading } from '../../config/fontCombinations';
 import type { ServiceItem } from '../../types/service';
 import type { SlideTemplate } from '../../config/slideTemplatesFixed';
 
@@ -26,6 +27,7 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
   const [copiedElement, setCopiedElement] = useState<any | null>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
+  const [showFontMenu, setShowFontMenu] = useState(false);
   const [, setUploadedImages] = useState<StoredImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -538,6 +540,33 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
     console.log('✅ Added new text element:', newElement.id);
   };
 
+  // Apply font combination to selected element
+  const handleApplyFontCombination = (combinationId: string) => {
+    if (!selectedElementId || !slide) return;
+    
+    const combination = FONT_COMBINATIONS.find(c => c.id === combinationId);
+    if (!combination) return;
+    
+    const element = slide.elements.find((el: any) => el.id === selectedElementId);
+    if (!element || element.type !== 'text') return;
+    
+    // Determine if this element is a heading or body text
+    const isHeading = isLikelyHeading(element);
+    const updatedElement = applyFontCombination(element, combination, isHeading);
+    
+    const updatedElements = slide.elements.map((el: any) =>
+      el.id === selectedElementId ? updatedElement : el
+    );
+    
+    setSlide({
+      ...slide,
+      elements: updatedElements,
+    });
+    
+    setShowFontMenu(false);
+    console.log(`✨ Applied ${combination.name} to element:`, selectedElementId);
+  };
+
   const handleChangeTemplate = (template: SlideTemplate) => {
     console.log('🔄 Changing to template:', template.name);
     
@@ -765,6 +794,55 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
               <Type className="w-4 h-4" />
               Add Text
             </button>
+            
+            {/* Font Combinations */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFontMenu(!showFontMenu)}
+                disabled={!selectedElementId || selectedElement?.type !== 'text'}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Apply font combination to selected text"
+              >
+                <Palette className="w-4 h-4" />
+                Font Style
+              </button>
+              
+              {/* Font Menu Dropdown */}
+              {showFontMenu && selectedElementId && selectedElement?.type === 'text' && (
+                <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-gray-200 z-50 w-72 max-h-96 overflow-y-auto">
+                  <div className="p-3 border-b border-gray-200">
+                    <p className="text-xs font-semibold text-gray-600 uppercase">Quick Font Styles</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {isLikelyHeading(selectedElement) ? 'Heading style' : 'Body text style'}
+                    </p>
+                  </div>
+                  {FONT_COMBINATIONS.map((combo) => (
+                    <button
+                      key={combo.id}
+                      onClick={() => handleApplyFontCombination(combo.id)}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors group"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">
+                            {combo.name}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">{combo.description}</p>
+                          <div className="mt-2 text-xs text-gray-400">
+                            <span style={{ fontFamily: isLikelyHeading(selectedElement) ? combo.heading.fontFamily : combo.body.fontFamily }}>
+                              Preview Text
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600">
+                          {combo.category}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             
             {/* Save & Close */}
             <button
