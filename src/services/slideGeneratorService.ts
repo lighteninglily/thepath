@@ -249,7 +249,14 @@ export class SlideGeneratorService {
           visualData: {
             background: {
               type: 'image',
-              imageId: background.id
+              imageId: background.id,
+              imageUrl: background.url,  // Set actual URL for audience view
+              overlay: {
+                enabled: true,
+                color: '#000000',
+                opacity: 50,
+                blendMode: 'normal' as const
+              }
             },
             elements: [
               {
@@ -289,7 +296,7 @@ export class SlideGeneratorService {
           background: {
             type: 'image',
             imageId: pack.backgrounds[0].id,
-            imageUrl: pack.backgrounds[0].id,
+            imageUrl: pack.backgrounds[0].url,  // Use actual URL not ID
             overlay: {
               enabled: true,
               color: '#000000',
