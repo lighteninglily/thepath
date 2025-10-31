@@ -4,7 +4,7 @@ import { CreateServiceModal } from '../components/planner/CreateServiceModal';
 import { ServiceEditorModal } from '../components/modals/ServiceEditorModal';
 import { AddSongToServiceModal } from '../components/modals/AddSongToServiceModal';
 import { AddScriptureModal } from '../components/modals/AddScriptureModal';
-import { AddSermonModal } from '../components/modals/AddSermonModal';
+import { AddSermonModal } from '../components/sermon/AddSermonModal';
 import { AddOfferingModal } from '../components/modals/AddOfferingModal';
 import { AddWelcomeModal } from '../components/modals/AddWelcomeModal';
 import { AddClosingModal } from '../components/modals/AddClosingModal';
@@ -165,16 +165,21 @@ export function PlannerPage() {
     setShowAddScriptureModal(false);
   };
 
-  const handleAddSermon = (sermon: { title: string; scripture?: string; points?: string[]; aiGenerated: any }) => {
+  // Sermon slide builder handler
+  const handleAddSermon = (sermon: { title: string; slides: any[] }) => {
     if (!selectedService) return;
     
-    console.log('🎤 handleAddSermon called - opening template picker');
+    console.log('🎤 handleAddSermon (NEW) - Adding sermon with slides:', sermon);
     
-    // Store AI content and open template picker
+    // For now, store as AI content to work with existing flow
+    // TODO: Adapt service system to handle pre-built slides
     setPendingAIContent({
       type: 'sermon',
       title: sermon.title,
-      aiGenerated: sermon.aiGenerated,
+      aiGenerated: {
+        slides: sermon.slides,
+        title: sermon.title
+      },
       duration: 20
     });
     setTemplateCategory('sermon');
@@ -659,12 +664,13 @@ export function PlannerPage() {
         onAddScripture={handleAddScripture}
       />
 
-      {/* Add Sermon Modal (AI-Enhanced) */}
-      <AddSermonModal
-        isOpen={showAddSermonModal}
-        onClose={() => setShowAddSermonModal(false)}
-        onAddSermon={handleAddSermon}
-      />
+      {/* Add Sermon Modal (NEW 3-Panel Builder) */}
+      {showAddSermonModal && (
+        <AddSermonModal
+          onClose={() => setShowAddSermonModal(false)}
+          onSave={handleAddSermon}
+        />
+      )}
 
       {/* Add Offering Modal (AI-Enhanced) */}
       <AddOfferingModal

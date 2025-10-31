@@ -62,9 +62,11 @@ export function SlideEditorNew({
 
   // Change background for current slide
   const handleChangeBackground = (background: BackgroundImage) => {
+    console.log('🎨 Changing background for slide', currentSlideIndex + 1, 'to:', background.name);
     const newBackgrounds = [...backgrounds];
     newBackgrounds[currentSlideIndex] = background;
     setBackgrounds(newBackgrounds);
+    console.log('✅ Background updated. All backgrounds:', newBackgrounds.map(b => b?.name || 'none'));
   };
 
   // Change layout for current slide
@@ -237,10 +239,15 @@ export function SlideEditorNew({
 
   // Save changes
   const handleSave = () => {
+    console.log('💾 SlideEditorNew - Saving slides...');
     const updatedSlides = slides.map((slide, index) => ({
       ...slide,
       order: index,
     }));
+
+    console.log('📊 Saving', updatedSlides.length, 'slides');
+    console.log('🎨 Saving', backgrounds.length, 'backgrounds:', backgrounds.map(b => b?.name || 'none'));
+    console.log('📐 Saving', layouts.length, 'layouts');
 
     onSave(updatedSlides, backgrounds, layouts);
   };
