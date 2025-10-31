@@ -9,6 +9,7 @@ import { AssetPickerModal } from './AssetPickerModal';
 import { getRecommendedSize } from '../../utils/brandAssetStorage';
 import type { BrandAsset } from '../../types/brandAsset';
 import { FONT_COMBINATIONS, applyFontCombination, isLikelyHeading } from '../../config/fontCombinations';
+import { AddScriptureModal } from './AddScriptureModal';
 import type { ServiceItem } from '../../types/service';
 import type { SlideTemplate } from '../../config/slideTemplatesFixed';
 
@@ -28,6 +29,7 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
   const [showFontMenu, setShowFontMenu] = useState(false);
+  const [showScriptureLookup, setShowScriptureLookup] = useState(false);
   const [, setUploadedImages] = useState<StoredImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -567,6 +569,62 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
     console.log(`✨ Applied ${combination.name} to element:`, selectedElementId);
   };
 
+  // Insert scripture as formatted text elements
+  const handleInsertScripture = (scripture: { reference: string; text: string; version: string }) => {
+    if (!slide) return;
+    
+    console.log('📖 Inserting scripture:', scripture.reference);
+    
+    // Create reference text element
+    const refElement: any = {
+      id: `scripture-ref-${Date.now()}`,
+      type: 'text',
+      content: scripture.reference.toUpperCase(),
+      position: { x: 360, y: 200 },
+      size: { width: 1200, height: 80 },
+      fontSize: 36,
+      fontFamily: 'Inter',
+      fontWeight: 600,
+      color: '#ffd700',
+      textAlign: 'center',
+      zIndex: 20,
+      visible: true,
+      locked: false,
+      rotation: 0,
+      opacity: 1,
+    };
+    
+    // Create scripture text element
+    const textElement: any = {
+      id: `scripture-text-${Date.now()}`,
+      type: 'text',
+      content: scripture.text,
+      position: { x: 260, y: 320 },
+      size: { width: 1400, height: 500 },
+      fontSize: 48,
+      fontFamily: 'Georgia, serif',
+      fontWeight: 400,
+      color: '#ffffff',
+      textAlign: 'center',
+      zIndex: 20,
+      visible: true,
+      locked: false,
+      rotation: 0,
+      opacity: 1,
+    };
+    
+    const updatedSlide = {
+      ...slide,
+      elements: [...slide.elements, refElement, textElement],
+    };
+    
+    setSlide(updatedSlide);
+    setSelectedElementId(refElement.id);
+    setShowScriptureLookup(false);
+    
+    console.log('✅ Scripture inserted successfully');
+  };
+
   const handleChangeTemplate = (template: SlideTemplate) => {
     console.log('🔄 Changing to template:', template.name);
     
@@ -767,6 +825,16 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
             >
               <Files className="w-4 h-4" />
               Brand Assets
+            </button>
+            
+            {/* Insert Scripture */}
+            <button
+              onClick={() => setShowScriptureLookup(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
+              title="Insert scripture verse"
+            >
+              <Type className="w-4 h-4" />
+              Insert Scripture
             </button>
             
             {/* Add Image */}
@@ -1323,6 +1391,13 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
         category={item?.type as any || 'generic'}
         onClose={() => setShowTemplatePicker(false)}
         onSelectTemplate={handleChangeTemplate}
+      />
+      
+      {/* Scripture Lookup Modal */}
+      <AddScriptureModal
+        isOpen={showScriptureLookup}
+        onClose={() => setShowScriptureLookup(false)}
+        onAddScripture={handleInsertScripture}
       />
     </div>
   );
