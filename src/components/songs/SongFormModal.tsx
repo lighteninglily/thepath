@@ -99,6 +99,31 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
       setFormData(loadedData);
       setInitialFormData(JSON.parse(JSON.stringify(loadedData))); // Deep copy
       
+      // Extract per-slide backgrounds and layouts from slidesData
+      if (song.slidesData && song.slidesData.length > 0) {
+        console.log('🔄 Extracting per-slide backgrounds and layouts...');
+        
+        const extractedBackgrounds = song.slidesData.map(slide => {
+          if (slide.backgroundId) {
+            const bg = WORSHIP_BACKGROUNDS.find(b => b.id === slide.backgroundId);
+            if (bg) {
+              console.log(`  Slide ${slide.order + 1}: Found background "${bg.name}"`);
+              return bg;
+            }
+          }
+          return null;
+        });
+        
+        const extractedLayouts = song.slidesData.map(slide => 
+          (slide as any).layout || 'full-bleed'
+        );
+        
+        setSlideBackgrounds(extractedBackgrounds);
+        setSlideLayouts(extractedLayouts);
+        console.log('✅ Loaded backgrounds:', extractedBackgrounds.filter(b => b).length);
+        console.log('✅ Loaded layouts:', extractedLayouts.length);
+      }
+      
       console.log('✅ FormData populated');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       

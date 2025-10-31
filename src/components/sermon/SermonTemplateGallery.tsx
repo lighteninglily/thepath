@@ -55,7 +55,7 @@ export function SermonTemplateGallery({
               font-medium text-sm"
           >
             <Sparkles size={16} />
-            AI Pick Template
+            AI Suggest
           </button>
         )}
 
