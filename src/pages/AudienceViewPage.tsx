@@ -136,22 +136,23 @@ export function AudienceViewPage() {
       return { background: bgColor };
     }
 
-    // Check for image URL
-    if (background.imageUrl) {
+    // Check for image URL or imageId (backward compatibility)
+    const imageRef = background.imageUrl || background.imageId;
+    if (imageRef) {
       // If it's already a full URL, use it
-      if (background.imageUrl.startsWith('http')) {
-        console.log('🖼️ Using image URL:', background.imageUrl);
+      if (imageRef.startsWith('http')) {
+        console.log('🖼️ Using image URL:', imageRef);
         return {
-          backgroundImage: `url(${background.imageUrl})`,
+          backgroundImage: `url(${imageRef})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         };
       }
       
-      // Otherwise, it's a background ID - look it up
-      const bg = WORSHIP_BACKGROUNDS.find(b => b.id === background.imageUrl);
+      // Otherwise, it's a background ID - look it up in WORSHIP_BACKGROUNDS
+      const bg = WORSHIP_BACKGROUNDS.find(b => b.id === imageRef);
       if (bg) {
-        console.log('✅ Resolved background ID:', background.imageUrl, '→', bg.url);
+        console.log('✅ Resolved background ID:', imageRef, '→', bg.url);
         return {
           backgroundImage: `url(${bg.url})`,
           backgroundSize: 'cover',
@@ -159,7 +160,7 @@ export function AudienceViewPage() {
         };
       }
       
-      console.warn('⚠️ Could not resolve background ID:', background.imageUrl);
+      console.warn('⚠️ Could not resolve background ID:', imageRef);
     }
 
     // Fallback to black
