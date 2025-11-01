@@ -321,6 +321,16 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept keyboard events when user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true'
+      ) {
+        return; // Let the input handle the keystroke normally
+      }
+
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
       

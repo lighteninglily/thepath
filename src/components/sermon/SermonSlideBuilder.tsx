@@ -251,8 +251,15 @@ export function SermonSlideBuilder({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if typing in textarea
-      if (e.target instanceof HTMLTextAreaElement) return;
+      // Don't trigger if typing in input fields
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true'
+      ) {
+        return;
+      }
 
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
