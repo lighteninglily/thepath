@@ -346,9 +346,9 @@ export function AudienceViewPage() {
               className="absolute inset-0 flex items-center justify-center text-white text-center px-32"
               style={{ zIndex: 10 }}
             >
-              <pre className="text-5xl font-bold leading-tight whitespace-pre-wrap">
+              <div className="text-6xl font-bold leading-tight whitespace-pre-wrap font-sans">
                 {currentSlide.content}
-              </pre>
+              </div>
             </div>
           </div>
         );
