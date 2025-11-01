@@ -315,6 +315,46 @@ export function AudienceViewPage() {
       );
     }
 
+    // Handle old-format song slides (plain text + backgroundId)
+    if (currentItem?.type === 'song' && currentSongData?.slidesData) {
+      const currentSlide = currentSongData.slidesData[currentSlideIndex];
+      if (currentSlide && currentSlide.content && currentSlide.backgroundId) {
+        console.log('📺 Rendering legacy song slide:', {
+          slideType: currentSlide.type,
+          backgroundId: currentSlide.backgroundId,
+          contentLength: currentSlide.content.length
+        });
+        
+        // Get background from backgroundId
+        const bg = WORSHIP_BACKGROUNDS.find(b => b.id === currentSlide.backgroundId);
+        const backgroundStyle = bg ? {
+          backgroundImage: `url(${bg.url})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        } : { background: '#1a1a2e' };
+        
+        return (
+          <div className="w-full h-full relative overflow-hidden">
+            {/* Background */}
+            <div className="absolute inset-0" style={backgroundStyle} />
+            
+            {/* Dark overlay for text readability */}
+            <div className="absolute inset-0 bg-black opacity-50" style={{ zIndex: 1 }} />
+            
+            {/* Lyrics text */}
+            <div 
+              className="absolute inset-0 flex items-center justify-center text-white text-center px-32"
+              style={{ zIndex: 10 }}
+            >
+              <pre className="text-5xl font-bold leading-tight whitespace-pre-wrap">
+                {currentSlide.content}
+              </pre>
+            </div>
+          </div>
+        );
+      }
+    }
+
     // Fallback for items without visual data
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-900">
