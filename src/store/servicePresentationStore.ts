@@ -7,6 +7,7 @@ interface ServicePresentationState {
   service: Service | null;
   currentItemIndex: number;
   currentSlideIndex: number;
+  currentSongData: any | null; // Song data for current item if it's a song
   
   // Display state
   isBlank: boolean;
@@ -33,6 +34,7 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
   service: null,
   currentItemIndex: 0,
   currentSlideIndex: 0,
+  currentSongData: null,
   isBlank: false,
   displayMode: 'single',
   startTime: null,
@@ -46,6 +48,7 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
       service,
       currentItemIndex: 0,
       currentSlideIndex: 0,
+      currentSongData: null,
       isBlank: false,
       displayMode: mode,
       startTime: Date.now(),
@@ -61,6 +64,7 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
       service: null,
       currentItemIndex: 0,
       currentSlideIndex: 0,
+      currentSongData: null,
       isBlank: false,
       startTime: null,
       elapsedTime: 0,

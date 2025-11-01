@@ -11,12 +11,16 @@ import { WORSHIP_BACKGROUNDS } from '../assets/backgrounds';
 export function AudienceViewPage() {
   const [presentationState, setPresentationState] = useState<any>(null);
 
+  console.log('🎭 AudienceViewPage MOUNTED');
+
   // Listen for state updates from presenter window via IPC
   useEffect(() => {
     console.log('👀 Audience view initializing', {
       hasElectron: !!window.electron,
       hasPresentation: !!window.electron?.presentation,
-      hasOnStateUpdate: !!window.electron?.presentation?.onStateUpdate
+      hasOnStateUpdate: !!window.electron?.presentation?.onStateUpdate,
+      windowLocation: window.location.href,
+      windowHash: window.location.hash
     });
 
     if (window.electron?.presentation?.onStateUpdate) {
