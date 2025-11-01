@@ -1,0 +1,65 @@
+MAJOR UPGRADE: Sermon Builder now uses modern Visual Editor!
+
+USER REQUEST:
+"The AI should use the same visual editor as announcements - 
+the one with Change Template, Brand Assets, Insert Scripture buttons"
+
+PROBLEM:
+- Sermon builder was using old SlideDesigner
+- Different interface than announcements/scripture editor
+- User wanted consistency across all slide types
+
+SOLUTION:
+Replaced SlideDesigner with VisualItemEditorModal
+
+WHAT THIS MEANS:
+The sermon builder now has the SAME modern editor as announcements!
+
+FEATURES NOW AVAILABLE:
+✅ Change Template button - Switch between designs
+✅ Brand Assets button - Add church logo, images
+✅ Insert Scripture button - Quick scripture lookup
+✅ Upload button - Add custom images
+✅ Add Text button - Quick text element addition
+✅ Font Style button - Typography controls
+✅ Modern toolbar at top
+✅ Properties panel on right
+✅ Background picker with image library
+✅ Drag & drop elements
+✅ Resize and reposition
+✅ Click elements to edit
+
+TECHNICAL CHANGES:
+- Replaced: SlideDesigner → VisualItemEditorModal
+- Data flow: visualData stored in content field (ServiceItem format)
+- Conversion: Sermon slide ↔ ServiceItem format
+- No more coordinate conversion needed!
+
+USER EXPERIENCE:
+Before:
+- Old two-panel editor
+- Limited controls
+- Different UX from rest of app
+
+After:
+- Modern unified editor
+- All editing tools in one place
+- Consistent with announcements/scripture
+- Professional toolbar
+- Quick access to everything
+
+FILES CHANGED:
+- src/components/sermon/AddSermonModal.tsx
+
+WORKFLOW NOW:
+1. Type sermon content
+2. Apply template
+3. Click "Customize"
+4. Opens MODERN editor with toolbar
+5. Change template, add images, insert scripture
+6. Drag, resize, style elements
+7. Save
+8. Beautiful professional slide!
+
+This is a MAJOR quality improvement - now all slide types
+use the same modern, professional editing interface!

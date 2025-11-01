@@ -1,8 +1,8 @@
 # 🏗️ THE PATH - SYSTEM ARCHITECTURE
 
 **Church Presentation Software**  
-**Version**: 3.1.0 - MVP Complete  
-**Last Updated**: October 30, 2025 - 2:25 PM
+**Version**: 3.2.0 - MVP Complete + Sermon Builder  
+**Last Updated**: October 31, 2025 - 6:45 PM
 
 ---
 
@@ -24,9 +24,17 @@ Church presentation software for displaying worship lyrics, scriptures, announce
 
 ### 1.2 Core Capabilities
 - **Song Management**: Create, edit, organize worship songs with automatic slide generation
-- **Lyrics Search**: Integrated Genius API for automated lyrics import  
+- **Lyrics Search**: Integrated Genius API for automated lyrics import
+- **📝 Sermon Builder**: Professional sermon slide creation with modern visual editor
+  - 3-panel interface (Navigator, Editor, Template Gallery)
+  - 10+ sermon templates (Title, Scripture, Point, Multi-Point, Quote, Transition, Question)
+  - Modern visual editor (same as announcements)
+  - Template-based design with placeholder replacement
+  - Drag & drop slide reordering
+  - Live preview rendering
+  - **See SERMON_BUILDER_ARCHITECTURE.md for detailed documentation**
 - **🎨 Template System**: 10+ beautiful pre-designed templates with gallery picker
-  - Sermon templates (3 variations)
+  - Sermon templates (10 variations)
   - Announcement templates (3 variations)
   - Scripture templates (2 variations)
   - Dramatic backgrounds and frames
@@ -88,6 +96,12 @@ Church presentation software for displaying worship lyrics, scriptures, announce
 ### 1.4 Current State - **MVP COMPLETE** 🎉
 - ✅ **Web Application**: Fully functional React SPA with localStorage
 - ✅ **Desktop Application**: Electron configured with dual-screen presentation
+- ✅ **Sermon Builder**: Professional 3-panel builder with modern visual editor
+  - 10+ sermon templates (Title, Scripture, Point, Multi-Point, Quote, Transition, Question)
+  - Template-based design with placeholder replacement
+  - Same modern editor as announcements (VisualItemEditorModal)
+  - Drag & drop slide reordering
+  - Live preview rendering
 - ✅ **Template System**: 10+ beautiful templates with gallery picker
 - ✅ **Visual Editor**: **EXCEPTIONAL** Professional-Grade Editor
   - 🎯 **Undo/Redo**: 50-step history management
@@ -1894,9 +1908,11 @@ Monolith → Backend API → Microservices
 
 ## 12. RELATED DOCUMENTATION
 
+- **SERMON_BUILDER_ARCHITECTURE.md** - Comprehensive sermon builder documentation
 - **ARCHITECTURE_TECHNICAL.md** - Detailed tech implementation
 - **ARCHITECTURE_DATA.md** - Database schema & data models
 - **ARCHITECTURE_COMPONENTS.md** - Component hierarchy & flows
+- **VISUAL-EDITOR-DOCUMENTATION.md** - Visual editor implementation details
 - **DICTIONARY.md** - Data dictionary
 - **SYSTEM.md** - System overview
 - **PLAN.md** - Development roadmap

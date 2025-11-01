@@ -1,0 +1,40 @@
+DOCS: Add comprehensive Sermon Builder architecture documentation
+
+Created detailed documentation for the sermon builder system including:
+
+NEW DOCUMENT: SERMON_BUILDER_ARCHITECTURE.md
+- Component architecture and hierarchy
+- Data flow diagrams
+- Template system implementation
+- Visual editor integration details
+- Code examples and debugging guide
+- User workflow documentation
+- Technical decisions and rationale
+
+UPDATED: ARCHITECTURE.md
+- Added sermon builder to core capabilities
+- Updated MVP complete section
+- Added references to new documentation
+- Bumped version to 3.2.0
+- Updated timestamp to October 31, 2025
+
+FIXED: SermonSlideBuilder.tsx
+- Removed unused AI-related props
+- Fixed template selection enabling Customize button
+- Added debug logging for troubleshooting
+- Cleaned up unused functions
+
+DOCUMENTATION COVERS:
+1. Overview & Purpose
+2. Component Architecture & File Structure
+3. Data Flow (Template Application, Customization, Save)
+4. Template System (Structure, Categories, Placeholders)
+5. Visual Editor Integration (Why VisualItemEditorModal)
+6. Technical Decisions (AI removal, percentage coordinates)
+7. Data Models & Interfaces
+8. User Workflow
+9. Keyboard Shortcuts
+10. Debugging & Common Issues
+
+All sermon builder work from today's session is now fully documented
+for future reference and maintenance.

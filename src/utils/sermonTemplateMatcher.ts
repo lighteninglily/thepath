@@ -304,13 +304,35 @@ function extractQuote(content: string): any {
 
 /**
  * Apply template to slide content
+ * Can accept either ContentAnalysis or AI result with placeholders
  */
 export function applyTemplateToContent(
   template: SermonTemplate,
   content: string,
-  analysis?: ContentAnalysis
+  analysisOrAIResult?: ContentAnalysis | { placeholders?: Record<string, any>; emphasis?: string[] }
 ): any {
-  const extractedData = analysis?.extractedData || {};
+  // Handle both ContentAnalysis and AI result formats
+  let extractedData: Record<string, any> = {};
+  let emphasisWords: string[] = [];
+  
+  if (analysisOrAIResult) {
+    if ('extractedData' in analysisOrAIResult) {
+      // ContentAnalysis format
+      extractedData = analysisOrAIResult.extractedData || {};
+    } else if ('placeholders' in analysisOrAIResult) {
+      // AI result format
+      extractedData = analysisOrAIResult.placeholders || {};
+      emphasisWords = analysisOrAIResult.emphasis || [];
+    }
+  }
+  
+  console.log('🎨 Applying template to content:', {
+    templateName: template.name,
+    templateCategory: template.category,
+    content: content.substring(0, 100),
+    extractedData,
+    emphasisWords
+  });
   
   // Clone template visualData
   const visualData = JSON.parse(JSON.stringify(template.visualData));
@@ -319,26 +341,48 @@ export function applyTemplateToContent(
   visualData.elements = visualData.elements.map((element: any) => {
     let newContent = element.content;
     
+    console.log(`🔄 Processing element ${element.id} (${element.role}):`, {
+      original: element.content,
+      role: element.role
+    });
+    
     // Replace placeholders with actual content
     newContent = newContent
       .replace(/\{\{TITLE\}\}/g, extractedData.title || content.split('\n')[0] || '')
-      .replace(/\{\{SUBTITLE\}\}/g, content.split('\n')[1] || '')
-      .replace(/\{\{SCRIPTURE_REFERENCE\}\}/g, extractedData.scriptureReference || '')
-      .replace(/\{\{SCRIPTURE_TEXT\}\}/g, extractedData.scriptureText || content)
+      .replace(/\{\{SUBTITLE\}\}/g, extractedData.subtitle || content.split('\n')[1] || '')
+      .replace(/\{\{SCRIPTURE_REFERENCE\}\}/g, extractedData.scriptureReference || extractedData.reference || '')
+      .replace(/\{\{SCRIPTURE_TEXT\}\}/g, extractedData.scriptureText || extractedData.text || content)
       .replace(/\{\{POINT_NUMBER\}\}/g, extractedData.pointNumber || '1')
       .replace(/\{\{POINT_TITLE\}\}/g, extractedData.pointTitle || content.split('\n')[0] || '')
       .replace(/\{\{POINT_BODY\}\}/g, extractedData.pointBody || content.split('\n').slice(1).join('\n'))
       .replace(/\{\{QUESTION\}\}/g, extractedData.question || content)
-      .replace(/\{\{QUOTE_TEXT\}\}/g, extractedData.quote || content)
+      .replace(/\{\{QUOTE_TEXT\}\}/g, extractedData.quoteText || extractedData.quote || content)
       .replace(/\{\{AUTHOR\}\}/g, extractedData.author || '')
       .replace(/\{\{SECTION_TITLE\}\}/g, extractedData.title || content)
-      .replace(/\{\{POINT1_TITLE\}\}/g, (extractedData as any).point1_title || '')
-      .replace(/\{\{POINT1_BODY\}\}/g, (extractedData as any).point1_body || '')
-      .replace(/\{\{POINT2_TITLE\}\}/g, (extractedData as any).point2_title || '')
-      .replace(/\{\{POINT2_BODY\}\}/g, (extractedData as any).point2_body || '');
+      .replace(/\{\{POINT1_TITLE\}\}/g, extractedData.point1_title || '')
+      .replace(/\{\{POINT1_BODY\}\}/g, extractedData.point1_body || '')
+      .replace(/\{\{POINT2_TITLE\}\}/g, extractedData.point2_title || '')
+      .replace(/\{\{POINT2_BODY\}\}/g, extractedData.point2_body || '');
+    
+    // Apply emphasis styling if AI provided emphasis words
+    if (emphasisWords.length > 0 && newContent && element.type === 'text') {
+      emphasisWords.forEach(word => {
+        // Make emphasis words bold (using Unicode bold characters or just uppercase)
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        newContent = newContent.replace(regex, word.toUpperCase());
+      });
+    }
+    
+    console.log(`✅ Final content for ${element.id}:`, newContent.substring(0, 100));
     
     return { ...element, content: newContent };
   });
+  
+  console.log('✨ Template applied! Elements:', visualData.elements.map((el: any) => ({
+    id: el.id,
+    role: el.role,
+    content: el.content.substring(0, 50)
+  })));
   
   return visualData;
 }

@@ -1,0 +1,49 @@
+REMOVE: AI Suggest buttons - Simplify sermon builder
+
+USER REQUEST:
+"Take out the AI suggest. Please take it out. I don't want it there. 
+It's not helpful. So take out both AI suggest buttons."
+
+CHANGES:
+1. Removed AI Suggest button from sermon slide editor
+2. Removed AI Suggest button from template gallery
+3. Removed "Suggested for You" section
+4. Made Customize button full-width and prominent
+5. Cleaned up all AI-related props and imports
+
+BUTTONS REMOVED:
+- AI Suggest button in slide editor (purple gradient)
+- AI Suggest button in template gallery header (purple gradient)
+- Suggested for You section with purple highlights
+
+WHAT'S LEFT:
+- Clean template gallery with search and categories
+- Full-width blue "Customize" button
+- Simple, straightforward template selection
+- No AI suggestions, just choose your template
+
+USER EXPERIENCE:
+Before:
+- Two AI Suggest buttons (confusing)
+- Suggested templates section
+- AI purple branding everywhere
+
+After:
+- Simple template picker
+- Clear "Customize" button
+- No AI clutter
+- Clean and professional
+
+FILES CHANGED:
+- src/components/sermon/SermonSlideEditor.tsx
+- src/components/sermon/SermonTemplateGallery.tsx
+
+CLEANED UP:
+- Removed Sparkles icon import
+- Removed suggestedTemplates prop
+- Removed onAIPick prop
+- Removed onAIPickTemplate prop
+- Removed "Suggested for You" section
+- Made Customize button full-width with blue styling
+
+Users can now just pick a template and customize it. Simple!

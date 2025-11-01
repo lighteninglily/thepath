@@ -53,18 +53,101 @@ export function AddSermonModal({ onClose, onSave }: AddSermonModalProps) {
   };
 
   const handleSaveFromVisualEditor = (updatedItem: ServiceItem) => {
-    console.log('Saving from Visual Editor:', updatedItem);
+    console.log('💾 Saving from Visual Editor:', updatedItem);
     
     // Extract visualData from content field
-    const visualData = typeof updatedItem.content === 'string'
+    const visualEditorData = typeof updatedItem.content === 'string'
       ? JSON.parse(updatedItem.content)
       : updatedItem.content;
     
-    const newSlides = [...sermonSlides];
-    newSlides[editingSlideIndex] = {
-      ...newSlides[editingSlideIndex],
-      visualData,
+    console.log('💾 Visual editor data:', visualEditorData);
+    
+    // Convert back from visual editor format to sermon template format
+    const convertBackToSermonFormat = (data: any) => {
+      console.log('🔄 Converting from visual editor format:', data);
+      console.log('🔄 Background received:', JSON.stringify(data.background, null, 2));
+      
+      // Convert background
+      let convertedBackground: any;
+      
+      if (!data.background) {
+        console.error('❌ No background in visual editor data!');
+        convertedBackground = { type: 'color', value: '#000000' };
+      } else if (data.background.type === 'gradient') {
+        // Visual Editor format: { type: 'gradient', gradient: '...' }
+        // Sermon format: { type: 'gradient', value: '...' }
+        const gradientValue = data.background.gradient || data.background.value;
+        console.log('✅ Converting gradient:', gradientValue);
+        convertedBackground = {
+          type: 'gradient',
+          value: gradientValue,
+        };
+      } else if (data.background.type === 'solid') {
+        // Visual Editor format: { type: 'solid', color: '...' }
+        // Sermon format: { type: 'color', value: '...' }
+        console.log('✅ Converting solid color:', data.background.color);
+        convertedBackground = {
+          type: 'color',
+          value: data.background.color,
+        };
+      } else if (data.background.type === 'color') {
+        // Already in sermon format
+        console.log('✅ Already in sermon format (color)');
+        convertedBackground = data.background;
+      } else {
+        console.warn('⚠️ Unknown background format, using as-is:', data.background);
+        convertedBackground = data.background;
+      }
+      
+      console.log('🔄 Converted background:', JSON.stringify(convertedBackground, null, 2));
+      
+      // Convert elements from pixels back to percentages
+      const canvasWidth = 1920;
+      const canvasHeight = 1080;
+      
+      const convertedElements = (data.elements || []).map((el: any) => ({
+        id: el.id,
+        type: el.type,
+        role: el.role,
+        content: el.content,
+        x: (el.position.x / canvasWidth) * 100,
+        y: (el.position.y / canvasHeight) * 100,
+        width: (el.size.width / canvasWidth) * 100,
+        height: (el.size.height / canvasHeight) * 100,
+        zIndex: el.zIndex,
+        rotation: el.rotation,
+        style: {
+          fontSize: el.style?.fontSize,
+          fontFamily: el.style?.fontFamily,
+          fontWeight: el.style?.fontWeight,
+          color: el.style?.color,
+          textAlign: el.style?.textAlign,
+          backgroundColor: el.style?.backgroundColor,
+          borderRadius: el.style?.borderRadius,
+          padding: el.style?.padding,
+          lineHeight: el.style?.lineHeight,
+          letterSpacing: el.style?.letterSpacing,
+          textTransform: el.style?.textTransform,
+          opacity: el.opacity,
+        },
+      }));
+      
+      return {
+        background: convertedBackground,
+        elements: convertedElements,
+      };
     };
+    
+    const convertedData = convertBackToSermonFormat(visualEditorData);
+    console.log('💾 Converted back to sermon format:', JSON.stringify(convertedData, null, 2));
+    
+    const newSlides = [...sermonSlides];
+    const updatedSlide = {
+      ...newSlides[editingSlideIndex],
+      visualData: convertedData,
+    };
+    console.log('💾 Updated slide:', JSON.stringify(updatedSlide, null, 2));
+    newSlides[editingSlideIndex] = updatedSlide;
     setSermonSlides(newSlides);
     setStep('builder');
   };
@@ -73,17 +156,102 @@ export function AddSermonModal({ onClose, onSave }: AddSermonModalProps) {
     // Convert sermon slide to ServiceItem format for VisualItemEditorModal
     const currentSlide = sermonSlides[editingSlideIndex];
     
-    const serviceItem: ServiceItem = {
+    console.log('📖 OPENING VISUAL EDITOR');
+    console.log('📖 Current slide:', JSON.stringify(currentSlide, null, 2));
+    console.log('📖 Visual data:', JSON.stringify(currentSlide.visualData, null, 2));
+    
+    // Convert sermon template format to visual editor format
+    const convertVisualData = (data: any) => {
+      if (!data) {
+        console.error('❌ No data provided to convertVisualData!');
+        return {
+          background: { type: 'solid', color: '#E8E3DC' },
+          elements: [],
+        };
+      }
+      
+      console.log('📖 Converting visual data, input:', data);
+      
+      // Convert background format
+      const originalBg = data.background || { type: 'color', value: '#E8E3DC' };
+      console.log('📖 Original background:', JSON.stringify(originalBg, null, 2));
+      
+      let convertedBackground: any;
+      
+      if (originalBg.type === 'gradient' && originalBg.value) {
+        console.log('✅ Converting gradient to editor format:', originalBg.value);
+        convertedBackground = {
+          type: 'gradient',
+          gradient: originalBg.value,
+        };
+      } else if (originalBg.type === 'color' && originalBg.value) {
+        console.log('✅ Converting color to solid:', originalBg.value);
+        convertedBackground = {
+          type: 'solid',
+          color: originalBg.value,
+        };
+      } else {
+        console.warn('⚠️ Using background as-is:', originalBg);
+        convertedBackground = originalBg;
+      }
+      
+      console.log('📖 Converted background:', JSON.stringify(convertedBackground, null, 2));
+      
+      // Convert element coordinates from percentages to pixels
+      const canvasWidth = 1920;
+      const canvasHeight = 1080;
+      
+      const convertedElements = (data.elements || [])
+        .filter((el: any) => {
+          // Skip empty placeholders
+          const content = el.content || '';
+          return content && content !== 'Empty text' && !content.includes('{{');
+        })
+        .map((el: any) => ({
+          id: el.id,
+          type: el.type,
+          content: el.content,
+          position: {
+            x: (el.x / 100) * canvasWidth,
+            y: (el.y / 100) * canvasHeight,
+          },
+          size: {
+            width: (el.width / 100) * canvasWidth,
+            height: (el.height / 100) * canvasHeight,
+          },
+          rotation: el.rotation || 0,
+          opacity: el.style?.opacity !== undefined ? el.style.opacity : 1,
+          zIndex: el.zIndex,
+          locked: false,
+          visible: true,
+          style: {
+            fontSize: el.style?.fontSize || 48,
+            fontFamily: el.style?.fontFamily || 'Inter',
+            fontWeight: el.style?.fontWeight || 400,
+            color: el.style?.color || '#FFFFFF',
+            textAlign: el.style?.textAlign || 'center',
+            backgroundColor: el.style?.backgroundColor || 'transparent',
+            borderRadius: el.style?.borderRadius || 0,
+            padding: el.style?.padding || 0,
+            lineHeight: el.style?.lineHeight || 1.2,
+            letterSpacing: el.style?.letterSpacing || 0,
+            textTransform: el.style?.textTransform || 'none',
+          },
+        }));
+      
+      return {
+        background: convertedBackground,
+        elements: convertedElements,
+      };
+    };
+    
+    const serviceItem: any = {
       id: currentSlide.id,
       type: 'sermon',
       title: sermonTitle || 'Sermon Slide',
       duration: 5,
       order: editingSlideIndex,
-      // Put visualData into content field (VisualItemEditorModal expects this)
-      content: currentSlide.visualData || {
-        background: { type: 'color', value: '#000000' },
-        elements: [],
-      },
+      content: convertVisualData(currentSlide.visualData),
     };
 
     return (

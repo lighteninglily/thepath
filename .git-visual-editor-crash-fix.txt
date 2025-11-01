@@ -1,0 +1,58 @@
+CRITICAL FIX: Visual Editor crash when customizing sermon slides
+
+PROBLEM:
+- User clicks "Customize" on sermon slide
+- Visual Editor opens but crashes immediately
+- Error: "Cannot read properties of undefined (reading 'x')"
+- Error at SlideDesigner.tsx:461
+- Elements showing as undefined
+
+ROOT CAUSE:
+Sermon templates use PERCENTAGE-based coordinates (x: 10 = 10%)
+Visual Editor expects PIXEL-based coordinates (x: 192 = 192px)
+
+When passing sermon template elements directly to Visual Editor:
+- Elements had x:10, y:30, etc (percentages)
+- Visual Editor tried to read el.x as pixels
+- Properties panel crashed trying to access undefined pixel values
+
+SOLUTION:
+1. Convert percentage → pixels when opening Visual Editor:
+   - x (%) → x * 19.2 (pixels for 1920px width)
+   - y (%) → y * 10.8 (pixels for 1080px height)
+   - Add all required properties (visible, locked, rotation, etc)
+
+2. Convert pixels → percentage when saving:
+   - x (px) → x / 19.2 (back to %)
+   - y (px) → y / 10.8 (back to %)
+   - Maintains template portability
+
+3. Ensure all Visual Editor required properties:
+   - id, type, content, x, y, width, height
+   - rotation, opacity, zIndex
+   - locked, visible (boolean flags)
+   - style object with all font properties
+
+CONVERSIONS:
+Percentage to Pixels (1920x1080):
+- x: % * 19.2 → pixels
+- y: % * 10.8 → pixels
+- width: % * 19.2 → pixels
+- height: % * 10.8 → pixels
+
+Pixels to Percentage:
+- x: pixels / 19.2 → %
+- y: pixels / 10.8 → %
+- width: pixels / 19.2 → %
+- height: pixels / 10.8 → %
+
+IMPACT:
+- Visual Editor no longer crashes ✓
+- Can customize sermon slides fully ✓
+- Round-trip conversion works ✓
+- Properties panel shows correct values ✓
+
+FILES CHANGED:
+- src/components/sermon/AddSermonModal.tsx
+
+This fix enables full Visual Editor functionality for sermon slides!

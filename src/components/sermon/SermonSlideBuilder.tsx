@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Save } from 'lucide-react';
 import { SermonSlideNavigator } from './SermonSlideNavigator';
 import { SermonSlideEditor } from './SermonSlideEditor';
 import { SermonTemplateGallery } from './SermonTemplateGallery';
 import { analyzeSlideContent, applyTemplateToContent } from '../../utils/sermonTemplateMatcher';
+import { SERMON_TEMPLATES } from '../../config/sermonTemplates';
 import type { SermonTemplate } from '../../config/sermonTemplates';
 
 interface SermonSlide {
@@ -12,6 +13,7 @@ interface SermonSlide {
   templateId?: string;
   visualData?: any;
   order: number;
+  aiFormatted?: boolean;
 }
 
 interface SermonSlideBuilderProps {
@@ -38,6 +40,8 @@ export function SermonSlideBuilder({
       },
     ]
   );
+  const [isAutoFormatting, setIsAutoFormatting] = useState(false);
+  const [autoFormatTimeouts, setAutoFormatTimeouts] = useState<Map<number, NodeJS.Timeout>>(new Map());
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<SermonTemplate | null>(null);
 
@@ -50,11 +54,88 @@ export function SermonSlideBuilder({
 
   const suggestedTemplates = analysis?.suggestedTemplates || [];
 
-  // Update current slide content
+  // AI Auto-format function using Electron IPC
+  const autoFormatSlide = useCallback(async (content: string, slideIndex: number) => {
+    if (!content || content.trim().length < 5) return; // Skip empty/short content
+    
+    setIsAutoFormatting(true);
+    
+    try {
+      console.log('🤖 AI formatting slide', slideIndex + 1, ':', content.substring(0, 50));
+      
+      // Use Electron IPC instead of fetch
+      const result = await window.electron.invoke('ai:formatSermon', content);
+      
+      if (result.error || !result.templateId) {
+        console.warn('❌ AI format error:', result.error || 'No template selected');
+        return;
+      }
+      
+      // Find template
+      const template = SERMON_TEMPLATES.find(t => t.id === result.templateId);
+      if (!template) {
+        console.warn('❌ Template not found:', result.templateId);
+        return;
+      }
+      
+      console.log('✨ AI selected template:', template.name, '(confidence:', result.confidence, ')');
+      console.log('📊 Extracted placeholders:', result.placeholders);
+      console.log('💡 Reasoning:', result.reasoning);
+      
+      // Apply template with AI-extracted placeholders
+      const visualData = applyTemplateToContent(template, content, result);
+      
+      // Update slide
+      setSlides(currentSlides => {
+        const newSlides = [...currentSlides];
+        newSlides[slideIndex] = {
+          ...newSlides[slideIndex],
+          templateId: template.id,
+          visualData,
+          aiFormatted: true
+        };
+        return newSlides;
+      });
+      
+      // Update selected template if it's the current slide
+      if (slideIndex === currentSlideIndex) {
+        setSelectedTemplate(template);
+      }
+      
+    } catch (error) {
+      console.error('❌ AI format error:', error);
+    } finally {
+      setIsAutoFormatting(false);
+    }
+  }, [currentSlideIndex]);
+
+  // Update current slide content with AI auto-formatting
   const handleUpdateContent = (content: string) => {
     const newSlides = [...slides];
     newSlides[currentSlideIndex] = { ...currentSlide, content };
     setSlides(newSlides);
+    
+    // Clear existing timeout for this slide
+    const existingTimeout = autoFormatTimeouts.get(currentSlideIndex);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+    }
+    
+    // Set new timeout for auto-formatting (800ms debounce)
+    const timeout = setTimeout(() => {
+      autoFormatSlide(content, currentSlideIndex);
+      setAutoFormatTimeouts(prev => {
+        const next = new Map(prev);
+        next.delete(currentSlideIndex);
+        return next;
+      });
+    }, 800);
+    
+    setAutoFormatTimeouts(prev => {
+      const next = new Map(prev);
+      next.set(currentSlideIndex, timeout);
+      return next;
+    });
   };
 
   // Navigate between slides
@@ -124,6 +205,7 @@ export function SermonSlideBuilder({
 
   // Apply template to current slide
   const handleSelectTemplate = (template: SermonTemplate) => {
+    console.log('🎨 Applying template:', template.name, 'to slide', currentSlideIndex + 1);
     setSelectedTemplate(template);
     
     const visualData = applyTemplateToContent(
@@ -132,6 +214,11 @@ export function SermonSlideBuilder({
       analysis || undefined
     );
 
+    console.log('📊 Generated visualData:', {
+      background: visualData.background,
+      elementCount: visualData.elements?.length || 0,
+    });
+
     const newSlides = [...slides];
     newSlides[currentSlideIndex] = {
       ...currentSlide,
@@ -139,13 +226,11 @@ export function SermonSlideBuilder({
       visualData,
     };
     setSlides(newSlides);
-  };
-
-  // AI Pick best template
-  const handleAIPickTemplate = () => {
-    if (suggestedTemplates.length > 0) {
-      handleSelectTemplate(suggestedTemplates[0]);
-    }
+    
+    console.log('✅ Template applied. Slide now has:', {
+      templateId: template.id,
+      hasVisualData: !!visualData,
+    });
   };
 
   // Open Visual Editor for current slide
@@ -205,7 +290,7 @@ export function SermonSlideBuilder({
 
   // Get applied template for current slide
   const appliedTemplate = currentSlide.templateId 
-    ? suggestedTemplates.find(t => t.id === currentSlide.templateId) || null
+    ? SERMON_TEMPLATES.find(t => t.id === currentSlide.templateId) || null
     : null;
 
   return (
@@ -256,19 +341,17 @@ export function SermonSlideBuilder({
             slideIndex={currentSlideIndex}
             totalSlides={slides.length}
             appliedTemplate={appliedTemplate}
-            suggestedTemplates={suggestedTemplates}
             onUpdateContent={handleUpdateContent}
             onNavigate={handleNavigate}
-            onAIPickTemplate={handleAIPickTemplate}
             onOpenVisualEditor={handleOpenVisualEditor}
+            isAutoFormatting={isAutoFormatting}
+            onManualReformat={() => autoFormatSlide(currentSlide.content, currentSlideIndex)}
           />
 
           {/* Right: Template Gallery */}
           <SermonTemplateGallery
             selectedTemplate={selectedTemplate}
-            suggestedTemplates={suggestedTemplates}
             onSelectTemplate={handleSelectTemplate}
-            onAIPick={handleAIPickTemplate}
           />
         </div>
 
@@ -277,11 +360,6 @@ export function SermonSlideBuilder({
           <div className="flex items-center justify-between text-sm text-gray-600">
             <div>
               {slides.length} {slides.length === 1 ? 'slide' : 'slides'}
-              {suggestedTemplates.length > 0 && (
-                <span className="ml-3 text-purple-600">
-                  {suggestedTemplates.length} template{suggestedTemplates.length !== 1 ? 's' : ''} suggested
-                </span>
-              )}
             </div>
             <div className="text-xs text-gray-500">
               Shortcuts: Ctrl+S Save • Ctrl+N New Slide • Arrow Keys Navigate • Esc Close

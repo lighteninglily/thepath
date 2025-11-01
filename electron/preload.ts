@@ -46,6 +46,12 @@ const electronAPI: ElectronAPI = {
     search: (trackName: string, artistName?: string) =>
       ipcRenderer.invoke('lyrics:search', trackName, artistName),
   },
+  ai: {
+    formatSermon: (content: string) =>
+      ipcRenderer.invoke('ai:formatSermon', content),
+  },
+  invoke: (channel: string, ...args: any[]) =>
+    ipcRenderer.invoke(channel, ...args),
 };
 
 contextBridge.exposeInMainWorld('electron', electronAPI);

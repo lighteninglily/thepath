@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Search } from 'lucide-react';
 import { SERMON_TEMPLATES, SermonTemplateCategory, getAllCategories } from '../../config/sermonTemplates';
+import { TemplatePreviewCard } from './TemplatePreviewCard';
 import type { SermonTemplate } from '../../config/sermonTemplates';
 
 interface SermonTemplateGalleryProps {
@@ -37,18 +39,22 @@ export function SermonTemplateGallery({
   return (
     <div className="w-72 border-l border-gray-200 bg-gray-50 flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Templates</h3>
+      <div className="p-4 border-b border-gray-200 bg-white">
+        <h3 className="text-base font-bold text-gray-900 mb-3">Templates</h3>
         
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search templates..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg
-            focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        {/* Enhanced Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            placeholder="Search templates..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+              transition-all"
+          />
+        </div>
       </div>
 
       {/* Category Tabs */}
@@ -83,61 +89,44 @@ export function SermonTemplateGallery({
       {/* Template Grid */}
       <div className="flex-1 overflow-y-auto p-3">
         {filteredTemplates.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 text-sm">
-            No templates found
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+              <Search className="text-gray-400" size={24} />
+            </div>
+            <p className="text-sm font-medium text-gray-700 mb-1">No templates found</p>
+            <p className="text-xs text-gray-500">Try adjusting your search or filters</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {filteredTemplates.map(template => (
-              <button
+              <TemplatePreviewCard
                 key={template.id}
+                template={template}
+                isSelected={selectedTemplate?.id === template.id}
                 onClick={() => onSelectTemplate(template)}
-                className={`group relative rounded-lg overflow-hidden border-2 transition-all ${
-                  selectedTemplate?.id === template.id
-                    ? 'border-blue-500 ring-2 ring-blue-200 shadow-md'
-                    : 'border-gray-200 hover:border-blue-300 hover:shadow'
-                }`}
-                title={template.description}
-              >
-                {/* Template Thumbnail */}
-                <div className="aspect-video bg-white flex items-center justify-center p-2">
-                  <img
-                    src={template.thumbnail}
-                    alt={template.name}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-
-                {/* Template Info */}
-                <div className="p-2 bg-white border-t border-gray-200">
-                  <p className="text-xs font-medium text-gray-800 truncate">
-                    {template.name}
-                  </p>
-                  <p className="text-[10px] text-gray-500 truncate mt-0.5">
-                    {template.style}
-                  </p>
-                </div>
-
-                {/* Selected Indicator */}
-                {selectedTemplate?.id === template.id && (
-                  <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full
-                    flex items-center justify-center">
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                )}
-              </button>
+              />
             ))}
           </div>
         )}
       </div>
 
-      {/* Footer Info */}
-      <div className="p-3 border-t border-gray-200 bg-white">
-        <p className="text-xs text-gray-500 text-center">
-          {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} available
-        </p>
+      {/* Enhanced Footer */}
+      <div className="p-3 border-t border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-medium text-gray-700">
+            {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
+          </span>
+          {activeCategory !== 'all' && (
+            <span className="text-gray-500">
+              in {CATEGORY_LABELS[activeCategory as SermonTemplateCategory]}
+            </span>
+          )}
+        </div>
+        {searchQuery && (
+          <p className="text-[10px] text-gray-500 mt-1 text-center">
+            Searching: "{searchQuery}"
+          </p>
+        )}
       </div>
     </div>
   );

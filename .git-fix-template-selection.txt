@@ -1,0 +1,48 @@
+FIX: Template selection now properly enables Customize button
+
+PROBLEM:
+- User clicks templates in gallery
+- Templates show as selected (blue border, checkmark)
+- But Customize button stays disabled
+- Only first 2 templates (Hero Bold, Elegant Center) worked
+
+ROOT CAUSE:
+Parent component (SermonSlideBuilder) was still passing old AI-related props
+to child components after those props were removed. This caused prop mismatch
+and templates weren't being applied correctly.
+
+SOLUTION:
+1. Removed old prop references from SermonSlideBuilder:
+   - Removed suggestedTemplates prop from SermonSlideEditor
+   - Removed onAIPickTemplate prop from SermonSlideEditor
+   - Removed suggestedTemplates prop from SermonTemplateGallery
+   - Removed onAIPick prop from SermonTemplateGallery
+
+2. Cleaned up unused code:
+   - Removed handleAIPickTemplate function (no longer needed)
+   - Removed suggestedTemplates reference in footer status
+
+3. Added debug logging:
+   - Log when template is applied
+   - Log visualData generation
+   - Log final slide state
+
+WHAT NOW WORKS:
+- Click ANY template → It applies immediately
+- Template border shows selected state (blue + checkmark)
+- Customize button enables instantly
+- Preview shows template design
+- All templates work, not just first 2
+
+FILES CHANGED:
+- src/components/sermon/SermonSlideBuilder.tsx
+
+TESTING:
+1. Open sermon builder
+2. Type some content
+3. Click ANY template (Scripture Modern, Point Numbered, etc.)
+4. Customize button should be enabled
+5. Preview should show template design
+6. Click Customize → Opens modern editor
+
+All templates now work correctly!

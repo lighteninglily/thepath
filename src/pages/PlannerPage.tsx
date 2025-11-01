@@ -166,25 +166,34 @@ export function PlannerPage() {
   };
 
   // Sermon slide builder handler
-  const handleAddSermon = (sermon: { title: string; slides: any[] }) => {
+  const handleAddSermon = async (sermon: { title: string; slides: any[] }) => {
     if (!selectedService) return;
     
-    console.log('🎤 handleAddSermon (NEW) - Adding sermon with slides:', sermon);
+    console.log('🎤 handleAddSermon - Adding sermon with', sermon.slides.length, 'slides');
     
-    // For now, store as AI content to work with existing flow
-    // TODO: Adapt service system to handle pre-built slides
-    setPendingAIContent({
+    // Sermon slides are already formatted with templates - add directly to service
+    const newItem: ServiceItem = {
+      id: crypto.randomUUID(),
       type: 'sermon',
       title: sermon.title,
-      aiGenerated: {
-        slides: sermon.slides,
-        title: sermon.title
-      },
-      duration: 20
-    });
-    setTemplateCategory('sermon');
-    setShowTemplatePicker(true);
-    setShowAddSermonModal(false);
+      duration: 20,
+      order: selectedService.items.length,
+      content: JSON.stringify(sermon.slides), // Store slides array
+    };
+    
+    const updatedService = {
+      ...selectedService,
+      items: [...selectedService.items, newItem],
+    };
+    
+    try {
+      await updateService.mutateAsync(updatedService);
+      setSelectedService(updatedService);
+      setShowAddSermonModal(false);
+      console.log('✅ Sermon added to service successfully');
+    } catch (error) {
+      console.error('❌ Error adding sermon:', error);
+    }
   };
 
   const handleAddOffering = (offering: { theme: string; aiGenerated: any }) => {

@@ -68,18 +68,18 @@ export interface SermonTemplate {
 // ============================================================================
 
 export const SERMON_TEMPLATES: SermonTemplate[] = [
-  // TITLE TEMPLATE 1: Hero with Bold Text
+  // TITLE TEMPLATE 1: Hero with Bold Text (Earthy Tones)
   {
     id: 'title-hero-bold',
     name: 'Hero Bold',
     category: 'title',
     style: 'bold',
-    description: 'Large bold title with background image',
+    description: 'Large bold title with warm earthy gradient',
     thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjExMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjExMiIgZmlsbD0iIzJhMmEyYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDAlIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkhlcm88L3RleHQ+PC9zdmc+',
     visualData: {
       background: {
         type: 'gradient',
-        value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        value: 'linear-gradient(135deg, #8B7355 0%, #6B5344 100%)',
       },
       elements: [
         {
@@ -146,9 +146,9 @@ export const SERMON_TEMPLATES: SermonTemplate[] = [
           role: 'title',
           content: '{{TITLE}}',
           x: 15,
-          y: 35,
+          y: 30,
           width: 70,
-          height: 30,
+          height: 25,
           zIndex: 10,
           style: {
             fontSize: 72,
@@ -157,6 +157,26 @@ export const SERMON_TEMPLATES: SermonTemplate[] = [
             color: '#2a2a2a',
             textAlign: 'center',
             lineHeight: 1.3,
+          },
+        },
+        {
+          id: 'subtitle',
+          type: 'text',
+          role: 'subtitle',
+          content: '{{SUBTITLE}}',
+          x: 20,
+          y: 60,
+          width: 60,
+          height: 12,
+          zIndex: 10,
+          style: {
+            fontSize: 36,
+            fontFamily: 'Georgia',
+            fontWeight: 300,
+            color: '#4a4a4a',
+            textAlign: 'center',
+            lineHeight: 1.4,
+            fontStyle: 'italic',
           },
         },
       ],

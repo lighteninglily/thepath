@@ -7,6 +7,7 @@ import { SongService } from './database/songService';
 import { TemplateService } from './database/templateService';
 // @ts-ignore - No types available for genius-lyrics-api
 import { getLyrics, searchSong } from 'genius-lyrics-api';
+import Anthropic from '@anthropic-ai/sdk';
 
 let mainWindow: BrowserWindow | null = null;
 let presentationWindow: BrowserWindow | null = null;
@@ -432,4 +433,156 @@ ipcMain.handle('presentation:blank', async () => {
 ipcMain.handle('presentation:exit', async () => {
   closePresentationWindow();
   return true;
+});
+
+// AI Sermon Formatting handler - Claude API
+function getAnthropicApiKey(): string {
+  try {
+    const credentialsPath = path.join(__dirname, '..', 'docs', 'credentials.json');
+    if (existsSync(credentialsPath)) {
+      const credentials = JSON.parse(readFileSync(credentialsPath, 'utf-8'));
+      return credentials.anthropic?.apiKey || '';
+    }
+  } catch (error) {
+    console.error('❌ Error loading Anthropic API key from credentials:', error);
+  }
+  return '';
+}
+
+ipcMain.handle('ai:formatSermon', async (_event, content: string) => {
+  try {
+    if (!content || content.trim().length < 3) {
+      return { 
+        error: 'Content too short',
+        templateId: null 
+      };
+    }
+
+    console.log('🤖 AI formatting sermon content:', content.substring(0, 50));
+
+    const apiKey = getAnthropicApiKey();
+    if (!apiKey) {
+      return {
+        error: 'Anthropic API key not found in credentials',
+        templateId: null
+      };
+    }
+
+    const anthropic = new Anthropic({
+      apiKey: apiKey
+    });
+
+    const prompt = `Analyze this sermon slide content and return formatting instructions.
+
+Content: """
+${content}
+"""
+
+Available templates (ALL support title + subtitle if content has multiple lines):
+- title-hero-bold: Large centered title with optional subtitle (for opening slides, main topics)
+- title-elegant-center: Refined centered title with serif font and italic subtitle
+- scripture-classic-center: Bible reference + verse text in traditional layout
+- scripture-modern-split: Contemporary scripture design with split layout
+- point-numbered-bold: Numbered/lettered point with title and body (1., 2., A., etc.)
+- point-split: Split design point with dark/light sections
+- multi-point-columns: 2-3 bullet points in columns
+- quote-elegant: Centered quote with attribution
+- transition-bold: Section divider text
+- question-bold: Large question text
+
+Return ONLY valid JSON (no markdown, no code blocks):
+{
+  "templateId": "point-numbered-bold",
+  "confidence": 0.95,
+  "placeholders": {
+    "pointNumber": "1",
+    "pointTitle": "Faith Requires Action",
+    "pointBody": "We must step out in faith even when we don't see the path",
+    "emphasis": ["Faith", "Action"]
+  },
+  "reasoning": "Detected numbered point with clear title and supporting text"
+}
+
+Detection Rules:
+1. Scripture references (John 3:16, James 2:14-17, Psalm 23, etc.) → scripture-classic-center or scripture-modern-split
+   - IMPORTANT: Extract the reference (e.g. "John 3:16") separately from the verse text
+   - Example: "Scripture John 3:16 - For God so loved the world"
+     → scriptureReference: "John 3:16"
+     → scriptureText: "For God so loved the world"
+2. Numbering (1., 2., A., I., etc.) at start → point-numbered-bold
+3. Questions (ends with ?) → question-bold
+4. Quote marks ("
+...", '...') → quote-elegant
+5. Short text (<20 chars) without punctuation → title-hero-bold
+6. Multi-line text (2+ lines) without special formatting → title-elegant-center (supports subtitle!)
+7. Multiple bullet points (•, -, *) → multi-point-columns
+8. Section headings (Part 1, Section A, etc.) → transition-bold
+9. Default fallback → title-elegant-center
+
+Extract all relevant placeholders (split multi-line content intelligently):
+- title: First line or main heading (REQUIRED)
+- subtitle: Second line or supporting text (extract if multiple lines exist)
+- scriptureReference: Bible verse reference ONLY (e.g., "John 3:16", "Psalm 23:1-3")
+- scriptureText: The actual verse text WITHOUT the reference (e.g., "For God so loved the world")
+- pointNumber: Number/letter (1, 2, A, I)
+- pointTitle: Main point heading
+- pointBody: Supporting text
+- quoteText: Quote content
+- author: Quote attribution
+- question: Question text
+- emphasis: Array of 1-3 key words to emphasize
+
+IMPORTANT: If content has multiple lines, always extract both title AND subtitle!
+Example:
+Content: "Hello everyone\nwe are going through John"
+→ Extract: { "title": "Hello everyone", "subtitle": "we are going through John" }
+
+Scripture parsing example:
+Content: "Scripture John 3:16 - For God so loved the world"
+→ Extract: { 
+  "scriptureReference": "John 3:16",
+  "scriptureText": "For God so loved the world"
+}
+
+Content: "John 3:16\nFor God so loved the world that he gave his only begotten son"
+→ Extract: {
+  "scriptureReference": "John 3:16",
+  "scriptureText": "For God so loved the world that he gave his only begotten son"
+}`;
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      messages: [{
+        role: 'user',
+        content: prompt
+      }]
+    });
+
+    const responseText = (message.content[0] as any).text;
+    console.log('🤖 Claude response:', responseText);
+    
+    // Clean response (remove markdown if present)
+    const cleanedResponse = responseText
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+    
+    const formatted = JSON.parse(cleanedResponse);
+    
+    console.log('✅ AI formatted:', {
+      templateId: formatted.templateId,
+      confidence: formatted.confidence
+    });
+    
+    return formatted;
+    
+  } catch (error) {
+    console.error('❌ AI format error:', error);
+    return { 
+      error: 'AI formatting failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      templateId: null 
+    };
+  }
 });

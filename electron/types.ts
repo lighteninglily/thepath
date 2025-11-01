@@ -133,4 +133,16 @@ export interface ElectronAPI {
       source: string;
     }>;
   };
+  ai: {
+    formatSermon: (content: string) => Promise<{
+      templateId: string | null;
+      confidence?: number;
+      placeholders?: Record<string, any>;
+      emphasis?: string[];
+      reasoning?: string;
+      error?: string;
+      message?: string;
+    }>;
+  };
+  invoke: (channel: string, ...args: any[]) => Promise<any>;
 }

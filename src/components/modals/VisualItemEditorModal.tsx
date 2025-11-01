@@ -119,16 +119,37 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
         
         console.log('✅ Total converted elements:', elements.length);
         
-        // Create background object
-        const background = visualData.backgroundImage ? {
-          type: 'image' as const,
-          imageUrl: visualData.backgroundImage
-        } : {
-          type: 'solid' as const,
-          color: visualData.backgroundColor || '#E8E3DC'
-        };
+        // Create background object - handle multiple formats
+        let background: any;
         
-        console.log('🎨 Background:', background);
+        if (visualData.background) {
+          // NEW FORMAT: visualData.background = {type: 'gradient', gradient: '...'}
+          console.log('🎨 Using new background format:', visualData.background);
+          background = visualData.background;
+        } else if (visualData.backgroundImage) {
+          // OLD FORMAT: backgroundImage property
+          console.log('🎨 Using old image format');
+          background = {
+            type: 'image' as const,
+            imageUrl: visualData.backgroundImage
+          };
+        } else if (visualData.backgroundColor) {
+          // OLD FORMAT: backgroundColor property
+          console.log('🎨 Using old color format');
+          background = {
+            type: 'solid' as const,
+            color: visualData.backgroundColor
+          };
+        } else {
+          // FALLBACK: Default beige
+          console.warn('⚠️ No background found, using default beige');
+          background = {
+            type: 'solid' as const,
+            color: '#E8E3DC'
+          };
+        }
+        
+        console.log('🎨 Final background:', JSON.stringify(background, null, 2));
         
         // Create slide object
         const convertedSlide: any = {
@@ -397,7 +418,7 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
         }
       };
       
-      console.log('🔄 Updated element:', elementId, updates);
+      // Reduced logging for performance
       return updated;
     });
 
@@ -704,14 +725,21 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
   const handleSave = () => {
     if (!slide) return;
 
-    // Convert back to template format
+    console.log('💾 SAVE: Slide background before save:', JSON.stringify(slide.background, null, 2));
+
+    // Convert back to template format - KEEP BACKGROUND AS OBJECT!
     const visualData = {
       elements: slide.elements,
+      background: slide.background,  // ← Keep as unified object!
+      
+      // LEGACY SUPPORT: Also include old format for backward compatibility
       backgroundType: slide.background?.type === 'image' ? 'image' : 'color',
       backgroundColor: slide.background?.color,
       backgroundImage: slide.background?.imageUrl,
       backgroundGradient: slide.background?.gradient,
     };
+
+    console.log('💾 SAVE: visualData being sent:', JSON.stringify(visualData, null, 2));
 
     const updatedItem: ServiceItem = {
       ...item,
