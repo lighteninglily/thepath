@@ -145,12 +145,12 @@ function createPresentationWindow() {
   });
 
   // Log any errors from the audience window
-  presentationWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+  presentationWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
     console.error('❌ Audience window failed to load:', errorCode, errorDescription);
   });
 
-  presentationWindow.webContents.on('crashed', (event) => {
-    console.error('❌ Audience window crashed:', event);
+  presentationWindow.webContents.on('crashed', () => {
+    console.error('❌ Audience window crashed');
   });
 
   // Open DevTools in development to see errors
