@@ -52,8 +52,6 @@ export function SermonSlideBuilder({
     ? analyzeSlideContent(currentSlide.content, currentSlideIndex)
     : null;
 
-  const suggestedTemplates = analysis?.suggestedTemplates || [];
-
   // AI Auto-format function using Electron IPC
   const autoFormatSlide = useCallback(async (content: string, slideIndex: number) => {
     if (!content || content.trim().length < 5) return; // Skip empty/short content
@@ -63,8 +61,8 @@ export function SermonSlideBuilder({
     try {
       console.log('🤖 AI formatting slide', slideIndex + 1, ':', content.substring(0, 50));
       
-      // Use Electron IPC instead of fetch
-      const result = await window.electron.invoke('ai:formatSermon', content);
+      // Use Electron IPC AI API
+      const result = await window.electron.ai.formatSermon(content);
       
       if (result.error || !result.templateId) {
         console.warn('❌ AI format error:', result.error || 'No template selected');
