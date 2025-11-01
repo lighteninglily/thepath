@@ -144,6 +144,20 @@ function createPresentationWindow() {
     presentationWindow = null;
   });
 
+  // Log any errors from the audience window
+  presentationWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('❌ Audience window failed to load:', errorCode, errorDescription);
+  });
+
+  presentationWindow.webContents.on('crashed', (event) => {
+    console.error('❌ Audience window crashed:', event);
+  });
+
+  // Open DevTools in development to see errors
+  if (process.env.ELECTRON_START_URL) {
+    presentationWindow.webContents.openDevTools();
+  }
+
   console.log('🎭 Presentation window (Audience View) created');
 }
 

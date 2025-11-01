@@ -12,6 +12,7 @@ export function AudienceViewPage() {
   const [presentationState, setPresentationState] = useState<any>(null);
 
   console.log('🎭 AudienceViewPage MOUNTED');
+  console.log('📍 Current state:', presentationState);
 
   // Listen for state updates from presenter window via IPC
   useEffect(() => {
@@ -62,6 +63,14 @@ export function AudienceViewPage() {
   const currentItem = service?.items[currentItemIndex];
   const currentSongData = presentationState?.currentSongData;
 
+  console.log('🔍 Render check:', {
+    hasService: !!service,
+    hasCurrentItem: !!currentItem,
+    hasCurrentSongData: !!currentSongData,
+    currentItemIndex,
+    currentSlideIndex
+  });
+
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,9 +84,13 @@ export function AudienceViewPage() {
   }, []);
 
   if (!service || !currentItem) {
+    console.log('⏳ Showing waiting screen - no service/item yet');
     return (
-      <div className="w-screen h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-2xl">Waiting for presentation...</div>
+      <div className="w-screen h-screen bg-red-600 flex items-center justify-center">
+        <div className="text-white text-4xl font-bold p-8 bg-black rounded-lg">
+          Waiting for presentation...
+          <div className="text-sm mt-4">State: {presentationState ? 'Received' : 'Null'}</div>
+        </div>
       </div>
     );
   }
