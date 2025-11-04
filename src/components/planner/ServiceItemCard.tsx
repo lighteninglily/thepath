@@ -142,25 +142,25 @@ export function ServiceItemCard({ item, index, allItems, onEdit, onDelete, onMov
         </div>
 
         {/* Actions */}
-        <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* Move Up/Down */}
+        <div className="flex-shrink-0 flex items-center gap-2">
+          {/* Move Up/Down - Always Visible, Larger */}
           {onMoveUp && onMoveDown && (
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-1">
               <button
                 onClick={onMoveUp}
                 disabled={!canMoveUp}
-                className="p-1 rounded hover:bg-white/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg bg-brand-skyBlue/10 hover:bg-brand-skyBlue text-brand-skyBlue hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-brand-skyBlue/10 disabled:hover:text-brand-skyBlue"
                 title="Move up"
               >
-                <ChevronUp size={14} />
+                <ChevronUp size={20} />
               </button>
               <button
                 onClick={onMoveDown}
                 disabled={!canMoveDown}
-                className="p-1 rounded hover:bg-white/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg bg-brand-skyBlue/10 hover:bg-brand-skyBlue text-brand-skyBlue hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-brand-skyBlue/10 disabled:hover:text-brand-skyBlue"
                 title="Move down"
               >
-                <ChevronDown size={14} />
+                <ChevronDown size={20} />
               </button>
             </div>
           )}
