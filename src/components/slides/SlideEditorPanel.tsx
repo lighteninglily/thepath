@@ -34,7 +34,6 @@ export function SlideEditorPanel({
   onSplitSlide,
   onMergeWithNext,
 }: SlideEditorPanelProps) {
-  const [isEditingText, setIsEditingText] = useState(false);
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
 
   const handleTextChange = (newContent: string) => {
@@ -84,75 +83,47 @@ export function SlideEditorPanel({
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - Live Preview Layout */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {/* Large Preview */}
-        <div className="rounded-lg overflow-hidden border-2 border-gray-200 shadow-lg">
-          <div className="aspect-video">
-            <AdvancedSlidePreview
-              slide={slide}
-              background={background}
-              layout={layout}
-            />
+        {/* Live Preview - Always Visible */}
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-2">
+            Live Preview
+          </label>
+          <div className="rounded-lg overflow-hidden border-2 border-gray-200 shadow-lg">
+            <div className="aspect-video">
+              <AdvancedSlidePreview
+                slide={slide}
+                background={background}
+                layout={layout}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Text Editor */}
+        {/* Text Editor - Always Visible with Live Updates */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-gray-700">
-              Slide Content {isLongSlide && (
+              Slide Text {isLongSlide && (
                 <span className="ml-2 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
                   Long ({lineCount} lines)
                 </span>
               )}
             </label>
-            {!isEditingText && (
-              <button
-                onClick={() => setIsEditingText(true)}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Edit Text
-              </button>
-            )}
+            <span className="text-xs text-gray-500">
+              {lineCount} {lineCount === 1 ? 'line' : 'lines'}
+            </span>
           </div>
-
-          {isEditingText ? (
-            <div>
-              <textarea
-                value={slide.content}
-                onChange={(e) => handleTextChange(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                  text-base font-mono leading-relaxed resize-none"
-                rows={8}
-                autoFocus
-                placeholder="Enter slide text..."
-              />
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-xs text-gray-500">
-                  {lineCount} {lineCount === 1 ? 'line' : 'lines'}
-                </span>
-                <button
-                  onClick={() => setIsEditingText(false)}
-                  className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg
-                    hover:bg-blue-700 transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg
-              min-h-[120px] whitespace-pre-wrap text-sm text-gray-700 cursor-pointer
-              hover:bg-gray-100 transition-colors"
-              onClick={() => setIsEditingText(true)}
-            >
-              {slide.content || (
-                <span className="text-gray-400 italic">Click to add text...</span>
-              )}
-            </div>
-          )}
+          <textarea
+            value={slide.content}
+            onChange={(e) => handleTextChange(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              text-base font-mono leading-relaxed resize-none"
+            rows={6}
+            placeholder="Type text here - preview updates live..."
+          />
         </div>
 
         {/* Layout Selector */}
