@@ -246,16 +246,20 @@ export function AudienceViewPage() {
           {elements?.map((element: any, index: number) => {
             if (!element.visible) return null;
 
+            // Safety defaults for position and size
+            const position = element.position || { x: 0, y: 0 };
+            const size = element.size || { width: 100, height: 100 };
+
             if (element.type === 'text') {
               return (
                 <div
                   key={element.id || index}
                   className="absolute whitespace-pre-wrap"
                   style={{
-                    left: `${element.position.x}px`,
-                    top: `${element.position.y}px`,
-                    width: `${element.size.width}px`,
-                    height: `${element.size.height}px`,
+                    left: `${position.x}px`,
+                    top: `${position.y}px`,
+                    width: `${size.width}px`,
+                    height: `${size.height}px`,
                     fontSize: `${element.style?.fontSize || element.fontSize}px`,
                     fontFamily: element.style?.fontFamily || element.fontFamily,
                     fontWeight: element.style?.fontWeight || element.fontWeight,
@@ -276,10 +280,10 @@ export function AudienceViewPage() {
                   key={element.id || index}
                   className="absolute"
                   style={{
-                    left: `${element.position.x}px`,
-                    top: `${element.position.y}px`,
-                    width: `${element.size.width}px`,
-                    height: `${element.size.height}px`,
+                    left: `${position.x}px`,
+                    top: `${position.y}px`,
+                    width: `${size.width}px`,
+                    height: `${size.height}px`,
                     backgroundColor: element.backgroundColor,
                     borderRadius: `${element.borderRadius || 0}px`,
                     zIndex: element.zIndex || 5,
@@ -297,10 +301,10 @@ export function AudienceViewPage() {
                   alt=""
                   className="absolute"
                   style={{
-                    left: `${element.position.x}px`,
-                    top: `${element.position.y}px`,
-                    width: `${element.size.width}px`,
-                    height: `${element.size.height}px`,
+                    left: `${position.x}px`,
+                    top: `${position.y}px`,
+                    width: `${size.width}px`,
+                    height: `${size.height}px`,
                     objectFit: 'contain',
                     zIndex: element.zIndex || 10,
                     opacity: element.opacity ?? 1,
