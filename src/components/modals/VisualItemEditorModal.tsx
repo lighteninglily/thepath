@@ -133,6 +133,14 @@ export function VisualItemEditorModal({ item, allItems, itemIndex, isOpen, onClo
             type: 'image' as const,
             imageUrl: visualData.backgroundImage
           };
+        } else if (visualData.backgroundGradient) {
+          // OLD FORMAT: backgroundGradient property
+          console.log('🎨 Using old gradient format');
+          background = {
+            type: 'gradient' as const,
+            gradient: visualData.backgroundGradient,
+            color: visualData.backgroundColor || '#E8E3DC'
+          };
         } else if (visualData.backgroundColor) {
           // OLD FORMAT: backgroundColor property
           console.log('🎨 Using old color format');
