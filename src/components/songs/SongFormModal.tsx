@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Edit, Sparkles } from 'lucide-react';
+import { X, Edit, Search } from 'lucide-react';
 import { parseLyricsIntoSlides } from '../../utils/lyricsParser';
 import { TemplateSelector } from '../templates/TemplateSelector';
 import { BackgroundPicker } from '../backgrounds/BackgroundPicker';
@@ -7,9 +7,7 @@ import { BackgroundPackPicker } from '../backgrounds/BackgroundPackPicker';
 // import { QuickLookPicker } from '../backgrounds/QuickLookPicker'; // Not currently used
 // import { AdvancedSlidePreview } from '../slides/AdvancedSlidePreview'; // Now using grid overview instead
 import { SlideEditorNew } from '../slides/SlideEditorNew';
-import { SlideDesigner } from '../designer/SlideDesigner';
 import { LyricsSearchModal } from '../lyrics/LyricsSearchModal';
-import { simpleToVisualSlide, visualToSimpleSlide } from '../../utils/slideConverter';
 import { assignRandomLayouts } from '../../utils/layouts';
 import { assignBackgroundsFromPack } from '../../assets/backgroundPacks';
 import { getLayoutsForStyle } from '../../assets/quickLooks';
@@ -48,7 +46,6 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
   const [usePacks, setUsePacks] = useState(false);
   const [useQuickLooks, _setUseQuickLooks] = useState(true);
   const [showSlideEditor, setShowSlideEditor] = useState(false);
-  const [showVisualDesigner, setShowVisualDesigner] = useState(false);
   const [showLyricsSearch, setShowLyricsSearch] = useState(false);
   const [slideBackgrounds, setSlideBackgrounds] = useState<(BackgroundImage | null)[]>([]);
   const [slideLayouts, setSlideLayouts] = useState<LayoutType[]>([]);
@@ -392,45 +389,6 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
     console.log('✅ Slides saved with per-slide backgrounds and layouts!');
   };
 
-  // Visual Designer handlers
-  const handleOpenVisualDesigner = () => {
-    if (currentSlides.length === 0) {
-      alert('Please generate slides first by entering lyrics!');
-      return;
-    }
-    setShowVisualDesigner(true);
-  };
-
-  const handleSaveVisualSlides = (visualSlides: any[]) => {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('💾 VISUAL DESIGNER: Saving slides');
-    console.log('📥 Input visual slides:', visualSlides);
-    
-    // Convert all visual slides back to simple format
-    const simpleSlides = visualSlides.map(visualSlide => {
-      const converted = visualToSimpleSlide(visualSlide);
-      console.log('🔄 Converted slide:', {
-        id: converted.id,
-        hasVisualData: !!converted.visualData,
-        visualDataKeys: converted.visualData ? Object.keys(converted.visualData) : []
-      });
-      return converted;
-    });
-    
-    console.log('📤 Output simple slides with visualData:', simpleSlides);
-    
-    // Update form data with all converted slides
-    setFormData({ 
-      ...formData, 
-      slidesData: simpleSlides 
-    });
-    
-    console.log('✅ FormData updated - slides now in formData.slidesData');
-    console.log('⚠️  Remember: Click "Update Song" to save to database!');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
-    setShowVisualDesigner(false);
-  };
 
   const handleImportLyrics = (data: { title: string; artist: string; lyrics: string }) => {
     console.log('🎵 Importing lyrics:', data.title, 'by', data.artist);
@@ -482,19 +440,6 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
             >
               <Edit size={18} />
               Edit Slides
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleOpenVisualDesigner();
-              }}
-              className="px-4 py-3 border-b-2 border-transparent text-brand-skyBlue 
-                hover:text-brand-powderBlue transition-colors flex items-center gap-2 font-medium"
-            >
-              <Sparkles size={18} />
-              Visual Editor
             </button>
           </div>
         </div>
@@ -623,7 +568,7 @@ export function SongFormModal({ isOpen, onClose, onSubmit, song, isLoading }: So
                     transition-colors
                   "
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Search className="w-4 h-4" />
                   Search Lyrics
                 </button>
               </div>
@@ -831,23 +776,6 @@ Was blind, but now I see"
           onClose={() => setShowSlideEditor(false)}
           songTitle={song?.title || formData.title}
           songArtist={song?.artist || formData.artist || undefined}
-        />
-      )}
-
-      {/* Visual Designer Modal */}
-      {showVisualDesigner && currentSlides.length > 0 && (
-        <SlideDesigner
-          slides={currentSlides.map(slide => {
-            // Apply song's background to slide if it doesn't have one
-            const slideWithBackground = {
-              ...slide,
-              backgroundId: slide.backgroundId || selectedBackground?.id || formData.backgroundId || null
-            };
-            return simpleToVisualSlide(slideWithBackground);
-          })}
-          initialSlideIndex={0}
-          onSave={handleSaveVisualSlides}
-          onClose={() => setShowVisualDesigner(false)}
         />
       )}
 
