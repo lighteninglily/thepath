@@ -1,4 +1,4 @@
-import { X, Plus, Clock, Music, Play, BookOpen, Megaphone, MessageSquare, DollarSign, Hand, Check } from 'lucide-react';
+import { X, Plus, Clock, Music, Play, BookOpen, Megaphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ServiceItemCard } from '../planner/ServiceItemCard';
 import { EditItemModal } from './EditItemModal';
@@ -303,7 +303,7 @@ export function ServiceEditorModal({
           <div className="flex gap-2 mb-6 pb-4 border-b border-brand-warmGray">
             <button
               onClick={onAddSong}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-mistyBlue text-brand-skyBlue rounded-lg hover:bg-brand-powderBlue transition-colors font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-skyBlue text-white rounded-lg hover:bg-brand-skyBlue/90 transition-colors font-medium shadow-sm"
             >
               <Music size={18} />
               Add Song
@@ -330,38 +330,10 @@ export function ServiceEditorModal({
                   </button>
                   <button
                     onClick={() => { onAddItem('announcement'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-yellow-50 text-brand-charcoal flex items-center gap-3 group"
+                    className="w-full text-left px-4 py-2 hover:bg-yellow-50 text-brand-charcoal last:rounded-b-lg flex items-center gap-3 group"
                   >
                     <Megaphone size={18} className="text-yellow-600 group-hover:scale-110 transition-transform" />
                     <span>Announcement</span>
-                  </button>
-                  <button
-                    onClick={() => { onAddItem('sermon'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-orange-50 text-brand-charcoal flex items-center gap-3 group"
-                  >
-                    <MessageSquare size={18} className="text-orange-600 group-hover:scale-110 transition-transform" />
-                    <span>Sermon</span>
-                  </button>
-                  <button
-                    onClick={() => { onAddItem('offering'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-emerald-50 text-brand-charcoal flex items-center gap-3 group"
-                  >
-                    <DollarSign size={18} className="text-emerald-600 group-hover:scale-110 transition-transform" />
-                    <span>Offering</span>
-                  </button>
-                  <button
-                    onClick={() => { onAddItem('welcome'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-green-50 text-brand-charcoal flex items-center gap-3 group"
-                  >
-                    <Hand size={18} className="text-green-600 group-hover:scale-110 transition-transform" />
-                    <span>Welcome</span>
-                  </button>
-                  <button
-                    onClick={() => { onAddItem('closing'); setShowAddMenu(false); }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-brand-charcoal last:rounded-b-lg flex items-center gap-3 group"
-                  >
-                    <Check size={18} className="text-gray-600 group-hover:scale-110 transition-transform" />
-                    <span>Closing</span>
                   </button>
                 </div>
               )}
