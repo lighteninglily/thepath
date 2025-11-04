@@ -37,7 +37,50 @@ export function SlideEditorPanel({
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
 
   const handleTextChange = (newContent: string) => {
-    onUpdate({ content: newContent });
+    // For live preview: update visualData elements to show changes immediately
+    if (slide.visualData?.elements) {
+      // Find the element that contains the actual lyrics content (not decorative title/artist)
+      let lyricsElementIndex = -1;
+      slide.visualData.elements.forEach((element: any, index: number) => {
+        if (element.type === 'text' && element.content === slide.content) {
+          lyricsElementIndex = index;
+        }
+      });
+      
+      // If we found the lyrics element, update it
+      if (lyricsElementIndex >= 0) {
+        const updatedElements = slide.visualData.elements.map((element: any, index: number) => {
+          if (index === lyricsElementIndex) {
+            // For title slides, use normal font for user-editable content
+            if (slide.type === 'title') {
+              return { 
+                ...element, 
+                content: newContent,
+                // Override fancy fonts with normal readable font
+                fontFamily: 'Inter, system-ui, sans-serif',
+                fontSize: 32,
+                fontWeight: 400
+              };
+            }
+            return { ...element, content: newContent };
+          }
+          return element;
+        });
+        
+        onUpdate({ 
+          content: newContent,
+          visualData: {
+            ...slide.visualData,
+            elements: updatedElements
+          }
+        });
+      } else {
+        // No matching element found, just update content
+        onUpdate({ content: newContent });
+      }
+    } else {
+      onUpdate({ content: newContent });
+    }
   };
 
   const lineCount = slide.content.split('\n').length;

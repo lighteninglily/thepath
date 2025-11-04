@@ -17,13 +17,11 @@ export function AdvancedSlidePreview({
   className = '' 
 }: AdvancedSlidePreviewProps) {
   
-  // ✅ CHECK FOR VISUAL DATA FIRST!
+  // Check for visual data first
   if (slide.visualData) {
-    console.log('📺 PRESENTATION: Using visual data for slide', slide.id);
     return renderVisualSlide(slide.visualData, className);
   }
   
-  console.log('📺 PRESENTATION: Using advanced layout for slide', slide.id);
   const lines = slide.content.split('\n').filter(l => l.trim());
   const textColor = background?.textColor === 'dark' ? '#3A3532' : '#FFFFFF';
   const fontSize = calculateFontSize(lines.length);
@@ -246,13 +244,34 @@ function renderGradientOverlay(
 
 // Render a slide with visual editor data
 function renderVisualSlide(visualData: any, className: string) {
-  if (!visualData || !visualData.background || !visualData.elements) {
+  if (!visualData || !visualData.elements) {
     console.warn('⚠️ Invalid visualData structure:', visualData);
     return (
       <div className={`relative ${className} bg-black flex items-center justify-center`}>
         <p className="text-white text-2xl">Invalid slide data</p>
       </div>
     );
+  }
+  
+  // BACKWARDS COMPATIBILITY: Convert old format to new format
+  let background = visualData.background;
+  if (!background && (visualData.backgroundImage || visualData.backgroundColor)) {
+    if (visualData.backgroundImage) {
+      background = {
+        type: 'image',
+        imageUrl: visualData.backgroundImage
+      };
+    } else {
+      background = {
+        type: 'solid',
+        color: visualData.backgroundColor || '#000000'
+      };
+    }
+  }
+  
+  // Default background if nothing found
+  if (!background) {
+    background = { type: 'solid', color: '#E8E3DC' };
   }
   
   // MIGRATION FIX: Ensure all elements have correct properties
@@ -270,7 +289,6 @@ function renderVisualSlide(visualData: any, className: string) {
       // Detect old center-point system (x around 960, y around 540)
       if (el.position.x > 800 && el.position.x < 1100 && 
           el.position.y > 400 && el.position.y < 700) {
-        console.log('🔧 Migrating old center-point position to top-left:', el.position);
         fixed.position = { x: 160, y: 340 };
         fixed.size = { width: 1600, height: 400 };
       }
@@ -278,8 +296,6 @@ function renderVisualSlide(visualData: any, className: string) {
     
     return fixed;
   });
-  
-  const { background } = visualData;
   
   return (
     <div 
