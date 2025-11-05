@@ -272,6 +272,33 @@ app.whenReady().then(async () => {
   
   await createMainWindow();
 
+  // Set up display change listeners (must be after app ready)
+  screen.on('display-added', (_event, newDisplay) => {
+    console.log('🖥️  Display added:', newDisplay.label);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('display:changed', getAllDisplays());
+    }
+  });
+
+  screen.on('display-removed', (_event, oldDisplay) => {
+    console.log('🖥️  Display removed:', oldDisplay.label);
+    
+    // If the audience display was removed, warn user
+    if (presentationWindow && !presentationWindow.isDestroyed()) {
+      const currentDisplays = screen.getAllDisplays();
+      const audienceDisplayExists = currentDisplays.some(d => d.id === oldDisplay.id);
+      
+      if (!audienceDisplayExists) {
+        console.log('⚠️  Audience display disconnected!');
+        presentationWindow.webContents.send('display:disconnected');
+      }
+    }
+    
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('display:changed', getAllDisplays());
+    }
+  });
+
   app.on('activate', async () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       await createMainWindow();
@@ -521,33 +548,6 @@ ipcMain.handle('display:getAudience', async () => {
     bounds: audienceDisplay.bounds,
     size: audienceDisplay.size
   };
-});
-
-// Listen for display changes
-screen.on('display-added', (_event, newDisplay) => {
-  console.log('🖥️  Display added:', newDisplay.label);
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('display:changed', getAllDisplays());
-  }
-});
-
-screen.on('display-removed', (_event, oldDisplay) => {
-  console.log('🖥️  Display removed:', oldDisplay.label);
-  
-  // If the audience display was removed, warn user
-  if (presentationWindow && !presentationWindow.isDestroyed()) {
-    const currentDisplays = screen.getAllDisplays();
-    const audienceDisplayExists = currentDisplays.some(d => d.id === oldDisplay.id);
-    
-    if (!audienceDisplayExists) {
-      console.log('⚠️  Audience display disconnected!');
-      presentationWindow.webContents.send('display:disconnected');
-    }
-  }
-  
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('display:changed', getAllDisplays());
-  }
 });
 
 // Presentation control handlers
