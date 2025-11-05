@@ -95,11 +95,17 @@ async function initDatabase() {
 }
 
 async function createMainWindow() {
+  // Set icon path - works for both dev and production
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.png')
+    : path.join(__dirname, '../build/icon.png');
+  
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 900,
     minHeight: 600,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -206,11 +212,16 @@ function createPresentationWindow() {
   log(`🎭 Creating audience window on display: ${audienceDisplay.label}`);
   log(`Position: x=${x}, y=${y}, size=${width}x${height}`);
 
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.png')
+    : path.join(__dirname, '../build/icon.png');
+
   presentationWindow = new BrowserWindow({
     x,
     y,
     width,
     height,
+    icon: iconPath,
     frame: false,  // Borderless for clean presentation
     fullscreen: false,  // Don't use fullscreen, use maximized instead for better cross-platform support
     show: false,  // Don't show until ready
