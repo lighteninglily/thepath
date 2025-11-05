@@ -8,6 +8,7 @@ interface ServicePresentationState {
   currentItemIndex: number;
   currentSlideIndex: number;
   currentSongData: any | null; // Song data for current item if it's a song
+  currentSlide: any | null; // Current slide object (computed)
   
   // Display state
   isBlank: boolean;
@@ -20,12 +21,15 @@ interface ServicePresentationState {
   // Actions
   startPresentation: (service: Service, mode?: 'single' | 'dual') => void;
   stopPresentation: () => void;
+  endPresentation: () => void; // Alias for stopPresentation
   nextSlide: () => void;
   previousSlide: () => void;
   jumpToItem: (itemIndex: number) => void;
+  goToSlide: (slideIndex: number) => void; // Jump to specific slide
   toggleBlank: () => void;
   resetTimer: () => void;
   updateElapsedTime: () => void;
+  updateCurrentSlide: () => void; // Update currentSlide from currentSongData
 }
 
 export const useServicePresentationStore = create<ServicePresentationState>((set, get) => ({
@@ -35,6 +39,7 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
   currentItemIndex: 0,
   currentSlideIndex: 0,
   currentSongData: null,
+  currentSlide: null,
   isBlank: false,
   displayMode: 'single',
   startTime: null,
@@ -150,6 +155,33 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
     if (startTime) {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       set({ elapsedTime: elapsed });
+    }
+  },
+
+  // End presentation (alias for stopPresentation)
+  endPresentation: () => {
+    get().stopPresentation();
+  },
+
+  // Go to specific slide index
+  goToSlide: (slideIndex: number) => {
+    const { currentSongData } = get();
+    if (currentSongData?.slidesData) {
+      const maxIndex = currentSongData.slidesData.length - 1;
+      const validIndex = Math.max(0, Math.min(slideIndex, maxIndex));
+      set({ currentSlideIndex: validIndex });
+      console.log('⏭️ Jumped to slide:', validIndex);
+      get().updateCurrentSlide();
+    }
+  },
+
+  // Update current slide from currentSongData
+  updateCurrentSlide: () => {
+    const { currentSongData, currentSlideIndex } = get();
+    if (currentSongData?.slidesData && currentSongData.slidesData[currentSlideIndex]) {
+      set({ currentSlide: currentSongData.slidesData[currentSlideIndex] });
+    } else {
+      set({ currentSlide: null });
     }
   },
 }));

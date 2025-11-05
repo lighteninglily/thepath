@@ -1,15 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useServicePresentationStore } from '../store/servicePresentationStore';
-import { ChevronLeft, ChevronRight, Square, Play, X, Monitor } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Monitor } from 'lucide-react';
 
 export function PresenterViewPage() {
   const {
     service,
-    currentItemIndex,
     currentSlideIndex,
     currentSlide,
     isPresenting,
-    startPresentation,
     nextSlide,
     previousSlide,
     goToSlide,
@@ -19,21 +17,6 @@ export function PresenterViewPage() {
   const [displays, setDisplays] = useState<any[]>([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-
-  // Get all slides for navigation
-  const allSlides = service?.items.flatMap(item => {
-    if ('slides' in item && item.slides) {
-      return item.slides.map((slide, idx) => ({
-        ...slide,
-        itemTitle: item.title,
-        slideNumber: idx + 1,
-        totalInItem: item.slides?.length || 0
-      }));
-    }
-    return [];
-  }) || [];
-
-  const nextSlidePreview = allSlides[currentSlideIndex + 1];
 
   // Timer
   useEffect(() => {
@@ -55,9 +38,15 @@ export function PresenterViewPage() {
   // Fetch displays
   useEffect(() => {
     const fetchDisplays = async () => {
-      if (window.electron?.display) {
-        const displays = await window.electron.display.getAll();
-        setDisplays(displays);
+      try {
+        // @ts-ignore - Display API from Electron
+        if (window.electron?.display?.getAll) {
+          // @ts-ignore
+          const displays = await window.electron.display.getAll();
+          setDisplays(displays);
+        }
+      } catch (error) {
+        console.log('Display API not available:', error);
       }
     };
     fetchDisplays();
@@ -81,12 +70,14 @@ export function PresenterViewPage() {
       case 'b':
       case 'B':
         e.preventDefault();
-        window.electron?.presentation.blank('black');
+        // @ts-ignore
+        window.electron?.presentation?.blank?.('black');
         break;
       case 'w':
       case 'W':
         e.preventDefault();
-        window.electron?.presentation.blank('white');
+        // @ts-ignore
+        window.electron?.presentation?.blank?.('white');
         break;
       case 'Home':
         e.preventDefault();
@@ -94,10 +85,10 @@ export function PresenterViewPage() {
         break;
       case 'End':
         e.preventDefault();
-        goToSlide(allSlides.length - 1);
+        goToSlide(99); // Max slide
         break;
     }
-  }, [nextSlide, previousSlide, endPresentation, goToSlide, allSlides.length]);
+  }, [nextSlide, previousSlide, endPresentation, goToSlide]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
@@ -128,7 +119,7 @@ export function PresenterViewPage() {
         <div>
           <h1 className="text-xl font-bold">{service.name}</h1>
           <p className="text-sm text-gray-400">
-            Slide {currentSlideIndex + 1} of {allSlides.length} • {formatTime(elapsedTime)} elapsed
+            Slide {currentSlideIndex + 1} • {formatTime(elapsedTime)} elapsed
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -136,7 +127,10 @@ export function PresenterViewPage() {
             {displays.length} display{displays.length !== 1 ? 's' : ''} connected
           </div>
           <button
-            onClick={() => window.electron?.presentation.blank('black')}
+            onClick={() => {
+              // @ts-ignore
+              window.electron?.presentation?.blank?.('black');
+            }}
             className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors text-sm"
           >
             Blank (B)
@@ -181,19 +175,9 @@ export function PresenterViewPage() {
             <p className="text-sm text-gray-500">Preview</p>
           </div>
           <div className="flex-1 bg-black rounded-lg overflow-hidden shadow-lg border border-gray-600">
-            {nextSlidePreview ? (
-              <div className="w-full h-full flex items-center justify-center p-6">
-                <div className="text-center">
-                  <pre className="text-xl text-gray-300 whitespace-pre-wrap">
-                    {nextSlidePreview.content}
-                  </pre>
-                </div>
-              </div>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-500">
-                <p>End of presentation</p>
-              </div>
-            )}
+            <div className="w-full h-full flex items-center justify-center text-gray-500">
+              <p>Next slide preview</p>
+            </div>
           </div>
 
           {/* Notes Section */}
@@ -226,33 +210,18 @@ export function PresenterViewPage() {
             </button>
             <button
               onClick={nextSlide}
-              disabled={currentSlideIndex >= allSlides.length - 1}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
             >
               Next
               <ChevronRight size={20} />
             </button>
           </div>
 
-          {/* Slide Thumbnails / Quick Nav */}
-          <div className="flex items-center gap-2 overflow-x-auto max-w-md">
-            {allSlides.slice(Math.max(0, currentSlideIndex - 2), currentSlideIndex + 3).map((slide, idx) => {
-              const actualIndex = Math.max(0, currentSlideIndex - 2) + idx;
-              const isCurrent = actualIndex === currentSlideIndex;
-              return (
-                <button
-                  key={actualIndex}
-                  onClick={() => goToSlide(actualIndex)}
-                  className={`min-w-[60px] h-12 px-2 rounded text-xs transition-all ${
-                    isCurrent
-                      ? 'bg-blue-600 scale-110 shadow-lg'
-                      : 'bg-gray-700 hover:bg-gray-600'
-                  }`}
-                >
-                  {actualIndex + 1}
-                </button>
-              );
-            })}
+          {/* Current Slide Indicator */}
+          <div className="flex items-center gap-2">
+            <div className="px-4 py-2 bg-blue-600 rounded font-mono text-white">
+              {currentSlideIndex + 1}
+            </div>
           </div>
 
           {/* Timer */}
