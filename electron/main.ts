@@ -193,18 +193,29 @@ function createPresentationWindow() {
   const startURL = process.env.ELECTRON_START_URL || 'http://localhost:5173';
   
   if (startURL.startsWith('http')) {
+    // Dev mode - use Vite dev server
     presentationWindow.loadURL(`${startURL}/#/audience`);
     console.log('📺 Loading audience view from:', `${startURL}/#/audience`);
   } else {
-    presentationWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
-      hash: 'audience',
-    });
-    console.log('📺 Loading audience view from built files');
+    // Production mode - use file:// protocol with hash
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    const fileUrl = `file://${indexPath.replace(/\\/g, '/')}#/audience`;
+    presentationWindow.loadURL(fileUrl);
+    console.log('📺 Loading audience view from:', fileUrl);
   }
+
+  // Log any loading errors
+  presentationWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
+    console.error('❌ Audience window failed to load:', errorCode, errorDescription);
+  });
 
   // Show and fullscreen window once content is loaded
   presentationWindow.webContents.once('did-finish-load', () => {
     if (presentationWindow && !presentationWindow.isDestroyed()) {
+      // DEBUGGING: Open DevTools to see errors
+      console.log('🔧 Opening DevTools for audience window debugging');
+      presentationWindow.webContents.openDevTools({ mode: 'detach' });
+      
       // Set fullscreen mode for proper display filling
       presentationWindow.setFullScreen(true);
       presentationWindow.show();
