@@ -161,23 +161,29 @@ export function ServiceEditorModal({
     }
   }, [isPresentationMode, presentationService, currentItemIndex, currentSlideIndex, currentSongData]);
   
+  // Load items ONLY when modal opens or service ID changes (not on every service update)
+  const [loadedServiceId, setLoadedServiceId] = useState<string | null>(null);
+  
   useEffect(() => {
-    if (service && isOpen) {
+    // Only reload if:
+    // 1. Modal is opening (isOpen becomes true)
+    // 2. OR we're switching to a different service (service.id changed)
+    const shouldReload = isOpen && service && (
+      loadedServiceId !== service.id
+    );
+    
+    if (shouldReload) {
       console.log('📖 Loading service into editor:', {
         name: service.name,
         itemCount: service.items?.length || 0,
-        items: service.items?.map(i => ({ id: i.id, type: i.type, title: i.title }))
+        items: service.items?.map(i => ({ id: i.id, type: i.type, title: i.title })),
+        reason: loadedServiceId === null ? 'initial load' : 'service changed'
       });
       setItems(service.items || []);
-    }
-  }, [service, isOpen]);
-
-  useEffect(() => {
-    // Only set initial items when modal first opens
-    if (service && isOpen) {
       setInitialItems(service.items || []);
+      setLoadedServiceId(service.id);
     }
-  }, [isOpen]); // Only depend on isOpen, not service
+  }, [service?.id, isOpen]); // Only depend on service ID and isOpen, not full service object
 
   // Detect changes by comparing current items with initial items
   const hasChanges = JSON.stringify(items) !== JSON.stringify(initialItems);

@@ -154,8 +154,10 @@ export function resolveBackgroundImageUrl(
   
   if (!bgRef) return null;
 
-  // If it's already a full URL, return it
-  if (bgRef.startsWith('http://') || bgRef.startsWith('https://')) {
+  // If it's already a full URL or relative path, return it as-is
+  if (bgRef.startsWith('http://') || bgRef.startsWith('https://') || 
+      bgRef.startsWith('./') || bgRef.startsWith('../') || bgRef.startsWith('/') ||
+      bgRef.startsWith('file://') || bgRef.startsWith('blob:') || bgRef.startsWith('data:')) {
     return bgRef;
   }
 
