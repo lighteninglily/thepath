@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { WORSHIP_BACKGROUNDS } from '../assets/backgrounds';
+import { resolveBackground } from '../utils/backgroundResolver';
 
 /**
  * Audience View - Full screen projection
@@ -10,13 +11,18 @@ import { WORSHIP_BACKGROUNDS } from '../assets/backgrounds';
  */
 export function AudienceViewPage() {
   const [presentationState, setPresentationState] = useState<any>(null);
-  const [blankScreen, setBlankScreen] = useState<{ active: boolean; type: 'black' | 'white' | 'logo' | null }>({ active: false, type: null });
 
   console.log('🎭 AudienceViewPage MOUNTED');
   console.log('📍 Current state:', presentationState);
 
-  // Listen for blank screen commands
+  // NOTE: Blank screen is now handled via isBlank state in synced presentation state
+  // The old onBlank/onUnblank IPC methods have been removed
+  // Keeping this as a reference for future blank screen types (black/white/logo)
   useEffect(() => {
+    // Legacy code - onBlank/onUnblank don't exist in current IPC interface
+    // Blank state is synced via presentation state updates instead
+    // Uncomment if blank screen types need special handling
+    /*
     if (!window.electron?.presentation) return;
 
     const unsubscribeBlank = window.electron.presentation.onBlank?.((type: string) => {
@@ -33,6 +39,7 @@ export function AudienceViewPage() {
       unsubscribeBlank?.();
       unsubscribeUnblank?.();
     };
+    */
   }, []);
 
   // Listen for state updates from presenter window via IPC
@@ -50,13 +57,20 @@ export function AudienceViewPage() {
       
       // Set up listener for state updates
       const unsubscribe = window.electron.presentation.onStateUpdate((state) => {
-        console.log('📺 Audience received state update:', {
+        console.log('📺 AUDIENCE: Received state update:', {
           hasService: !!state.service,
           currentItemIndex: state.currentItemIndex,
           currentSlideIndex: state.currentSlideIndex,
           hasSongData: !!state.currentSongData,
-          isBlank: state.isBlank
+          songDataTitle: state.currentSongData?.title,
+          songDataSlidesCount: state.currentSongData?.slidesData?.length,
+          isBlank: state.isBlank,
+          currentItemType: state.service?.items[state.currentItemIndex]?.type
         });
+        
+        // Log the full state for debugging
+        console.log('📦 AUDIENCE: Full state object:', JSON.stringify(state, null, 2));
+        
         setPresentationState(state);
       });
 
@@ -104,30 +118,13 @@ export function AudienceViewPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Blank Screen Override (B/W/L keys from presenter)
-  if (blankScreen.active) {
-    let bgColor = '#000000';
-    let content = null;
-
-    if (blankScreen.type === 'white') {
-      bgColor = '#FFFFFF';
-    } else if (blankScreen.type === 'logo') {
-      // Show church logo on black background
-      bgColor = '#000000';
-      content = (
-        <div className="text-white text-6xl font-bold">
-          {/* Add your church logo here */}
-          ✝
-        </div>
-      );
-    }
-
+  // Blank Screen Override (from presenter's isBlank state)
+  if (presentationState?.isBlank) {
     return (
       <div 
-        className="w-screen h-screen flex items-center justify-center"
-        style={{ backgroundColor: bgColor }}
+        className="w-screen h-screen flex items-center justify-center bg-black"
       >
-        {content}
+        {/* Blank screen - no content */}
       </div>
     );
   }
@@ -147,18 +144,40 @@ export function AudienceViewPage() {
   // Get visual data from song slides or item content
   let visualData = null;
   
+  console.log('🎵 AUDIENCE: Checking for visual data:', {
+    itemType: currentItem?.type,
+    hasSongData: !!currentSongData,
+    songDataId: currentSongData?.id,
+    songTitle: currentSongData?.title,
+    slidesDataLength: currentSongData?.slidesData?.length,
+    currentSlideIndex,
+    hasContent: !!currentItem?.content
+  });
+  
   // If it's a song, use the song slide data
   if (currentItem?.type === 'song' && currentSongData?.slidesData) {
     const currentSlide = currentSongData.slidesData[currentSlideIndex];
+    console.log('📺 AUDIENCE: Song slide data:', {
+      slideIndex: currentSlideIndex,
+      totalSlides: currentSongData.slidesData.length,
+      currentSlide: currentSlide,
+      hasVisualData: !!currentSlide?.visualData
+    });
+    
     if (currentSlide?.visualData) {
       visualData = currentSlide.visualData;
-      console.log('📺 Using song slide data:', {
-        slideIndex: currentSlideIndex,
-        totalSlides: currentSongData.slidesData.length,
+      console.log('✅ AUDIENCE: Using song slide visual data:', {
         hasBackground: !!visualData.background,
         elementCount: visualData.elements?.length
       });
+    } else {
+      console.error('❌ AUDIENCE: Song slide missing visualData!', currentSlide);
     }
+  } else if (currentItem?.type === 'song') {
+    console.error('❌ AUDIENCE: Song item but NO song data!', {
+      hasSongData: !!currentSongData,
+      songId: currentItem?.songId
+    });
   }
   // Otherwise try to parse content
   else if (currentItem?.content) {
@@ -167,10 +186,16 @@ export function AudienceViewPage() {
         ? JSON.parse(currentItem.content) 
         : currentItem.content;
       visualData = parsed;
+      
+      // 🔍 DIAGNOSTIC: Log the EXACT structure for scripture/non-song items
+      console.log('🔍 DIAGNOSTIC - Parsed visual data:', JSON.stringify(visualData, null, 2));
       console.log('📺 Audience parsed visualData from content:', {
         hasBackground: !!visualData?.background,
+        backgroundType: visualData?.backgroundType,
+        backgroundColor: visualData?.backgroundColor,
+        backgroundData: visualData?.background,
         elementCount: visualData?.elements?.length,
-        backgroundType: visualData?.background?.type
+        itemType: currentItem.type
       });
     } catch (e) {
       console.error('❌ Failed to parse content:', e, currentItem?.content?.substring(0, 100));
@@ -183,75 +208,57 @@ export function AudienceViewPage() {
     });
   }
 
-  // Helper to get background style
-  const getBackgroundStyle = (background: any) => {
-    if (!background) {
-      return { background: '#000000' };
-    }
-
-    // Check for gradient
-    if (background.gradient) {
-      console.log('📐 Using gradient background');
-      return { background: background.gradient };
-    }
-
-    // Check for solid color (both 'color' and 'backgroundColor' fields)
-    const bgColor = background.color || background.backgroundColor;
-    if (bgColor) {
-      console.log('🎨 Using solid color background:', bgColor);
-      return { background: bgColor };
-    }
-
-    // Check for image URL or imageId (backward compatibility)
-    const imageRef = background.imageUrl || background.imageId;
-    if (imageRef) {
-      // If it's already a full URL, use it
-      if (imageRef.startsWith('http')) {
-        console.log('🖼️ Using image URL:', imageRef);
-        return {
-          backgroundImage: `url(${imageRef})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        };
-      }
-      
-      // Otherwise, it's a background ID - look it up in WORSHIP_BACKGROUNDS
-      const bg = WORSHIP_BACKGROUNDS.find(b => b.id === imageRef);
-      if (bg) {
-        console.log('✅ Resolved background ID:', imageRef, '→', bg.url);
-        return {
-          backgroundImage: `url(${bg.url})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        };
-      }
-      
-      console.warn('⚠️ Could not resolve background ID:', imageRef);
-    }
-
-    // Fallback to black
-    console.warn('⚠️ No background found, using black');
-    return { background: '#000000' };
-  };
+  // No longer needed - using resolveBackground utility instead
 
   // Render slide content based on type
   const renderSlide = () => {
+    console.log('🎬 AudienceView renderSlide called:', {
+      hasVisualData: !!visualData,
+      hasService: !!service,
+      hasCurrentItem: !!currentItem,
+      currentItemType: currentItem?.type,
+      currentItemIndex,
+      currentSlideIndex
+    });
+    
     if (visualData) {
       // Visual slide (template-based)
       let { background, elements } = visualData;
       
+      console.log('📊 Visual data details:', {
+        hasBackground: !!background,
+        elementCount: elements?.length,
+        backgroundType: background?.type,
+        hasOldFormat: !!(visualData.backgroundGradient || visualData.backgroundColor || visualData.backgroundImage)
+      });
+      
       // Convert old background format if needed
-      if (!background && visualData.backgroundType) {
-        console.log('🔧 Converting old background format:', visualData.backgroundType);
+      // Check for ANY old format fields (backgroundGradient, backgroundColor, backgroundImage)
+      if (!background && (visualData.backgroundType || visualData.backgroundGradient || visualData.backgroundColor || visualData.backgroundImage)) {
+        console.log('🔧 Converting old background format:', {
+          backgroundType: visualData.backgroundType,
+          hasGradient: !!visualData.backgroundGradient,
+          hasColor: !!visualData.backgroundColor,
+          hasImage: !!visualData.backgroundImage
+        });
         background = {
-          type: visualData.backgroundType,
+          type: visualData.backgroundType || (visualData.backgroundGradient ? 'gradient' : visualData.backgroundImage ? 'image' : 'solid'),
           color: visualData.backgroundColor,
           gradient: visualData.backgroundGradient,
           imageUrl: visualData.backgroundImage,
         };
       }
       
-      const backgroundStyle = getBackgroundStyle(background);
+      // Use unified background resolver
+      const resolved = resolveBackground(background);
+      const backgroundStyle = resolved.style;
+      
+      console.log('🖼️ Resolved background:', {
+        type: resolved.type,
+        hasError: resolved.hasError,
+        errorMessage: resolved.errorMessage,
+        style: backgroundStyle
+      });
       
       // Calculate overlay opacity - ONLY apply to SONG slides (title + lyrics)
       // Announcements, scripture, and other items should NOT have overlay
@@ -290,10 +297,18 @@ export function AudienceViewPage() {
               }}
             />
           )}
+          
+          {/* Dev Mode: Visual error indicator for missing backgrounds */}
+          {process.env.NODE_ENV === 'development' && hasImageBackground && !backgroundStyle.backgroundImage && (
+            <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-2 text-sm rounded z-50 font-mono">
+              ⚠️ Background missing: {background?.imageUrl || background?.imageId || 'unknown'}
+            </div>
+          )}
 
           {/* Elements */}
           {elements?.map((element: any, index: number) => {
-            if (!element.visible) return null;
+            // Only skip if explicitly set to false (undefined or true should render)
+            if (element.visible === false) return null;
 
             // Safety defaults for position and size
             const position = element.position || { x: 0, y: 0 };
@@ -305,11 +320,11 @@ export function AudienceViewPage() {
                   key={element.id || index}
                   className="absolute whitespace-pre-wrap"
                   style={{
-                    left: `${position.x}px`,
-                    top: `${position.y}px`,
-                    width: `${size.width}px`,
-                    height: `${size.height}px`,
-                    fontSize: `${element.style?.fontSize || element.fontSize}px`,
+                    left: `${(position.x / 1920) * 100}%`,
+                    top: `${(position.y / 1080) * 100}%`,
+                    width: `${(size.width / 1920) * 100}%`,
+                    height: `${(size.height / 1080) * 100}%`,
+                    fontSize: element.fontSize ? `${(element.fontSize / 1080) * 100}vh` : `${((element.style?.fontSize || 48) / 1080) * 100}vh`,
                     fontFamily: element.style?.fontFamily || element.fontFamily,
                     fontWeight: element.style?.fontWeight || element.fontWeight,
                     color: element.style?.color || element.color,
@@ -329,10 +344,10 @@ export function AudienceViewPage() {
                   key={element.id || index}
                   className="absolute"
                   style={{
-                    left: `${position.x}px`,
-                    top: `${position.y}px`,
-                    width: `${size.width}px`,
-                    height: `${size.height}px`,
+                    left: `${(position.x / 1920) * 100}%`,
+                    top: `${(position.y / 1080) * 100}%`,
+                    width: `${(size.width / 1920) * 100}%`,
+                    height: `${(size.height / 1080) * 100}%`,
                     backgroundColor: element.backgroundColor,
                     borderRadius: `${element.borderRadius || 0}px`,
                     zIndex: element.zIndex || 5,
@@ -350,10 +365,10 @@ export function AudienceViewPage() {
                   alt=""
                   className="absolute"
                   style={{
-                    left: `${position.x}px`,
-                    top: `${position.y}px`,
-                    width: `${size.width}px`,
-                    height: `${size.height}px`,
+                    left: `${(position.x / 1920) * 100}%`,
+                    top: `${(position.y / 1080) * 100}%`,
+                    width: `${(size.width / 1920) * 100}%`,
+                    height: `${(size.height / 1080) * 100}%`,
                     objectFit: 'contain',
                     zIndex: element.zIndex || 10,
                     opacity: element.opacity ?? 1,
@@ -426,28 +441,39 @@ export function AudienceViewPage() {
     );
   };
 
+  // Enable debug overlay with query param: ?debug=true
+  const showDebug = typeof window !== 'undefined' && 
+    process.env.NODE_ENV === 'development' && 
+    new URLSearchParams(window.location.search).get('debug') === 'true';
+
   return (
     <div className="w-screen h-screen overflow-hidden bg-black">
-      {/* 1920x1080 container scaled to fit screen */}
-      <div className="w-full h-full flex items-center justify-center">
-        <div
-          className="relative bg-black"
-          style={{
-            width: '1920px',
-            height: '1080px',
-            transform: 'scale(var(--scale))',
-            transformOrigin: 'center center',
-          }}
-        >
+      {/* DEBUG OVERLAY - Only shows with ?debug=true in development */}
+      {showDebug && (
+        <div className="absolute top-4 right-4 bg-black bg-opacity-90 text-white p-4 text-xs font-mono z-50 max-w-md border border-gray-700 rounded shadow-lg">
+          <div className="font-bold mb-2 text-yellow-400">🔍 AUDIENCE DEBUG</div>
+          <div>Has State: {presentationState ? '✅' : '❌'}</div>
+          <div>Has Service: {presentationState?.service ? '✅' : '❌'}</div>
+          <div>Item Index: {presentationState?.currentItemIndex ?? 'N/A'}</div>
+          <div>Slide Index: {presentationState?.currentSlideIndex ?? 'N/A'}</div>
+          <div>Item Type: {currentItem?.type || 'N/A'}</div>
+          <div>Song Data: {currentSongData ? `✅ (${currentSongData.slidesData?.length} slides)` : '❌ MISSING'}</div>
+          <div>Visual Data: {visualData ? '✅' : '❌'}</div>
+          {visualData && (
+            <div className="mt-2 border-t border-gray-600 pt-2">
+              <div>Background: {visualData.background?.type || 'none'}</div>
+              <div>Elements: {visualData.elements?.length || 0}</div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Responsive container using percentage-based positioning (16:9 aspect ratio) */}
+      <div className="w-full h-full flex items-center justify-center bg-black">
+        <div className="relative bg-black" style={{ aspectRatio: '16/9', width: '100%', height: '100%', maxWidth: '100vw', maxHeight: '100vh' }}>
           {renderSlide()}
         </div>
       </div>
-
-      <style>{`
-        :root {
-          --scale: min(calc(100vw / 1920), calc(100vh / 1080));
-        }
-      `}</style>
     </div>
   );
 }

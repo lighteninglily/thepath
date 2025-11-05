@@ -9,6 +9,7 @@ interface ServicePresentationState {
   currentSlideIndex: number;
   currentSongData: any | null; // Song data for current item if it's a song
   currentSlide: any | null; // Current slide object (computed)
+  songDataCache: Record<string, any>; // Cache of all loaded songs by songId
   
   // Display state
   isBlank: boolean;
@@ -30,6 +31,7 @@ interface ServicePresentationState {
   resetTimer: () => void;
   updateElapsedTime: () => void;
   updateCurrentSlide: () => void; // Update currentSlide from currentSongData
+  preloadSongData: (songId: string, songData: any) => void; // Add song to cache
 }
 
 export const useServicePresentationStore = create<ServicePresentationState>((set, get) => ({
@@ -40,6 +42,7 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
   currentSlideIndex: 0,
   currentSongData: null,
   currentSlide: null,
+  songDataCache: {},
   isBlank: false,
   displayMode: 'single',
   startTime: null,
@@ -183,6 +186,16 @@ export const useServicePresentationStore = create<ServicePresentationState>((set
     } else {
       set({ currentSlide: null });
     }
+  },
+
+  // Preload song data into cache
+  preloadSongData: (songId: string, songData: any) => {
+    set((state) => ({
+      songDataCache: {
+        ...state.songDataCache,
+        [songId]: songData,
+      },
+    }));
   },
 }));
 

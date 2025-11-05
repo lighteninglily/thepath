@@ -447,7 +447,7 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
           {/* Current Slide */}
           <div>
             <h3 className="text-white text-sm mb-2 font-semibold">CURRENT SLIDE</h3>
-            <div className="bg-black rounded-lg overflow-hidden shadow-2xl">
+            <div className="bg-black rounded-lg overflow-hidden shadow-2xl" style={{ aspectRatio: '16/9' }}>
               {isBlank ? (
                 <div className="aspect-video bg-black flex items-center justify-center">
                   <p className="text-white/50">⬛ BLANK SCREEN</p>
@@ -469,7 +469,7 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
           {/* Next Slide Preview */}
           <div>
             <h3 className="text-white text-sm mb-2 font-semibold">NEXT SLIDE</h3>
-            <div className="bg-black rounded-lg overflow-hidden shadow-lg opacity-70" style={{ height: '180px' }}>
+            <div className="bg-black rounded-lg overflow-hidden shadow-lg opacity-70" style={{ aspectRatio: '16/9' }}>
               {nextItem ? (
                 <ServiceItemSlidePreview 
                   item={nextItem} 

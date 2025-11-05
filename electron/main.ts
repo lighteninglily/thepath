@@ -219,6 +219,19 @@ function createPresentationWindow() {
     }
   });
 
+  // Forward console logs from audience window to main terminal
+  presentationWindow.webContents.on('console-message', (_event, level, message, _line, _sourceId) => {
+    const prefix = '[AUDIENCE]';
+    const levelMap: Record<number, string> = {
+      0: '🔵', // log
+      1: '⚠️', // warning
+      2: '❌', // error
+      3: '🐛'  // debug
+    };
+    const emoji = levelMap[level] || '📺';
+    console.log(`${prefix} ${emoji} ${message}`);
+  });
+
   // Error handling
   presentationWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
     console.error('❌ Audience window failed to load:', errorCode, errorDescription);

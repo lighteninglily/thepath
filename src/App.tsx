@@ -4,18 +4,22 @@ import { LibraryPage } from './pages/LibraryPage';
 import { PlannerPage } from './pages/PlannerPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AudienceViewPage } from './pages/AudienceViewPage';
-import { PresenterViewPage } from './pages/PresenterViewPage';
+import { LoadingScreen } from './components/LoadingScreen';
+import { useImagePreloader } from './hooks/useImagePreloader';
 
 function App() {
   const [currentRoute, setCurrentRoute] = useState(() => {
     // Check URL hash for initial route
     const hash = window.location.hash.replace('#/', '');
-    // Audience/Presenter routes are for separate windows only, not main app
-    if (hash === 'audience' || hash === 'presenter') {
+    // Audience route is for projection window only, not main app
+    if (hash === 'audience') {
       return hash;
     }
     return hash || 'library';
   });
+
+  // Preload ALL images for instant display (PowerPoint-style)
+  const { loadedImages, totalImages, isReady, progress } = useImagePreloader();
 
   // Listen for hash changes
   useEffect(() => {
@@ -28,14 +32,15 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Audience view is full-screen, separate window only
-  if (currentRoute === 'audience') {
-    return <AudienceViewPage />;
+  // Show loading screen until all images are preloaded (PowerPoint-style)
+  if (!isReady) {
+    return <LoadingScreen progress={progress} loadedImages={loadedImages} totalImages={totalImages} />;
   }
 
-  // Presenter view is separate window only
-  if (currentRoute === 'presenter') {
-    return <PresenterViewPage />;
+  // Audience view is full-screen projection window
+  // Presenter view is now embedded in ServiceEditorModal via PresenterPage component
+  if (currentRoute === 'audience') {
+    return <AudienceViewPage />;
   }
 
   const renderPage = () => {

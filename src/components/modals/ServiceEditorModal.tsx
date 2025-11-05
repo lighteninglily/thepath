@@ -5,6 +5,7 @@ import { EditItemModal } from './EditItemModal';
 import { VisualItemEditorModal } from './VisualItemEditorModal';
 import { PresenterPage } from '../../pages/PresenterPage';
 import { useServicePresentationStore } from '../../store/servicePresentationStore';
+import { useServiceImagePreloader } from '../../hooks/useServiceImagePreloader';
 import type { Service, ServiceItem } from '../../types/service';
 
 interface ServiceEditorModalProps {
@@ -45,6 +46,11 @@ export function ServiceEditorModal({
     currentSongData 
   } = useServicePresentationStore();
 
+  // Preload ALL custom images in service items (announcements, scripture, etc.)
+  const { isReady: imagesReady, loadedImages, totalImages } = useServiceImagePreloader(
+    isPresentationMode ? presentationService : null
+  );
+
   // Auto-open visual editor for newly created AI items
   useEffect(() => {
     if (autoOpenVisualEditorForItemId && items.length > 0) {
@@ -56,7 +62,45 @@ export function ServiceEditorModal({
     }
   }, [autoOpenVisualEditorForItemId, items]);
 
-  // Load song data when current item changes during presentation
+  // Log custom image preloading status
+  useEffect(() => {
+    if (isPresentationMode && totalImages > 0) {
+      if (imagesReady) {
+        console.log(`🎉 Preloaded ${totalImages} custom images (announcements/scripture)!`);
+      } else {
+        console.log(`⏳ Loading custom images: ${loadedImages}/${totalImages}...`);
+      }
+    }
+  }, [isPresentationMode, imagesReady, loadedImages, totalImages]);
+
+  // Preload ALL song data when presentation starts
+  useEffect(() => {
+    if (!isPresentationMode || !presentationService) return;
+    
+    const preloadAllSongs = async () => {
+      console.log('🚀 Preloading all song data for instant navigation...');
+      const songItems = presentationService.items.filter(item => item.type === 'song' && item.songId);
+      
+      const loadPromises = songItems.map(async (item) => {
+        try {
+          const song = await window.electron.database.getSongById(item.songId!);
+          if (song) {
+            useServicePresentationStore.getState().preloadSongData(item.songId!, song);
+            console.log(`✅ Preloaded: ${song.title} (${song.slidesData?.length || 0} slides)`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to preload song ${item.songId}:`, error);
+        }
+      });
+      
+      await Promise.all(loadPromises);
+      console.log(`🎉 Preloaded ${songItems.length} songs!`);
+    };
+    
+    preloadAllSongs();
+  }, [isPresentationMode, presentationService]);
+
+  // Update currentSongData when navigating (instant from cache!)
   useEffect(() => {
     if (!isPresentationMode || !presentationService) return;
     
@@ -70,27 +114,29 @@ export function ServiceEditorModal({
       return;
     }
     
-    // Load song data
-    const loadSongData = async () => {
-      try {
-        console.log('🎵 Loading song data for:', currentItem.title, currentItem.id);
-        const song = await window.electron.database.getSongById(currentItem.id);
-        if (song) {
-          console.log('✅ Loaded song:', song.title, {
-            slideCount: song.slidesData?.length || 0,
-            hasSlides: !!song.slidesData
-          });
-          useServicePresentationStore.setState({ currentSongData: song });
-        } else {
-          console.warn('⚠️ Song not found:', currentItem.id);
+    // Use cached song data for instant loading!
+    const cachedSong = useServicePresentationStore.getState().songDataCache[currentItem.songId!];
+    if (cachedSong) {
+      console.log('⚡ Using cached song data:', cachedSong.title);
+      useServicePresentationStore.setState({ currentSongData: cachedSong });
+    } else {
+      console.warn('⚠️ Song not in cache, loading on-demand:', currentItem.songId);
+      // Fallback to on-demand loading if not in cache
+      const loadSongData = async () => {
+        if (!currentItem.songId) return;
+        try {
+          const song = await window.electron.database.getSongById(currentItem.songId);
+          if (song) {
+            useServicePresentationStore.getState().preloadSongData(currentItem.songId, song);
+            useServicePresentationStore.setState({ currentSongData: song });
+          }
+        } catch (error) {
+          console.error('❌ Failed to load song:', error);
         }
-      } catch (error) {
-        console.error('❌ Failed to load song:', error);
-      }
-    };
-    
-    loadSongData();
-  }, [isPresentationMode, presentationService, currentItemIndex, currentSongData]);
+      };
+      loadSongData();
+    }
+  }, [isPresentationMode, presentationService, currentItemIndex]);
 
   // Sync presentation state to audience window
   useEffect(() => {

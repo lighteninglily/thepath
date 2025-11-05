@@ -24,7 +24,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'mountain-1',
     name: 'Majestic Blue Mountains',
-    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
+    url: '/backgrounds/mountain-1.jpg',
     category: 'mountains',
     textColor: 'light',
     mood: 'powerful',
@@ -33,7 +33,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'mountain-3',
     name: 'Misty Mountain Range',
-    url: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1920&q=80',
+    url: '/backgrounds/mountain-3.jpg',
     category: 'mountains',
     textColor: 'light',
     mood: 'reflective',
@@ -42,7 +42,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'mountain-5',
     name: 'Alpine Mountain Vista',
-    url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80',
+    url: '/backgrounds/mountain-5.jpg',
     category: 'mountains',
     textColor: 'light',
     mood: 'powerful',
@@ -53,7 +53,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'forest-1',
     name: 'Sunrays Through Trees',
-    url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80',
+    url: '/backgrounds/forest-1.jpg',
     category: 'forest',
     textColor: 'light',
     mood: 'peaceful',
@@ -61,7 +61,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'forest-3',
     name: 'Dense Forest Trees',
-    url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80',
+    url: '/backgrounds/forest-3.jpg',
     category: 'forest',
     textColor: 'light',
     mood: 'peaceful',
@@ -69,7 +69,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'forest-8',
     name: 'Forest Road with Sunrays',
-    url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1920&q=80',
+    url: '/backgrounds/forest-8.jpg',
     category: 'forest',
     textColor: 'light',
     mood: 'peaceful',
@@ -81,7 +81,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'waves-1',
     name: 'Deep Blue Ocean Waves',
-    url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=1920&q=80',
+    url: '/backgrounds/waves-1.jpg',
     category: 'waves',
     textColor: 'light',
     mood: 'peaceful',
@@ -90,7 +90,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'waves-2',
     name: 'Turquoise Sea Surface',
-    url: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1920&q=80',
+    url: '/backgrounds/waves-2.jpg',
     category: 'waves',
     textColor: 'light',
     mood: 'peaceful',
@@ -99,7 +99,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'waves-3',
     name: 'Rolling Ocean Tides',
-    url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1920&q=80',
+    url: '/backgrounds/waves-3.jpg',
     category: 'waves',
     textColor: 'light',
     mood: 'powerful',
@@ -110,7 +110,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'water-1',
     name: 'Calm Lake Mirror',
-    url: 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1920&q=80',
+    url: '/backgrounds/water-1.jpg',
     category: 'water',
     textColor: 'dark',
     mood: 'reflective',
@@ -118,7 +118,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'water-2',
     name: 'Beach Sunrise',
-    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80',
+    url: '/backgrounds/water-2.jpg',
     category: 'water',
     textColor: 'light',
     mood: 'joyful',
@@ -130,7 +130,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'clouds-1',
     name: 'Soft Blue Sky Clouds',
-    url: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1920&q=80',
+    url: '/backgrounds/clouds-1.jpg',
     category: 'clouds',
     textColor: 'dark',
     mood: 'peaceful',
@@ -139,7 +139,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'clouds-3',
     name: 'Gentle Sky Clouds',
-    url: 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5?w=1920&q=80',
+    url: '/backgrounds/clouds-3.jpg',
     category: 'clouds',
     textColor: 'dark',
     mood: 'peaceful',
@@ -148,7 +148,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'clouds-4',
     name: 'Heavenly Cloud Formations',
-    url: 'https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?w=1920&q=80',
+    url: '/backgrounds/clouds-4.jpg',
     category: 'clouds',
     textColor: 'dark',
     mood: 'reflective',
@@ -159,7 +159,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'sky-1',
     name: 'Sunset Sky',
-    url: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&q=80',
+    url: '/backgrounds/sky-1.jpg',
     category: 'sky',
     textColor: 'light',
     mood: 'peaceful',
@@ -169,7 +169,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'abstract-1',
     name: 'Light Bokeh Blur',
-    url: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1920&q=80',
+    url: '/backgrounds/abstract-1.jpg',
     category: 'abstract',
     textColor: 'dark',
     mood: 'joyful',
@@ -177,7 +177,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'abstract-2',
     name: 'Color Gradient Flow',
-    url: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1920&q=80',
+    url: '/backgrounds/abstract-2.jpg',
     category: 'abstract',
     textColor: 'light',
     mood: 'powerful',
@@ -185,7 +185,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'abstract-3',
     name: 'Soft Pastel Colors',
-    url: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=1920&q=80',
+    url: '/backgrounds/abstract-3.jpg',
     category: 'abstract',
     textColor: 'dark',
     mood: 'peaceful',
@@ -193,7 +193,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'abstract-4',
     name: 'Modern Color Waves',
-    url: 'https://images.unsplash.com/photo-1561212044-bac5ef688a07?w=1920&q=80',
+    url: '/backgrounds/abstract-4.jpg',
     category: 'abstract',
     textColor: 'light',
     mood: 'joyful',
@@ -203,7 +203,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'light-1',
     name: 'Sun Rays Through Trees',
-    url: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=1920&q=80',
+    url: '/backgrounds/light-1.jpg',
     category: 'light',
     textColor: 'dark',
     mood: 'joyful',
@@ -211,7 +211,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'light-2',
     name: 'Golden Hour Glow',
-    url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80',
+    url: '/backgrounds/light-2.jpg',
     category: 'light',
     textColor: 'light',
     mood: 'peaceful',
@@ -219,7 +219,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'light-3',
     name: 'Bright Sunshine Sky',
-    url: 'https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?w=1920&q=80',
+    url: '/backgrounds/light-3.jpg',
     category: 'light',
     textColor: 'dark',
     mood: 'joyful',
@@ -227,7 +227,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'light-4',
     name: 'Sunrise Light Beams',
-    url: 'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=1920&q=80',
+    url: '/backgrounds/light-4.jpg',
     category: 'light',
     textColor: 'light',
     mood: 'joyful',
@@ -239,7 +239,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'cross-1',
     name: 'Black Cross Silhouette',
-    url: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1920&q=80',
+    url: '/backgrounds/cross-1.jpg',
     category: 'cross',
     textColor: 'light',
     mood: 'reflective',
@@ -248,7 +248,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'cross-2',
     name: 'Cross Under Stars',
-    url: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1920&q=80',
+    url: '/backgrounds/cross-2.jpg',
     category: 'cross',
     textColor: 'light',
     mood: 'powerful',
@@ -257,7 +257,7 @@ export const WORSHIP_BACKGROUNDS: BackgroundImage[] = [
   {
     id: 'cross-3',
     name: 'Wooden Cross Silhouette',
-    url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80',
+    url: '/backgrounds/cross-3.jpg',
     category: 'cross',
     textColor: 'light',
     mood: 'peaceful',

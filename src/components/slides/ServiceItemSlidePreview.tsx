@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ServiceItem } from '../../types/service';
 import type { Song } from '../../types';
 import { WORSHIP_BACKGROUNDS } from '../../assets/backgrounds';
@@ -12,8 +13,10 @@ interface ServiceItemSlidePreviewProps {
 /**
  * Renders a service item as a slide for presentation
  * Handles all service item types: songs, scripture, announcements, sermons, etc.
+ * 
+ * Performance: Memoized to prevent unnecessary re-renders
  */
-export function ServiceItemSlidePreview({ item, slideIndex = 0, songData, className = '' }: ServiceItemSlidePreviewProps) {
+const ServiceItemSlidePreviewComponent = ({ item, slideIndex = 0, songData, className = '' }: ServiceItemSlidePreviewProps) => {
   console.log('🎬 ServiceItemSlidePreview rendering:', item.type, item.title, 'slideIndex:', slideIndex);
   console.log('📊 Song data received:', songData ? `${songData.title} (${songData.slidesData?.length || 0} slides)` : 'NO SONG DATA');
   
@@ -60,21 +63,22 @@ export function ServiceItemSlidePreview({ item, slideIndex = 0, songData, classN
       
       // If it looks like visual editor data, render it
       if (visualData.elements) {
-        // Fix background structure if needed
-        if (!visualData.background && visualData.backgroundType) {
-          // Old structure: backgroundType, backgroundImage, backgroundColor
+        // Fix background structure if needed - check for ANY old format fields
+        if (!visualData.background && (visualData.backgroundType || visualData.backgroundGradient || visualData.backgroundColor || visualData.backgroundImage)) {
+          // Old structure: can have backgroundType, backgroundImage, backgroundColor, or backgroundGradient
           // Convert to new structure
           visualData.background = {
-            type: visualData.backgroundType || 'solid',
+            type: visualData.backgroundType || (visualData.backgroundGradient ? 'gradient' : visualData.backgroundImage ? 'image' : 'solid'),
             imageUrl: visualData.backgroundImage,
-            color: visualData.backgroundColor || '#E8E3DC'
+            color: visualData.backgroundColor,
+            gradient: visualData.backgroundGradient
           };
           console.log('🔧 Converted background structure:', visualData.background);
         } else if (!visualData.background) {
           // No background at all - add default
           visualData.background = {
             type: 'solid',
-            color: visualData.backgroundColor || '#E8E3DC'
+            color: '#E8E3DC'
           };
         }
         
@@ -154,20 +158,29 @@ function renderVisualSlide(visualData: any, className: string, slide?: any, isSo
           console.log('✅ Using slide backgroundId:', slide.backgroundId, '→', bg.url);
           return bg.url;
         } else {
-          // Fallback logic for removed backgrounds
+          // Intelligent fallback logic for removed backgrounds
           console.warn('⚠️ Slide backgroundId not found:', slide.backgroundId, '- using fallback');
+          
+          let fallbackBg = null;
           if (slide.backgroundId.startsWith('forest-') || slide.backgroundId.startsWith('nature-')) {
-            const forestBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'forest');
-            return forestBg?.url || null;
+            fallbackBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'forest');
           } else if (slide.backgroundId.startsWith('waves-')) {
-            const wavesBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'waves');
-            return wavesBg?.url || null;
+            fallbackBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'waves');
           } else if (slide.backgroundId.startsWith('mountain-')) {
-            const mountainBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'mountains');
-            return mountainBg?.url || null;
+            fallbackBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'mountains');
           } else if (slide.backgroundId.startsWith('clouds-') || slide.backgroundId.startsWith('sky-')) {
-            const cloudBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'clouds');
-            return cloudBg?.url || null;
+            fallbackBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'clouds');
+          }
+          
+          if (fallbackBg) {
+            console.log('✅ Using category fallback for slide:', fallbackBg.id);
+            return fallbackBg.url;
+          }
+          
+          // Ultimate fallback
+          if (WORSHIP_BACKGROUNDS.length > 0) {
+            console.log('⚠️ Using first available background as last resort');
+            return WORSHIP_BACKGROUNDS[0].url;
           }
         }
       }
@@ -186,20 +199,30 @@ function renderVisualSlide(visualData: any, className: string, slide?: any, isSo
       return bg.url;
     }
     
-    // Background ID not found - use fallback logic
+    // Background ID not found - use intelligent fallback logic
     console.warn('⚠️ Background ID not found:', bgId, '- using fallback');
+    
+    // Try category-based matching
+    let fallbackBg = null;
     if (bgId.startsWith('forest-') || bgId.startsWith('nature-')) {
-      const forestBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'forest');
-      return forestBg?.url || null;
+      fallbackBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'forest');
     } else if (bgId.startsWith('waves-')) {
-      const wavesBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'waves');
-      return wavesBg?.url || null;
+      fallbackBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'waves');
     } else if (bgId.startsWith('mountain-')) {
-      const mountainBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'mountains');
-      return mountainBg?.url || null;
+      fallbackBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'mountains');
     } else if (bgId.startsWith('clouds-') || bgId.startsWith('sky-')) {
-      const cloudBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'clouds');
-      return cloudBg?.url || null;
+      fallbackBg = WORSHIP_BACKGROUNDS.find(b => b.category === 'clouds');
+    }
+    
+    if (fallbackBg) {
+      console.log('✅ Using category fallback:', fallbackBg.id, fallbackBg.url);
+      return fallbackBg.url;
+    }
+    
+    // Ultimate fallback: use first available background (better than showing nothing)
+    if (WORSHIP_BACKGROUNDS.length > 0) {
+      console.log('⚠️ Using first available background as last resort');
+      return WORSHIP_BACKGROUNDS[0].url;
     }
     
     return null;
@@ -242,6 +265,13 @@ function renderVisualSlide(visualData: any, className: string, slide?: any, isSo
           className="absolute inset-0"
           style={{ backgroundColor: background.color || visualData.backgroundColor || '#E8E3DC' }}
         />
+      )}
+      
+      {/* Dev Mode: Visual error indicator for missing backgrounds */}
+      {process.env.NODE_ENV === 'development' && background.type === 'image' && !backgroundImageUrl && (
+        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 text-xs rounded z-50 font-mono">
+          ⚠️ Background missing: {background.imageId || background.imageUrl || 'unknown'}
+        </div>
       )}
       
       {/* Elements */}
@@ -503,6 +533,20 @@ function renderSimpleSlide(item: ServiceItem, className: string) {
     }
   };
   
+  // Enhanced background style with gradient support
+  const getBackgroundStyle = () => {
+    // Check for gradient in any available field
+    // @ts-ignore - backgroundGradient might exist on some items
+    const gradient = item.backgroundGradient;
+    
+    if (gradient) {
+      return { background: gradient };
+    }
+    
+    // Fallback to solid color
+    return { backgroundColor: getBackgroundColor() };
+  };
+  
   const getTitle = () => {
     if (item.type === 'scripture' && item.scriptureReference) {
       return item.scriptureReference;
@@ -526,7 +570,7 @@ function renderSimpleSlide(item: ServiceItem, className: string) {
       className={`relative overflow-hidden ${className} flex flex-col items-center justify-center p-16`}
       style={{ 
         aspectRatio: '16/9',
-        backgroundColor: getBackgroundColor()
+        ...getBackgroundStyle()
       }}
     >
       {/* Title */}
@@ -566,4 +610,16 @@ function renderSimpleSlide(item: ServiceItem, className: string) {
       </div>
     </div>
   );
-}
+};
+
+// Export memoized component for performance
+// Only re-renders if item, slideIndex, or songData actually change
+export const ServiceItemSlidePreview = memo(ServiceItemSlidePreviewComponent, (prevProps, nextProps) => {
+  // Custom comparison for better memoization
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.slideIndex === nextProps.slideIndex &&
+    prevProps.songData?.id === nextProps.songData?.id &&
+    prevProps.className === nextProps.className
+  );
+});
