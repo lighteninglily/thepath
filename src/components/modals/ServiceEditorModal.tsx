@@ -37,7 +37,7 @@ export function ServiceEditorModal({
   const [visualEditingItem, setVisualEditingItem] = useState<ServiceItem | null>(null);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   
-  const { startPresentation } = useServicePresentationStore();
+  const { startPresentation, service: presentationService, currentSlideIndex, currentItemIndex } = useServicePresentationStore();
 
   // Auto-open visual editor for newly created AI items
   useEffect(() => {
@@ -49,6 +49,22 @@ export function ServiceEditorModal({
       }
     }
   }, [autoOpenVisualEditorForItemId, items]);
+
+  // Sync presentation state to audience window
+  useEffect(() => {
+    if (isPresentationMode && window.electron?.presentation?.syncState) {
+      const state = {
+        service: presentationService,
+        currentItemIndex,
+        currentSlideIndex,
+        isPresenting: true
+      };
+      
+      // Sync state to audience window
+      window.electron.presentation.syncState(state).catch(console.error);
+      console.log('📡 Synced state to audience window:', state);
+    }
+  }, [isPresentationMode, presentationService, currentItemIndex, currentSlideIndex]);
   
   useEffect(() => {
     if (service && isOpen) {

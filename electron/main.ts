@@ -176,7 +176,8 @@ function createPresentationWindow() {
     width,
     height,
     frame: false,  // Borderless for clean presentation
-    fullscreen: true,  // Auto-fullscreen on target display
+    fullscreen: false,  // Don't use fullscreen, use maximized instead for better cross-platform support
+    show: false,  // Don't show until ready
     alwaysOnTop: true,  // Stay above other windows
     backgroundColor: '#000000',
     title: 'Audience View',
@@ -199,6 +200,16 @@ function createPresentationWindow() {
       hash: 'audience',
     });
   }
+
+  // Show and maximize window once content is loaded
+  presentationWindow.webContents.once('did-finish-load', () => {
+    if (presentationWindow && !presentationWindow.isDestroyed()) {
+      // Maximize to fill the screen (better than fullscreen on Windows)
+      presentationWindow.maximize();
+      presentationWindow.show();
+      console.log('✅ Audience window shown and maximized');
+    }
+  });
 
   presentationWindow.on('closed', () => {
     presentationWindow = null;
