@@ -37,7 +37,13 @@ export function ServiceEditorModal({
   const [visualEditingItem, setVisualEditingItem] = useState<ServiceItem | null>(null);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   
-  const { startPresentation, service: presentationService, currentSlideIndex, currentItemIndex, currentSongData } = useServicePresentationStore();
+  const { 
+    startPresentation, 
+    service: presentationService, 
+    currentSlideIndex, 
+    currentItemIndex, 
+    currentSongData 
+  } = useServicePresentationStore();
 
   // Auto-open visual editor for newly created AI items
   useEffect(() => {
@@ -49,6 +55,42 @@ export function ServiceEditorModal({
       }
     }
   }, [autoOpenVisualEditorForItemId, items]);
+
+  // Load song data when current item changes during presentation
+  useEffect(() => {
+    if (!isPresentationMode || !presentationService) return;
+    
+    const currentItem = presentationService.items[currentItemIndex];
+    if (!currentItem || currentItem.type !== 'song') {
+      // Not a song, clear song data
+      if (currentSongData !== null) {
+        console.log('📭 Clearing song data (not a song)');
+        useServicePresentationStore.setState({ currentSongData: null });
+      }
+      return;
+    }
+    
+    // Load song data
+    const loadSongData = async () => {
+      try {
+        console.log('🎵 Loading song data for:', currentItem.title, currentItem.id);
+        const song = await window.electron.database.getSongById(currentItem.id);
+        if (song) {
+          console.log('✅ Loaded song:', song.title, {
+            slideCount: song.slidesData?.length || 0,
+            hasSlides: !!song.slidesData
+          });
+          useServicePresentationStore.setState({ currentSongData: song });
+        } else {
+          console.warn('⚠️ Song not found:', currentItem.id);
+        }
+      } catch (error) {
+        console.error('❌ Failed to load song:', error);
+      }
+    };
+    
+    loadSongData();
+  }, [isPresentationMode, presentationService, currentItemIndex, currentSongData]);
 
   // Sync presentation state to audience window
   useEffect(() => {
@@ -67,7 +109,8 @@ export function ServiceEditorModal({
         hasService: !!presentationService,
         currentItemIndex,
         currentSlideIndex,
-        hasSongData: !!currentSongData
+        hasSongData: !!currentSongData,
+        songTitle: currentSongData?.title
       });
     }
   }, [isPresentationMode, presentationService, currentItemIndex, currentSlideIndex, currentSongData]);
