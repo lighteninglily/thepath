@@ -132,55 +132,8 @@ export function AudienceViewPage() {
   if (!service || !currentItem) {
     console.log('⏳ Showing waiting screen - no service/item yet');
     return (
-      <div className="w-screen h-screen bg-black flex flex-col items-center justify-center text-white font-mono">
-        <div className="text-3xl mb-8 font-bold">⏳ Waiting for presentation...</div>
-        
-        {/* Comprehensive diagnostic info */}
-        <div className="text-sm bg-gray-900 p-6 rounded-lg space-y-2 max-w-2xl border border-gray-700">
-          <div className="text-yellow-400 font-bold mb-4 text-base">🔍 DIAGNOSTIC INFO:</div>
-          
-          <div className="space-y-1">
-            <div className="text-green-400">✓ Electron API: {window.electron ? 'Available' : 'NOT AVAILABLE ❌'}</div>
-            <div className="text-green-400">✓ Presentation API: {window.electron?.presentation ? 'Available' : 'NOT AVAILABLE ❌'}</div>
-            <div className="text-green-400">✓ State Listener: {'onStateUpdate' in (window.electron?.presentation || {}) ? 'Registered' : 'NOT REGISTERED ❌'}</div>
-          </div>
-          
-          <div className="border-t border-gray-700 pt-3 mt-3 space-y-1">
-            <div className={presentationState ? 'text-green-400' : 'text-yellow-400'}>
-              • State Received: {presentationState ? 'YES ✓' : 'NO (waiting...)'}
-            </div>
-            {presentationState && (
-              <>
-                <div className={presentationState.service ? 'text-green-400' : 'text-red-400'}>
-                  • Has Service: {presentationState.service ? 'YES ✓' : 'NO ❌'}
-                </div>
-                {presentationState.service && (
-                  <>
-                    <div className="text-blue-300">• Service Name: "{presentationState.service.name}"</div>
-                    <div className="text-blue-300">• Item Count: {presentationState.service.items?.length || 0}</div>
-                  </>
-                )}
-                <div className="text-blue-300">• Current Item Index: {presentationState.currentItemIndex ?? 'N/A'}</div>
-                <div className="text-blue-300">• Current Slide Index: {presentationState.currentSlideIndex ?? 'N/A'}</div>
-                <div className={presentationState.currentSongData ? 'text-green-400' : 'text-gray-500'}>
-                  • Has Song Data: {presentationState.currentSongData ? 'YES ✓' : 'No (not needed for non-song items)'}
-                </div>
-                {presentationState.currentSongData && (
-                  <div className="text-blue-300">• Song: "{presentationState.currentSongData.title}"</div>
-                )}
-              </>
-            )}
-          </div>
-          
-          <div className="border-t border-gray-700 pt-3 mt-3 text-xs text-gray-500 space-y-1">
-            <div>Window URL: {window.location.href}</div>
-            <div>Hash: {window.location.hash}</div>
-          </div>
-        </div>
-        
-        <div className="mt-6 text-gray-500 text-xs">
-          {presentationState ? 'State received but no service/item data' : 'Waiting for presenter to send state...'}
-        </div>
+      <div className="w-screen h-screen bg-black">
+        {/* Clean black screen while waiting */}
       </div>
     );
   }

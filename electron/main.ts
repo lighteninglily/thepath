@@ -1,7 +1,29 @@
 import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import path from 'path';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } from 'fs';
 import { randomUUID } from 'crypto';
+
+// File-based logging for production debugging
+const logPath = path.join(app.getPath('userData'), 'electron-debug.log');
+
+function log(message: string) {
+  const timestamp = new Date().toISOString();
+  const logMessage = `${timestamp} - ${message}\n`;
+  try {
+    appendFileSync(logPath, logMessage);
+  } catch (err) {
+    // Ignore write errors
+  }
+  console.log(message);
+}
+
+// Log startup
+log('========================================');
+log('App Starting');
+log('App packaged: ' + app.isPackaged);
+log('App path: ' + app.getAppPath());
+log('User data path: ' + app.getPath('userData'));
+log('Log file: ' + logPath);
 import { initializeDatabase, closeDatabase } from './database/db';
 import { SongService } from './database/songService';
 import { TemplateService } from './database/templateService';
@@ -12,6 +34,18 @@ import Anthropic from '@anthropic-ai/sdk';
 let mainWindow: BrowserWindow | null = null;
 let presentationWindow: BrowserWindow | null = null;
 let presenterWindow: BrowserWindow | null = null;
+
+// Helper to resolve index.html path correctly in both dev and production
+function resolveIndexHtml(): string {
+  if (app.isPackaged) {
+    // Production: Files are in resources/app.asar/dist/
+    // BUT Electron extracts to resources/ so we go to app.asar/dist
+    return path.join(process.resourcesPath, 'app.asar', 'dist', 'index.html');
+  } else {
+    // Development: relative to dist-electron
+    return path.join(__dirname, '../dist/index.html');
+  }
+}
 
 // ===== SERVICE STORAGE HELPERS =====
 // Simple JSON file storage for services (temporary until proper DB implementation)
@@ -90,8 +124,9 @@ async function createMainWindow() {
     }
   } catch (error) {
     // Dev server not available, load from built files
-    console.log('📦 Loading from built files');
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    const indexPath = resolveIndexHtml();
+    console.log('📦 Loading from built files:', indexPath);
+    mainWindow.loadFile(indexPath);
   }
 
   mainWindow.on('closed', () => {
@@ -155,7 +190,11 @@ function getAudienceDisplay() {
 }
 
 function createPresentationWindow() {
+  log('========================================');
+  log('📺 createPresentationWindow() called');
+  
   if (presentationWindow) {
+    log('Window already exists, focusing');
     presentationWindow.focus();
     return;
   }
@@ -164,11 +203,8 @@ function createPresentationWindow() {
   const audienceDisplay = getAudienceDisplay();
   const { x, y, width, height } = audienceDisplay.bounds;
   
-  console.log('🎭 Creating audience window on display:', {
-    label: audienceDisplay.label,
-    position: { x, y },
-    size: { width, height }
-  });
+  log(`🎭 Creating audience window on display: ${audienceDisplay.label}`);
+  log(`Position: x=${x}, y=${y}, size=${width}x${height}`);
 
   presentationWindow = new BrowserWindow({
     x,
@@ -189,54 +225,62 @@ function createPresentationWindow() {
     },
   });
 
+  // Add comprehensive error logging
+  presentationWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    log(`❌ Audience did-fail-load: code=${errorCode}, desc=${errorDescription}, url=${validatedURL}, mainFrame=${isMainFrame}`);
+  });
+
+  presentationWindow.webContents.on('render-process-gone', (_event, details) => {
+    log(`💥 Audience render-process-gone: ${JSON.stringify(details)}`);
+  });
+
+  presentationWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    log(`🖥️ Audience console [${level}]: ${message} (${sourceId}:${line})`);
+  });
+
   // Load Audience View
-  const startURL = process.env.ELECTRON_START_URL || 'http://localhost:5173';
+  // Check if dev server is specified (only set in dev mode)
+  const startURL = process.env.ELECTRON_START_URL;
   
-  if (startURL.startsWith('http')) {
+  if (startURL && startURL.startsWith('http')) {
     // Dev mode - use Vite dev server
+    log('📺 DEV MODE: Loading from Vite server: ' + startURL);
     presentationWindow.loadURL(`${startURL}/#/audience`);
-    console.log('📺 Loading audience view from:', `${startURL}/#/audience`);
   } else {
-    // Production mode - Electron automatically resolves paths inside app.asar
-    // __dirname in production points to: app.asar/dist-electron
-    // So ../dist/index.html resolves to: app.asar/dist/index.html
-    const indexPath = path.join(__dirname, '../dist/index.html');
+    // Production mode - use correct path resolution
+    const indexPath = resolveIndexHtml();
     
-    console.log('📺 Loading audience window from:', indexPath);
+    log('📺 PRODUCTION MODE - Audience Window');
+    log('  App packaged: ' + app.isPackaged);
+    log('  __dirname: ' + __dirname);
+    log('  process.resourcesPath: ' + process.resourcesPath);
+    log('  Resolved index path: ' + indexPath);
+    log('  File exists: ' + existsSync(indexPath));
     
     // Load file first, then navigate to hash route
     presentationWindow.loadFile(indexPath).then(() => {
+      log('✅ loadFile promise resolved');
       if (presentationWindow && !presentationWindow.isDestroyed()) {
-        console.log('✅ File loaded, navigating to #/audience...');
-        // Wait a moment for React to initialize, then set hash
+        // Wait for React Router to initialize, then set hash
         setTimeout(() => {
           if (presentationWindow && !presentationWindow.isDestroyed()) {
             presentationWindow.webContents.executeJavaScript(`
-              console.log('🔧 AudienceView: Setting window.location.hash to "/audience"');
+              console.log('🔧 AudienceView: Setting hash to /audience');
               window.location.hash = '/audience';
-              console.log('✅ AudienceView: Hash set to:', window.location.hash);
-              console.log('✅ AudienceView: Full URL:', window.location.href);
-            `).catch(err => console.error('❌ Failed to set hash:', err));
+              console.log('✅ AudienceView: Hash =', window.location.hash);
+              console.log('✅ AudienceView: URL =', window.location.href);
+            `).catch(err => log('❌ executeJavaScript failed: ' + err.message));
           }
-        }, 500); // Wait 500ms for React Router to initialize
+        }, 1000); // Wait 1 second
       }
     }).catch((err) => {
-      console.error('❌ Failed to load index.html:', err);
+      log('❌ loadFile promise rejected: ' + err.message);
     });
   }
-
-  // Log any loading errors
-  presentationWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
-    console.error('❌ Audience window failed to load:', errorCode, errorDescription);
-  });
 
   // Show and fullscreen window once content is loaded
   presentationWindow.webContents.once('did-finish-load', () => {
     if (presentationWindow && !presentationWindow.isDestroyed()) {
-      // DEBUGGING: Open DevTools to see errors
-      console.log('🔧 Opening DevTools for audience window debugging');
-      presentationWindow.webContents.openDevTools({ mode: 'detach' });
-      
       // Set fullscreen mode for proper display filling
       presentationWindow.setFullScreen(true);
       presentationWindow.show();
@@ -297,12 +341,13 @@ function createPresenterWindow() {
     },
   });
 
-  const startURL = process.env.ELECTRON_START_URL || 'http://localhost:5173';
+  const startURL = process.env.ELECTRON_START_URL;
   
-  if (startURL.startsWith('http')) {
+  if (startURL && startURL.startsWith('http')) {
     presenterWindow.loadURL(`${startURL}/#/presenter`);
   } else {
-    presenterWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
+    const indexPath = resolveIndexHtml();
+    presenterWindow.loadFile(indexPath, {
       hash: 'presenter',
     });
   }

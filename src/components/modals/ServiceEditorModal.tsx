@@ -139,7 +139,6 @@ export function ServiceEditorModal({
   }, [isPresentationMode, presentationService, currentItemIndex]);
 
   // CRITICAL FIX: Send initial state when presentation FIRST starts
-  // This runs ONCE when isPresentationMode changes to true
   useEffect(() => {
     if (!isPresentationMode || !presentationService || !window.electron?.presentation?.syncState) {
       return;
@@ -147,31 +146,44 @@ export function ServiceEditorModal({
     
     console.log('🚀 INITIAL PRESENTATION SYNC - Sending first state to audience');
     
-    const initialState = {
-      service: presentationService,
-      currentItemIndex: currentItemIndex || 0,
-      currentSlideIndex: currentSlideIndex || 0,
-      currentSongData: currentSongData || null,
-      isPresenting: true,
-      isBlank: false
+    const sendInitialState = () => {
+      const initialState = {
+        service: presentationService,
+        currentItemIndex: currentItemIndex || 0,
+        currentSlideIndex: currentSlideIndex || 0,
+        currentSongData: currentSongData || null,
+        isPresenting: true,
+        isBlank: false
+      };
+      
+      console.log('📡 Initial state being sent:', {
+        serviceName: presentationService.name,
+        itemCount: presentationService.items.length,
+        currentItemIndex: initialState.currentItemIndex,
+        currentSlideIndex: initialState.currentSlideIndex,
+        hasSongData: !!currentSongData,
+        songTitle: currentSongData?.title || 'N/A'
+      });
+      
+      window.electron.presentation.syncState(initialState).then(() => {
+        console.log('✅ Initial state sent successfully to audience window');
+      }).catch((error) => {
+        console.error('❌ Failed to send initial state:', error);
+      });
     };
     
-    console.log('📡 Initial state being sent:', {
-      serviceName: presentationService.name,
-      itemCount: presentationService.items.length,
-      currentItemIndex: initialState.currentItemIndex,
-      currentSlideIndex: initialState.currentSlideIndex,
-      hasSongData: !!currentSongData,
-      songTitle: currentSongData?.title || 'N/A'
-    });
-    
     // Send immediately
-    window.electron.presentation.syncState(initialState).then(() => {
-      console.log('✅ Initial state sent successfully to audience window');
-    }).catch((error) => {
-      console.error('❌ Failed to send initial state:', error);
-    });
-  }, [isPresentationMode]); // ONLY depend on isPresentationMode to ensure it runs on start
+    sendInitialState();
+    
+    // Also send after delays to ensure window is fully loaded
+    const timeout1 = setTimeout(sendInitialState, 500);
+    const timeout2 = setTimeout(sendInitialState, 1500);
+    
+    return () => {
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
+    };
+  }, [isPresentationMode, presentationService?.id]); // Only when presentation starts AND service changes
   
   // Sync presentation state changes to audience window (subsequent updates)
   useEffect(() => {
@@ -198,27 +210,33 @@ export function ServiceEditorModal({
   
   // Load items ONLY when modal opens or service ID changes (not on every service update)
   const [loadedServiceId, setLoadedServiceId] = useState<string | null>(null);
+  const [loadedItemCount, setLoadedItemCount] = useState<number>(0);
   
   useEffect(() => {
-    // Only reload if:
+    // Reload if:
     // 1. Modal is opening (isOpen becomes true)
     // 2. OR we're switching to a different service (service.id changed)
+    // 3. OR items were added/removed externally (item count changed)
+    const currentItemCount = service?.items?.length || 0;
+    const itemCountChanged = currentItemCount !== loadedItemCount && loadedServiceId === service?.id;
+    
     const shouldReload = isOpen && service && (
-      loadedServiceId !== service.id
+      loadedServiceId !== service.id || itemCountChanged
     );
     
     if (shouldReload) {
       console.log('📖 Loading service into editor:', {
         name: service.name,
-        itemCount: service.items?.length || 0,
+        itemCount: currentItemCount,
         items: service.items?.map(i => ({ id: i.id, type: i.type, title: i.title })),
-        reason: loadedServiceId === null ? 'initial load' : 'service changed'
+        reason: loadedServiceId === null ? 'initial load' : itemCountChanged ? 'items changed externally' : 'service changed'
       });
       setItems(service.items || []);
       setInitialItems(service.items || []);
       setLoadedServiceId(service.id);
+      setLoadedItemCount(currentItemCount);
     }
-  }, [service?.id, isOpen]); // Only depend on service ID and isOpen, not full service object
+  }, [service?.id, service?.items?.length, isOpen]); // Depend on item count too
 
   // Detect changes by comparing current items with initial items
   const hasChanges = JSON.stringify(items) !== JSON.stringify(initialItems);
