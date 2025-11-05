@@ -138,7 +138,42 @@ export function ServiceEditorModal({
     }
   }, [isPresentationMode, presentationService, currentItemIndex]);
 
-  // Sync presentation state to audience window
+  // CRITICAL FIX: Send initial state when presentation FIRST starts
+  // This runs ONCE when isPresentationMode changes to true
+  useEffect(() => {
+    if (!isPresentationMode || !presentationService || !window.electron?.presentation?.syncState) {
+      return;
+    }
+    
+    console.log('🚀 INITIAL PRESENTATION SYNC - Sending first state to audience');
+    
+    const initialState = {
+      service: presentationService,
+      currentItemIndex: currentItemIndex || 0,
+      currentSlideIndex: currentSlideIndex || 0,
+      currentSongData: currentSongData || null,
+      isPresenting: true,
+      isBlank: false
+    };
+    
+    console.log('📡 Initial state being sent:', {
+      serviceName: presentationService.name,
+      itemCount: presentationService.items.length,
+      currentItemIndex: initialState.currentItemIndex,
+      currentSlideIndex: initialState.currentSlideIndex,
+      hasSongData: !!currentSongData,
+      songTitle: currentSongData?.title || 'N/A'
+    });
+    
+    // Send immediately
+    window.electron.presentation.syncState(initialState).then(() => {
+      console.log('✅ Initial state sent successfully to audience window');
+    }).catch((error) => {
+      console.error('❌ Failed to send initial state:', error);
+    });
+  }, [isPresentationMode]); // ONLY depend on isPresentationMode to ensure it runs on start
+  
+  // Sync presentation state changes to audience window (subsequent updates)
   useEffect(() => {
     if (isPresentationMode && window.electron?.presentation?.syncState) {
       const state = {
@@ -151,7 +186,7 @@ export function ServiceEditorModal({
       
       // Sync state to audience window
       window.electron.presentation.syncState(state).catch(console.error);
-      console.log('📡 Synced state to audience window:', {
+      console.log('📡 Synced state update to audience window:', {
         hasService: !!presentationService,
         currentItemIndex,
         currentSlideIndex,
