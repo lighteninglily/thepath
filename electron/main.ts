@@ -524,14 +524,14 @@ ipcMain.handle('display:getAudience', async () => {
 });
 
 // Listen for display changes
-screen.on('display-added', (event, newDisplay) => {
+screen.on('display-added', (_event, newDisplay) => {
   console.log('🖥️  Display added:', newDisplay.label);
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('display:changed', getAllDisplays());
   }
 });
 
-screen.on('display-removed', (event, oldDisplay) => {
+screen.on('display-removed', (_event, oldDisplay) => {
   console.log('🖥️  Display removed:', oldDisplay.label);
   
   // If the audience display was removed, warn user
