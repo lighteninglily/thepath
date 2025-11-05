@@ -201,13 +201,13 @@ function createPresentationWindow() {
     });
   }
 
-  // Show and maximize window once content is loaded
+  // Show and fullscreen window once content is loaded
   presentationWindow.webContents.once('did-finish-load', () => {
     if (presentationWindow && !presentationWindow.isDestroyed()) {
-      // Maximize to fill the screen (better than fullscreen on Windows)
-      presentationWindow.maximize();
+      // Set fullscreen mode for proper display filling
+      presentationWindow.setFullScreen(true);
       presentationWindow.show();
-      console.log('✅ Audience window shown and maximized');
+      console.log('✅ Audience window shown in fullscreen');
     }
   });
 
