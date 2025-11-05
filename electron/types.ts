@@ -94,6 +94,18 @@ export type UpdateAnnouncementInput = Partial<CreateAnnouncementInput>;
 export type CreateServiceInput = Omit<Service, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdateServiceInput = Partial<CreateServiceInput>;
 
+export interface Display {
+  id: number;
+  label: string;
+  bounds: { x: number; y: number; width: number; height: number };
+  workArea: { x: number; y: number; width: number; height: number };
+  size: { width: number; height: number };
+  scaleFactor: number;
+  rotation: number;
+  isPrimary: boolean;
+  isInternal: boolean;
+}
+
 export interface ElectronAPI {
   database: {
     getSongs: () => Promise<Song[]>;
@@ -116,13 +128,24 @@ export interface ElectronAPI {
     getSettings: () => Promise<AppSettings>;
     updateSettings: (settings: Partial<AppSettings>) => Promise<AppSettings>;
   };
+  display: {
+    getAll: () => Promise<Display[]>;
+    getAudience: () => Promise<any>;
+    onChanged: (callback: (displays: Display[]) => void) => () => void;
+    onDisconnected: (callback: () => void) => () => void;
+  };
   presentation: {
-    start: (serviceId?: string, songId?: string) => Promise<void>;
+    start: (serviceId?: string, songId?: string) => Promise<any>;
+    startWithPresenter: () => Promise<boolean>;
     close: () => Promise<void>;
     syncState: (state: any) => Promise<void>;
+    syncToPresenter: (state: any) => Promise<void>;
     onStateUpdate: (callback: (state: any) => void) => () => void;
+    onBlank: (callback: (type: string) => void) => () => void;
+    onUnblank: (callback: () => void) => () => void;
     navigate: (direction: 'next' | 'previous' | 'goto', slideIndex?: number) => Promise<void>;
-    blank: () => Promise<void>;
+    blank: (type?: 'black' | 'white' | 'logo') => Promise<void>;
+    unblank: () => Promise<void>;
     exit: () => Promise<void>;
   };
   lyrics: {

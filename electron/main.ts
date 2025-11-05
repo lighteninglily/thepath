@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import path from 'path';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { randomUUID } from 'crypto';
@@ -11,6 +11,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 let mainWindow: BrowserWindow | null = null;
 let presentationWindow: BrowserWindow | null = null;
+let presenterWindow: BrowserWindow | null = null;
 
 // ===== SERVICE STORAGE HELPERS =====
 // Simple JSON file storage for services (temporary until proper DB implementation)
@@ -107,18 +108,79 @@ async function createMainWindow() {
   });
 }
 
+// ===== DISPLAY MANAGEMENT =====
+function getAllDisplays() {
+  const displays = screen.getAllDisplays();
+  const primary = screen.getPrimaryDisplay();
+  
+  return displays.map(display => ({
+    id: display.id,
+    label: display.label || `Display ${display.id}`,
+    bounds: display.bounds,
+    workArea: display.workArea,
+    size: display.size,
+    scaleFactor: display.scaleFactor,
+    rotation: display.rotation,
+    isPrimary: display.id === primary.id,
+    isInternal: display.internal || false
+  }));
+}
+
+function getAudienceDisplay() {
+  const displays = screen.getAllDisplays();
+  const primary = screen.getPrimaryDisplay();
+  
+  // Prefer external display for audience view
+  const external = displays.find(d => d.id !== primary.id && !d.internal);
+  if (external) {
+    console.log('📺 Using external display for audience:', external.label);
+    return external;
+  }
+  
+  // If only one display, use it but log warning
+  if (displays.length === 1) {
+    console.log('⚠️  Only one display detected - audience will share with presenter');
+    return primary;
+  }
+  
+  // Fallback to any non-primary display
+  const secondary = displays.find(d => d.id !== primary.id);
+  if (secondary) {
+    console.log('📺 Using secondary display for audience:', secondary.label);
+    return secondary;
+  }
+  
+  console.log('📺 Using primary display for audience');
+  return primary;
+}
+
 function createPresentationWindow() {
   if (presentationWindow) {
     presentationWindow.focus();
     return;
   }
 
+  // AUTO-DETECT: Get the best display for audience view
+  const audienceDisplay = getAudienceDisplay();
+  const { x, y, width, height } = audienceDisplay.bounds;
+  
+  console.log('🎭 Creating audience window on display:', {
+    label: audienceDisplay.label,
+    position: { x, y },
+    size: { width, height }
+  });
+
   presentationWindow = new BrowserWindow({
-    width: 1920,
-    height: 1080,
-    frame: true,  // Show frame so user can drag it
-    fullscreen: false,  // Not full-screen initially, user can press F11
-    title: 'Audience View - Drag to Projector',
+    x,
+    y,
+    width,
+    height,
+    frame: false,  // Borderless for clean presentation
+    fullscreen: true,  // Auto-fullscreen on target display
+    alwaysOnTop: true,  // Stay above other windows
+    backgroundColor: '#000000',
+    title: 'Audience View',
+    skipTaskbar: true,  // Don't show in taskbar
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -126,15 +188,13 @@ function createPresentationWindow() {
     },
   });
 
-  // Load Audience View (full screen projection)
+  // Load Audience View
   const startURL = process.env.ELECTRON_START_URL || 'http://localhost:5173';
   
   if (startURL.startsWith('http')) {
-    // Development mode
     presentationWindow.loadURL(`${startURL}/#/audience`);
     console.log('📺 Loading audience view from:', `${startURL}/#/audience`);
   } else {
-    // Production mode
     presentationWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
       hash: 'audience',
     });
@@ -142,9 +202,13 @@ function createPresentationWindow() {
 
   presentationWindow.on('closed', () => {
     presentationWindow = null;
+    // Also close presenter window if it exists
+    if (presenterWindow && !presenterWindow.isDestroyed()) {
+      presenterWindow.close();
+    }
   });
 
-  // Log any errors from the audience window
+  // Error handling
   presentationWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
     console.error('❌ Audience window failed to load:', errorCode, errorDescription);
   });
@@ -153,12 +217,44 @@ function createPresentationWindow() {
     console.error('❌ Audience window crashed');
   });
 
-  // Open DevTools in development to see errors
-  if (process.env.ELECTRON_START_URL) {
-    presentationWindow.webContents.openDevTools();
+  console.log('✅ Audience window created and positioned automatically');
+}
+
+function createPresenterWindow() {
+  if (presenterWindow) {
+    presenterWindow.focus();
+    return;
   }
 
-  console.log('🎭 Presentation window (Audience View) created');
+  const primary = screen.getPrimaryDisplay();
+  const { width, height } = primary.workArea;
+  
+  presenterWindow = new BrowserWindow({
+    width: Math.min(1400, width - 100),
+    height: Math.min(900, height - 100),
+    title: 'Presenter View',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  const startURL = process.env.ELECTRON_START_URL || 'http://localhost:5173';
+  
+  if (startURL.startsWith('http')) {
+    presenterWindow.loadURL(`${startURL}/#/presenter`);
+  } else {
+    presenterWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
+      hash: 'presenter',
+    });
+  }
+
+  presenterWindow.on('closed', () => {
+    presenterWindow = null;
+  });
+
+  console.log('✅ Presenter window created');
 }
 
 function closePresentationWindow() {
@@ -408,22 +504,91 @@ ipcMain.handle('lyrics:search', async (_event, trackName: string, artistName?: s
   }
 });
 
+// ===== DISPLAY & PRESENTATION IPC HANDLERS =====
+
+// Get all connected displays
+ipcMain.handle('display:getAll', async () => {
+  console.log('🖥️  Getting all displays');
+  return getAllDisplays();
+});
+
+// Get recommended audience display
+ipcMain.handle('display:getAudience', async () => {
+  const audienceDisplay = getAudienceDisplay();
+  return {
+    id: audienceDisplay.id,
+    label: audienceDisplay.label || `Display ${audienceDisplay.id}`,
+    bounds: audienceDisplay.bounds,
+    size: audienceDisplay.size
+  };
+});
+
+// Listen for display changes
+screen.on('display-added', (event, newDisplay) => {
+  console.log('🖥️  Display added:', newDisplay.label);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('display:changed', getAllDisplays());
+  }
+});
+
+screen.on('display-removed', (event, oldDisplay) => {
+  console.log('🖥️  Display removed:', oldDisplay.label);
+  
+  // If the audience display was removed, warn user
+  if (presentationWindow && !presentationWindow.isDestroyed()) {
+    const currentDisplays = screen.getAllDisplays();
+    const audienceDisplayExists = currentDisplays.some(d => d.id === oldDisplay.id);
+    
+    if (!audienceDisplayExists) {
+      console.log('⚠️  Audience display disconnected!');
+      presentationWindow.webContents.send('display:disconnected');
+    }
+  }
+  
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('display:changed', getAllDisplays());
+  }
+});
+
 // Presentation control handlers
 ipcMain.handle('presentation:start', async () => {
   console.log('🎭 presentation:start called');
+  
+  // Check if we have displays
+  const displays = getAllDisplays();
+  console.log(`📊 ${displays.length} display(s) detected`);
+  
+  displays.forEach(d => {
+    console.log(`  - ${d.label}: ${d.size.width}x${d.size.height} ${d.isPrimary ? '(Primary)' : ''}`);
+  });
+  
   createPresentationWindow();
+  return {
+    success: true,
+    displays: displays.length,
+    audienceDisplay: getAudienceDisplay().label
+  };
+});
+
+ipcMain.handle('presentation:startWithPresenter', async () => {
+  console.log('🎭 presentation:startWithPresenter called');
+  createPresentationWindow();
+  createPresenterWindow();
   return true;
 });
 
 ipcMain.handle('presentation:close', async () => {
   console.log('🛑 presentation:close called');
   closePresentationWindow();
+  if (presenterWindow && !presenterWindow.isDestroyed()) {
+    presenterWindow.close();
+    presenterWindow = null;
+  }
   return true;
 });
 
 // Sync presentation state to audience window
 ipcMain.handle('presentation:syncState', async (_event, state: any) => {
-  console.log('🔄 Syncing presentation state to audience window');
   if (presentationWindow && !presentationWindow.isDestroyed()) {
     presentationWindow.webContents.send('presentation:stateUpdate', state);
     return true;
@@ -431,21 +596,40 @@ ipcMain.handle('presentation:syncState', async (_event, state: any) => {
   return false;
 });
 
+// Sync to presenter window too
+ipcMain.handle('presentation:syncToPresenter', async (_event, state: any) => {
+  if (presenterWindow && !presenterWindow.isDestroyed()) {
+    presenterWindow.webContents.send('presentation:stateUpdate', state);
+    return true;
+  }
+  return false;
+});
+
 ipcMain.handle('presentation:navigate', async (_event, direction: string, slideIndex?: number) => {
-  // Navigation is handled by the presenter view, not here
   console.log('Navigate:', direction, slideIndex);
   return true;
 });
 
-ipcMain.handle('presentation:blank', async () => {
+ipcMain.handle('presentation:blank', async (_event, type: 'black' | 'white' | 'logo' = 'black') => {
   if (presentationWindow && !presentationWindow.isDestroyed()) {
-    presentationWindow.webContents.send('blank-screen');
+    presentationWindow.webContents.send('presentation:blank', type);
+  }
+  return true;
+});
+
+ipcMain.handle('presentation:unblank', async () => {
+  if (presentationWindow && !presentationWindow.isDestroyed()) {
+    presentationWindow.webContents.send('presentation:unblank');
   }
   return true;
 });
 
 ipcMain.handle('presentation:exit', async () => {
   closePresentationWindow();
+  if (presenterWindow && !presenterWindow.isDestroyed()) {
+    presenterWindow.close();
+    presenterWindow = null;
+  }
   return true;
 });
 

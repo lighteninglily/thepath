@@ -10,9 +10,30 @@ import { WORSHIP_BACKGROUNDS } from '../assets/backgrounds';
  */
 export function AudienceViewPage() {
   const [presentationState, setPresentationState] = useState<any>(null);
+  const [blankScreen, setBlankScreen] = useState<{ active: boolean; type: 'black' | 'white' | 'logo' | null }>({ active: false, type: null });
 
   console.log('🎭 AudienceViewPage MOUNTED');
   console.log('📍 Current state:', presentationState);
+
+  // Listen for blank screen commands
+  useEffect(() => {
+    if (!window.electron?.presentation) return;
+
+    const unsubscribeBlank = window.electron.presentation.onBlank?.((type: string) => {
+      console.log('⬛ Blank screen requested:', type);
+      setBlankScreen({ active: true, type: type as any });
+    });
+
+    const unsubscribeUnblank = window.electron.presentation.onUnblank?.(() => {
+      console.log('⬜ Unblank screen requested');
+      setBlankScreen({ active: false, type: null });
+    });
+
+    return () => {
+      unsubscribeBlank?.();
+      unsubscribeUnblank?.();
+    };
+  }, []);
 
   // Listen for state updates from presenter window via IPC
   useEffect(() => {
@@ -83,13 +104,41 @@ export function AudienceViewPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Blank Screen Override (B/W/L keys from presenter)
+  if (blankScreen.active) {
+    let bgColor = '#000000';
+    let content = null;
+
+    if (blankScreen.type === 'white') {
+      bgColor = '#FFFFFF';
+    } else if (blankScreen.type === 'logo') {
+      // Show church logo on black background
+      bgColor = '#000000';
+      content = (
+        <div className="text-white text-6xl font-bold">
+          {/* Add your church logo here */}
+          ✝
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        className="w-screen h-screen flex items-center justify-center"
+        style={{ backgroundColor: bgColor }}
+      >
+        {content}
+      </div>
+    );
+  }
+
   if (!service || !currentItem) {
     console.log('⏳ Showing waiting screen - no service/item yet');
     return (
-      <div className="w-screen h-screen bg-red-600 flex items-center justify-center">
-        <div className="text-white text-4xl font-bold p-8 bg-black rounded-lg">
+      <div className="w-screen h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-4xl font-bold p-8 rounded-lg">
           Waiting for presentation...
-          <div className="text-sm mt-4">State: {presentationState ? 'Received' : 'Null'}</div>
+          <div className="text-sm mt-4 opacity-50">State: {presentationState ? 'Received' : 'Null'}</div>
         </div>
       </div>
     );
