@@ -199,6 +199,7 @@ function createPresentationWindow() {
     presentationWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
       hash: 'audience',
     });
+    console.log('📺 Loading audience view from built files');
   }
 
   // Show and fullscreen window once content is loaded

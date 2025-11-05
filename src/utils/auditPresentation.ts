@@ -1,4 +1,4 @@
-import { validateServiceItems, getValidationReport, needsMigration, type ValidationResult } from './visualDataValidator';
+import { validateServiceItems, needsMigration, type ValidationResult } from './visualDataValidator';
 import { resolveBackgroundImageUrl } from './backgroundResolver';
 import { WORSHIP_BACKGROUNDS } from '../assets/backgrounds';
 import type { Service, ServiceItem } from '../types/service';
