@@ -197,11 +197,32 @@ function createPresentationWindow() {
     presentationWindow.loadURL(`${startURL}/#/audience`);
     console.log('📺 Loading audience view from:', `${startURL}/#/audience`);
   } else {
-    // Production mode - use file:// protocol with hash
+    // Production mode - Electron automatically resolves paths inside app.asar
+    // __dirname in production points to: app.asar/dist-electron
+    // So ../dist/index.html resolves to: app.asar/dist/index.html
     const indexPath = path.join(__dirname, '../dist/index.html');
-    const fileUrl = `file://${indexPath.replace(/\\/g, '/')}#/audience`;
-    presentationWindow.loadURL(fileUrl);
-    console.log('📺 Loading audience view from:', fileUrl);
+    
+    console.log('📺 Loading audience window from:', indexPath);
+    
+    // Load file first, then navigate to hash route
+    presentationWindow.loadFile(indexPath).then(() => {
+      if (presentationWindow && !presentationWindow.isDestroyed()) {
+        console.log('✅ File loaded, navigating to #/audience...');
+        // Wait a moment for React to initialize, then set hash
+        setTimeout(() => {
+          if (presentationWindow && !presentationWindow.isDestroyed()) {
+            presentationWindow.webContents.executeJavaScript(`
+              console.log('🔧 AudienceView: Setting window.location.hash to "/audience"');
+              window.location.hash = '/audience';
+              console.log('✅ AudienceView: Hash set to:', window.location.hash);
+              console.log('✅ AudienceView: Full URL:', window.location.href);
+            `).catch(err => console.error('❌ Failed to set hash:', err));
+          }
+        }, 500); // Wait 500ms for React Router to initialize
+      }
+    }).catch((err) => {
+      console.error('❌ Failed to load index.html:', err);
+    });
   }
 
   // Log any loading errors
