@@ -3,6 +3,7 @@ import { openaiService, SongAnalysis } from './openaiService';
 import { selectTemplate } from '../config/templateMappings';
 import { getEnabledBackgrounds } from '../config/backgroundConfig';
 import { calculateSongLyricsFontSize } from '../utils/fontSizeCalculator';
+import { getRandomTitleSlideDesign, applyTitleSlideDesign } from '../config/titleSlideDesigns';
 
 export interface GeneratedSlide {
   id: string;
@@ -285,6 +286,10 @@ export class SlideGeneratorService {
       });
 
       // ⭐ CREATE BEAUTIFUL TITLE SLIDE as first slide
+      // Randomly select a title slide design
+      const titleDesign = getRandomTitleSlideDesign();
+      console.log(`🎨 Selected title design: ${titleDesign.name}`);
+      
       const titleSlide: GeneratedSlide = {
         id: `slide_title_${Date.now()}`,
         content: `${lyricsResult.title}\n${lyricsResult.artist}`,
@@ -292,63 +297,12 @@ export class SlideGeneratorService {
         order: 0,
         backgroundId: pack.backgrounds[0].id,
         layout: 'center',
-        visualData: {
-          background: {
-            type: 'image',
-            imageId: pack.backgrounds[0].id,
-            imageUrl: pack.backgrounds[0].url,  // Use actual URL not ID
-            overlay: {
-              enabled: true,
-              color: '#000000',
-              opacity: 50,  // 50% overlay for readability
-              blendMode: 'normal' as const
-            }
-          },
-          elements: [
-            // Song Title - Beautiful script font (Allura)
-            {
-              id: `text_song_title_${Date.now()}`,
-              type: 'text',
-              content: lyricsResult.title,
-              visible: true,
-              opacity: 1,
-              zIndex: 10,
-              rotation: 0,
-              position: { x: 160, y: 350 },  // Upper position
-              size: { width: 1600, height: 200 },
-              style: {
-                fontSize: 120,  // Large, elegant
-                fontFamily: 'Allura',  // Beautiful script font
-                fontWeight: 400,  // Regular for script fonts
-                color: '#ffffff',
-                textAlign: 'center',
-                lineHeight: 1.2,
-                textShadow: '4px 4px 20px rgba(0, 0, 0, 0.9)'  // Strong shadow for contrast
-              }
-            },
-            // Artist Name - Clean modern font (Outfit)
-            {
-              id: `text_artist_name_${Date.now()}`,
-              type: 'text',
-              content: lyricsResult.artist,
-              visible: true,
-              opacity: 1,
-              zIndex: 10,
-              rotation: 0,
-              position: { x: 160, y: 580 },  // Below title
-              size: { width: 1600, height: 100 },
-              style: {
-                fontSize: 48,  // Smaller, subtle
-                fontFamily: 'Outfit',  // Clean sans-serif
-                fontWeight: 400,  // Regular weight
-                color: '#ffffff',
-                textAlign: 'center',
-                lineHeight: 1.2,
-                textShadow: '3px 3px 12px rgba(0, 0, 0, 0.9)'  // Shadow for readability
-              }
-            }
-          ]
-        }
+        visualData: applyTitleSlideDesign(
+          titleDesign,
+          lyricsResult.title,
+          lyricsResult.artist,
+          pack.backgrounds[0].url
+        )
       };
 
       // Update order for all lyric slides to start from 1

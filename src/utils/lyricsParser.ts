@@ -20,7 +20,7 @@ export function parseLyricsIntoSlides(lyrics: string, title?: string, artist?: s
   console.log('📝 Initial sections from blank lines:', sections.length);
 
   // Smart processing: enforce max lines per slide and handle overflow
-  const MAX_LINES_PER_SLIDE = 6;
+  const MAX_LINES_PER_SLIDE = 4;  // Reduced from 6 to 4 for better readability
   const processedSections: string[] = [];
 
   sections.forEach(section => {
@@ -109,7 +109,7 @@ export function parseLyricsIntoSlides(lyrics: string, title?: string, artist?: s
 /**
  * Format slide content for display (limit lines if needed)
  */
-export function formatSlideContent(content: string, maxLines = 8): string {
+export function formatSlideContent(content: string, maxLines = 4): string {
   const lines = content.split('\n');
   if (lines.length <= maxLines) {
     return content;

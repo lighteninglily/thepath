@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Image as ImageIcon, Scissors, Merge } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Scissors, Merge, Sparkles } from 'lucide-react';
 import { AdvancedSlidePreview } from './AdvancedSlidePreview';
 import { BackgroundPicker } from '../backgrounds/BackgroundPicker';
+import { TITLE_SLIDE_DESIGNS, getTitleSlideDesign, applyTitleSlideDesign } from '../../config/titleSlideDesigns';
 import type { Slide } from '../../types';
 import type { BackgroundImage } from '../../assets/backgrounds';
 import type { LayoutType } from '../../utils/layouts';
@@ -86,6 +87,29 @@ export function SlideEditorPanel({
   const lineCount = slide.content.split('\n').length;
   const isLongSlide = lineCount > 6;
   const canMerge = slideIndex < totalSlides - 1;
+  const isTitleSlide = slide.type === 'title';
+  
+  // Handle title design change
+  const handleTitleDesignChange = (designId: string) => {
+    const design = getTitleSlideDesign(designId);
+    if (!design || !background) return;
+    
+    // Extract title and artist from content
+    const lines = slide.content.split('\n');
+    const title = lines[0] || '';
+    const artist = lines.slice(1).join('\n') || '';
+    
+    // Apply the new design
+    const newVisualData = applyTitleSlideDesign(
+      design,
+      title,
+      artist,
+      background.url
+    );
+    
+    console.log(`🔄 Switching title design to: ${design.name}`);
+    onUpdate({ visualData: newVisualData });
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-white">
@@ -124,6 +148,37 @@ export function SlideEditorPanel({
             </button>
           </div>
         </div>
+        
+        {/* Title Design Switcher - Only shown for title slides */}
+        {isTitleSlide && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles size={16} className="text-purple-600" />
+              <label className="text-sm font-semibold text-gray-900">
+                Title Design Style
+              </label>
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {TITLE_SLIDE_DESIGNS.map((design) => (
+                <button
+                  key={design.id}
+                  onClick={() => handleTitleDesignChange(design.id)}
+                  className="flex flex-col items-center gap-1 p-3 rounded-lg border-2 
+                    hover:border-purple-400 hover:bg-purple-50 transition-all
+                    text-center group"
+                  title={design.description}
+                >
+                  <span className="text-xs font-semibold text-gray-700 group-hover:text-purple-700">
+                    {design.name}
+                  </span>
+                  <span className="text-xs text-gray-500 group-hover:text-purple-600 line-clamp-2">
+                    {design.description}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content - Live Preview Layout */}
