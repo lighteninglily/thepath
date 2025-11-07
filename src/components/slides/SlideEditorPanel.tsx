@@ -3,8 +3,6 @@ import { ChevronLeft, ChevronRight, Image as ImageIcon, Scissors, Merge, Sparkle
 import { AdvancedSlidePreview } from './AdvancedSlidePreview';
 import { BackgroundPicker } from '../backgrounds/BackgroundPicker';
 import { TITLE_SLIDE_DESIGNS, getTitleSlideDesign, applyTitleSlideDesign } from '../../config/titleSlideDesigns';
-import { SubPointEditor, type SubPoint } from '../sermons/SubPointEditor';
-import { parseSermonSlideContent } from '../../utils/sermonDesignApplier';
 import type { Slide } from '../../types';
 import type { BackgroundImage } from '../../assets/backgrounds';
 import type { LayoutType } from '../../utils/layouts';
@@ -39,70 +37,57 @@ export function SlideEditorPanel({
 }: SlideEditorPanelProps) {
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
 
-  // Calculate slide properties FIRST
-  const lineCount = slide.content?.split('\n').length || 0;
+  const handleTextChange = (newContent: string) => {
+    // For live preview: update visualData elements to show changes immediately
+    if (slide.visualData?.elements) {
+      // Find the element that contains the actual lyrics content (not decorative title/artist)
+      let lyricsElementIndex = -1;
+      slide.visualData.elements.forEach((element: any, index: number) => {
+        if (element.type === 'text' && element.content === slide.content) {
+          lyricsElementIndex = index;
+        }
+      });
+      
+      // If we found the lyrics element, update it
+      if (lyricsElementIndex >= 0) {
+        const updatedElements = slide.visualData.elements.map((element: any, index: number) => {
+          if (index === lyricsElementIndex) {
+            // For title slides, use normal font for user-editable content
+            if (slide.type === 'title') {
+              return { 
+                ...element, 
+                content: newContent,
+                // Override fancy fonts with normal readable font
+                fontFamily: 'Inter, system-ui, sans-serif',
+                fontSize: 32,
+                fontWeight: 400
+              };
+            }
+            return { ...element, content: newContent };
+          }
+          return element;
+        });
+        
+        onUpdate({ 
+          content: newContent,
+          visualData: {
+            ...slide.visualData,
+            elements: updatedElements
+          }
+        });
+      } else {
+        // No matching element found, just update content
+        onUpdate({ content: newContent });
+      }
+    } else {
+      onUpdate({ content: newContent });
+    }
+  };
+
+  const lineCount = slide.content.split('\n').length;
   const isLongSlide = lineCount > 6;
   const canMerge = slideIndex < totalSlides - 1;
   const isTitleSlide = slide.type === 'title';
-  
-  // Detect sermon point slides - check for POINT keyword OR if slide type is 'custom' (sermon slides)
-  // Also check if content has bullet points already
-  const hasPointKeyword = slide.content?.toUpperCase().includes('POINT');
-  const hasBullets = slide.content?.match(/^[•\-\*]\s/m);
-  const isCustomSlide = slide.type === 'custom';
-  // For sermon slides, always show sub-point editor for custom slides
-  const isSermonPointSlide = hasPointKeyword || hasBullets || isCustomSlide;
-  
-  // Parse sermon content if it's a sermon slide
-  const sermonContent = isSermonPointSlide ? parseSermonSlideContent(slide) : null;
-
-  // NOW define handlers AFTER variables they depend on
-  const handleTextChange = (newContent: string) => {
-    // Always update content first for textarea to work
-    onUpdate({ content: newContent });
-  };
-  
-  // Sermon sub-point handlers
-  const handleAddSubPoint = () => {
-    const newSubPoint = `\n• New sub-point`;
-    const updatedContent = slide.content + newSubPoint;
-    onUpdate({ content: updatedContent });
-  };
-  
-  const handleUpdateSubPoint = (id: string, content: string) => {
-    // Reconstruct content with updated sub-point
-    const lines = slide.content.split('\n');
-    const subPointIndex = parseInt(id.replace('subpoint-', ''));
-    
-    let currentSubPointIndex = -1;
-    const updatedLines = lines.map(line => {
-      if (line.match(/^[•\-\*]\s/)) {
-        currentSubPointIndex++;
-        if (currentSubPointIndex === subPointIndex) {
-          return `• ${content}`;
-        }
-      }
-      return line;
-    });
-    
-    onUpdate({ content: updatedLines.join('\n') });
-  };
-  
-  const handleDeleteSubPoint = (id: string) => {
-    const subPointIndex = parseInt(id.replace('subpoint-', ''));
-    const lines = slide.content.split('\n');
-    
-    let currentSubPointIndex = -1;
-    const filteredLines = lines.filter(line => {
-      if (line.match(/^[•\-\*]\s/)) {
-        currentSubPointIndex++;
-        return currentSubPointIndex !== subPointIndex;
-      }
-      return true;
-    });
-    
-    onUpdate({ content: filteredLines.join('\n') });
-  };
   
   // Handle title design change
   const handleTitleDesignChange = (designId: string) => {
@@ -229,36 +214,15 @@ export function SlideEditorPanel({
             </span>
           </div>
           <textarea
-            value={slide.content || ''}
+            value={slide.content}
             onChange={(e) => handleTextChange(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
               text-base font-mono leading-relaxed resize-none"
             rows={6}
             placeholder="Type text here - preview updates live..."
-            spellCheck={false}
           />
         </div>
-
-        {/* Sermon Sub-Points Editor (only for sermon point slides) */}
-        {isSermonPointSlide && sermonContent && (
-          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-            <SubPointEditor
-              subPoints={sermonContent.subPoints.map((sp, i) => ({
-                id: `subpoint-${i}`,
-                content: sp,
-                order: i + 1
-              }))}
-              onAdd={handleAddSubPoint}
-              onUpdate={handleUpdateSubPoint}
-              onDelete={handleDeleteSubPoint}
-              onReorder={(from, to) => {
-                // TODO: Implement reordering if needed
-                console.log('Reorder from', from, 'to', to);
-              }}
-            />
-          </div>
-        )}
 
         {/* Layout Selector */}
         <div>
