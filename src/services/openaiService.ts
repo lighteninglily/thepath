@@ -511,6 +511,128 @@ Keep it warm, grateful, and forward-looking.`
   }
 
   /**
+   * Analyze sermon notes to extract scriptures and main points (using GPT-5)
+   */
+  async analyzeSermonNotes(sermonText: string, includeAllScriptures: boolean = false): Promise<{
+    title?: string;
+    mainScripture?: string;
+    theme?: string;
+    scriptures: Array<{
+      reference: string;
+      book: string;
+      chapter: number;
+      startVerse: number;
+      endVerse?: number;
+      context?: string;
+    }>;
+    mainPoints: Array<{
+      number: number;
+      title: string;
+      description?: string;
+      scripture?: string;
+    }>;
+  }> {
+    if (!this.client) {
+      throw new Error('OpenAI not configured');
+    }
+
+    console.log(`🤖 Analyzing sermon notes with GPT-5 (${sermonText.length} characters)...`);
+    console.log(`📖 Mode: ${includeAllScriptures ? 'ALL scriptures' : 'MAIN scriptures only'}`);
+
+    const response = await this.client.chat.completions.create({
+      model: 'gpt-5', // GPT-5 full version
+      messages: [{
+        role: 'user',
+        content: `You are a senior pastor reviewing sermon notes to create presentation slides.
+
+TASK: Analyze the sermon structure and extract content for slides.
+
+STEP 1: UNDERSTAND THE SERMON STRUCTURE
+- Read through and identify the organizational pattern
+- Look for the main outline/skeleton (Roman numerals, numbers, headers, bold text)
+- Distinguish between HIGH-LEVEL POINTS (main headings) vs SUB-POINTS (details under each heading)
+- Recognize the sermon's flow: Introduction → Main Points → Conclusion
+
+STEP 2: EXTRACT HIGH-LEVEL POINTS ONLY
+- Only extract PARENT/TOP-LEVEL points that form the main sermon structure
+- Examples of what TO extract:
+  * "1. God's Love is Unconditional"
+  * "I. The Problem of Sin" 
+  * "First: We Must Believe"
+- Examples of what NOT to extract (sub-points/details):
+  * "a. Love doesn't keep score"
+  * "- This means trusting fully"
+  * "For example, consider Abraham..."
+
+STEP 3: IDENTIFY SCRIPTURES INTELLIGENTLY
+${includeAllScriptures 
+  ? `MODE: COMPREHENSIVE - Extract ALL scripture references
+- Include: Main text, supporting verses, cross-references, illustrations, examples
+- If a verse is mentioned anywhere, include it
+- Better to include too many than miss any`
+  : `MODE: FOUNDATIONAL ONLY - Extract scriptures that CARRY the sermon
+- Main scripture text (the anchor/foundation of the message)
+- Key supporting texts that are ESSENTIAL to the main points
+- IGNORE: passing references, brief mentions, story illustrations, rabbit trails
+- Ask yourself: "If I removed this verse, would the sermon still make sense?" If YES, don't include it.`}
+
+STEP 4: SERMON METADATA
+- Extract title if clearly stated
+- Identify the main/primary scripture (usually mentioned early or repeated)
+- Determine the overarching theme
+
+Return JSON format:
+{
+  "title": "sermon title or null",
+  "mainScripture": "primary foundational text or null",
+  "theme": "one sentence theme or null",
+  "scriptures": [
+    {
+      "reference": "John 3:16-17",
+      "book": "John",
+      "chapter": 3,
+      "startVerse": 16,
+      "endVerse": 17,
+      "context": "brief note about how it's used"
+    }
+  ],
+  "mainPoints": [
+    {
+      "number": 1,
+      "title": "High-Level Point Title",
+      "description": "One sentence summary",
+      "scripture": "Related key verse if any"
+    }
+  ]
+}
+
+CRITICAL: Think like a pastor creating a slide deck. Focus on CLARITY and STRUCTURE, not exhaustive detail.
+
+Sermon notes to analyze:
+${sermonText}`
+      }],
+      response_format: { type: 'json_object' }
+    });
+
+    const content = response.choices[0]?.message?.content?.trim() || '{}';
+    const result = JSON.parse(content);
+
+    console.log(`✅ GPT-5 analysis complete:`, {
+      title: result.title,
+      scripturesFound: result.scriptures?.length || 0,
+      pointsFound: result.mainPoints?.length || 0
+    });
+
+    return {
+      title: result.title || undefined,
+      mainScripture: result.mainScripture || undefined,
+      theme: result.theme || undefined,
+      scriptures: result.scriptures || [],
+      mainPoints: result.mainPoints || []
+    };
+  }
+
+  /**
    * Check if OpenAI is configured
    */
   isConfigured(): boolean {

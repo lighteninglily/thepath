@@ -1,4 +1,4 @@
-import { X, Save } from 'lucide-react';
+import { X, Save, Edit } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { ServiceItem } from '../../types/service';
 
@@ -7,9 +7,10 @@ interface EditItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (item: ServiceItem) => void;
+  onEditVisuals?: (item: ServiceItem) => void;
 }
 
-export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalProps) {
+export function EditItemModal({ item, isOpen, onClose, onSave, onEditVisuals }: EditItemModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [duration, setDuration] = useState(2);
@@ -39,6 +40,7 @@ export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalPr
     switch (item.type) {
       case 'announcement': return '📢';
       case 'sermon': return '💬';
+      case 'sermon-slides': return '✨';
       case 'offering': return '💰';
       case 'welcome': return '👋';
       case 'closing': return '✅';
@@ -50,6 +52,7 @@ export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalPr
     switch (item.type) {
       case 'announcement': return 'yellow';
       case 'sermon': return 'orange';
+      case 'sermon-slides': return 'purple';
       case 'offering': return 'emerald';
       case 'welcome': return 'green';
       case 'closing': return 'gray';
@@ -58,6 +61,17 @@ export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalPr
   };
 
   const color = getColor();
+  const isSermonSlides = item.type === 'sermon-slides';
+  
+  // Parse slidesData from content field (it's stored as JSON string)
+  let slidesData = null;
+  if (isSermonSlides && item.content) {
+    try {
+      slidesData = JSON.parse(item.content);
+    } catch (e) {
+      console.error('Failed to parse sermon slides data:', e);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -100,19 +114,70 @@ export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalPr
             />
           </div>
 
-          {/* Content */}
-          <div>
-            <label className="block text-sm font-medium text-brand-charcoal mb-2">
-              Content
-            </label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Enter additional details (optional)"
-              rows={4}
-              className="w-full px-4 py-2 border border-brand-warmGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-skyBlue resize-none"
-            />
-          </div>
+          {/* Content - Show formatted preview for sermon slides */}
+          {isSermonSlides && slidesData ? (
+            <div>
+              <label className="block text-sm font-medium text-brand-charcoal mb-2">
+                Slides Preview
+              </label>
+              <div className="border border-purple-200 rounded-lg bg-purple-50 max-h-64 overflow-y-auto">
+                <div className="divide-y divide-purple-200">
+                  {slidesData.map((slide: any, index: number) => (
+                    <div key={slide.id || index} className="p-3 hover:bg-purple-100 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
+                          {index + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                              index === 0 ? 'bg-green-100 text-green-700' :
+                              slide.content?.includes('Point') || slide.content?.includes('1.') 
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {index === 0 ? '📖 Title' :
+                               slide.content?.includes('Point') ? '🎯 Point' : '📜 Scripture'}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-900 line-clamp-2">
+                            {slide.content}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3 flex justify-center">
+                {onEditVisuals && (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onEditVisuals(item);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-sm"
+                  >
+                    <Edit size={16} />
+                    Edit Slides Visually
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-brand-charcoal mb-2">
+                Content
+              </label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Enter additional details (optional)"
+                rows={4}
+                className="w-full px-4 py-2 border border-brand-warmGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-skyBlue resize-none"
+              />
+            </div>
+          )}
 
           {/* Duration */}
           <div>
@@ -130,22 +195,52 @@ export function EditItemModal({ item, isOpen, onClose, onSave }: EditItemModalPr
           </div>
 
           {/* Preview */}
-          <div className={`p-4 bg-${color}-50 border border-${color}-200 rounded-lg`}>
-            <h3 className="font-semibold text-brand-charcoal mb-2">Preview</h3>
-            <div className="space-y-1">
-              <p className="text-lg font-bold text-brand-charcoal">
-                {title || '(No title)'}
-              </p>
-              {content && (
-                <p className="text-sm text-brand-umber whitespace-pre-wrap">
-                  {content}
+          {!isSermonSlides && (
+            <div className={`p-4 bg-${color}-50 border border-${color}-200 rounded-lg`}>
+              <h3 className="font-semibold text-brand-charcoal mb-2">Preview</h3>
+              <div className="space-y-1">
+                <p className="text-lg font-bold text-brand-charcoal">
+                  {title || '(No title)'}
                 </p>
-              )}
-              <p className="text-xs text-brand-umber">
+                {content && (
+                  <p className="text-sm text-brand-umber whitespace-pre-wrap">
+                    {content}
+                  </p>
+                )}
+                <p className="text-xs text-brand-umber">
+                  {duration} minute{duration !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Sermon Slides Summary */}
+          {isSermonSlides && slidesData && (
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <h3 className="font-semibold text-brand-charcoal mb-2">Summary</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white rounded-lg p-3 text-center border border-purple-100">
+                  <p className="text-2xl font-bold text-purple-600">{slidesData.length}</p>
+                  <p className="text-xs text-gray-600 mt-1">Total Slides</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 text-center border border-purple-100">
+                  <p className="text-2xl font-bold text-blue-600">
+                    {slidesData.filter((s: any) => !s.content?.includes('Point')).length - 1}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">Scripture Slides</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 text-center border border-purple-100">
+                  <p className="text-2xl font-bold text-purple-600">
+                    {slidesData.filter((s: any) => s.content?.includes('Point')).length}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">Point Slides</p>
+                </div>
+              </div>
+              <p className="text-xs text-brand-umber mt-3">
                 {duration} minute{duration !== 1 ? 's' : ''}
               </p>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Footer */}

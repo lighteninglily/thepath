@@ -8,6 +8,7 @@ export type ServiceItemType =
   | 'welcome'        // Welcome/logo slide
   | 'announcement'   // Announcement slide
   | 'sermon'         // Sermon title slide
+  | 'sermon-slides'  // AI-generated sermon slides from notes
   | 'offering'       // Offering slide
   | 'closing'        // Closing slide
   | 'blank'          // Blank/transition slide

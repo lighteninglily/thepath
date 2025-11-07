@@ -5,6 +5,7 @@ import { ServiceEditorModal } from '../components/modals/ServiceEditorModal';
 import { AddSongToServiceModal } from '../components/modals/AddSongToServiceModal';
 import { AddScriptureModal } from '../components/modals/AddScriptureModal';
 import { AddSermonModal } from '../components/sermon/AddSermonModal';
+import { AddSermonSlidesModal } from '../components/modals/AddSermonSlidesModal';
 import { AddOfferingModal } from '../components/modals/AddOfferingModal';
 import { AddWelcomeModal } from '../components/modals/AddWelcomeModal';
 import { AddClosingModal } from '../components/modals/AddClosingModal';
@@ -19,6 +20,7 @@ export function PlannerPage() {
   const [showAddSongModal, setShowAddSongModal] = useState(false);
   const [showAddScriptureModal, setShowAddScriptureModal] = useState(false);
   const [showAddSermonModal, setShowAddSermonModal] = useState(false);
+  const [showAddSermonSlidesModal, setShowAddSermonSlidesModal] = useState(false);
   const [showAddOfferingModal, setShowAddOfferingModal] = useState(false);
   const [showAddWelcomeModal, setShowAddWelcomeModal] = useState(false);
   const [showAddClosingModal, setShowAddClosingModal] = useState(false);
@@ -183,7 +185,7 @@ export function PlannerPage() {
     
     const updatedService = {
       ...selectedService,
-      items: [...selectedService.items, newItem],
+      items: [...selectedService.items, newItem]
     };
     
     try {
@@ -193,6 +195,38 @@ export function PlannerPage() {
       console.log('✅ Sermon added to service successfully');
     } catch (error) {
       console.error('❌ Error adding sermon:', error);
+    }
+  };
+
+  // AI Sermon Slides handler (from uploaded notes)
+  const handleAddSermonSlides = async (slides: any[], title: string, sermonNotes?: string) => {
+    if (!selectedService) return;
+    
+    console.log('📄 handleAddSermonSlides - Adding AI sermon with', slides.length, 'slides');
+    
+    // Create sermon item with all generated slides and original notes
+    const newItem: ServiceItem = {
+      id: crypto.randomUUID(),
+      type: 'sermon-slides',
+      title: title,
+      duration: 25,
+      order: selectedService.items.length,
+      content: JSON.stringify(slides), // Store all slides (title, scriptures, points)
+      notes: sermonNotes, // Store original sermon notes for reference
+    };
+    
+    const updatedService = {
+      ...selectedService,
+      items: [...selectedService.items, newItem]
+    };
+    
+    try {
+      await updateService.mutateAsync(updatedService);
+      setSelectedService(updatedService);
+      setShowAddSermonSlidesModal(false);
+      console.log('✅ AI Sermon slides added to service successfully');
+    } catch (error) {
+      console.error('❌ Error adding sermon slides:', error);
     }
   };
 
@@ -255,6 +289,11 @@ export function PlannerPage() {
     
     if (type === 'sermon') {
       setShowAddSermonModal(true);
+      return;
+    }
+    
+    if (type === 'sermon-slides') {
+      setShowAddSermonSlidesModal(true);
       return;
     }
     
@@ -680,6 +719,13 @@ export function PlannerPage() {
           onSave={handleAddSermon}
         />
       )}
+
+      {/* Add Sermon Slides Modal (AI from notes) */}
+      <AddSermonSlidesModal
+        isOpen={showAddSermonSlidesModal}
+        onClose={() => setShowAddSermonSlidesModal(false)}
+        onAddSlides={handleAddSermonSlides}
+      />
 
       {/* Add Offering Modal (AI-Enhanced) */}
       <AddOfferingModal

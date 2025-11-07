@@ -1,12 +1,16 @@
-import { X, Plus, Clock, Music, Play, BookOpen, Megaphone } from 'lucide-react';
+import { X, Plus, Clock, Music, Play, BookOpen, Megaphone, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ServiceItemCard } from '../planner/ServiceItemCard';
 import { EditItemModal } from './EditItemModal';
 import { VisualItemEditorModal } from './VisualItemEditorModal';
+import { SermonSlideEditor } from '../sermons/SermonSlideEditor';
 import { PresenterPage } from '../../pages/PresenterPage';
 import { useServicePresentationStore } from '../../store/servicePresentationStore';
 import { useServiceImagePreloader } from '../../hooks/useServiceImagePreloader';
 import type { Service, ServiceItem } from '../../types/service';
+import type { Slide } from '../../types';
+import type { BackgroundImage } from '../../assets/backgrounds';
+import type { LayoutType } from '../../utils/layouts';
 
 interface ServiceEditorModalProps {
   service: Service | null;
@@ -36,6 +40,7 @@ export function ServiceEditorModal({
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [editingItem, setEditingItem] = useState<ServiceItem | null>(null);
   const [visualEditingItem, setVisualEditingItem] = useState<ServiceItem | null>(null);
+  const [sermonEditingItem, setSermonEditingItem] = useState<ServiceItem | null>(null);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   
   const { 
@@ -355,6 +360,26 @@ export function ServiceEditorModal({
     setVisualEditingItem(null);
   };
 
+  const handleSaveSermonSlides = (
+    updatedSlides: Slide[],
+    _updatedBackgrounds: (BackgroundImage | null)[],
+    _updatedLayouts: LayoutType[]
+  ) => {
+    if (!sermonEditingItem) return;
+
+    console.log('💾 Saving sermon slides:', updatedSlides.length);
+    
+    const updatedItem: ServiceItem = {
+      ...sermonEditingItem,
+      content: JSON.stringify(updatedSlides),
+    };
+
+    setItems(prev => prev.map(item => 
+      item.id === sermonEditingItem.id ? updatedItem : item
+    ));
+    setSermonEditingItem(null);
+  };
+
   const handleMoveItemUp = (itemId: string) => {
     setItems(prev => {
       const index = prev.findIndex(item => item.id === itemId);
@@ -499,6 +524,13 @@ export function ServiceEditorModal({
                     <span>Scripture Reading</span>
                   </button>
                   <button
+                    onClick={() => { onAddItem('sermon-slides'); setShowAddMenu(false); }}
+                    className="w-full text-left px-4 py-2 hover:bg-purple-50 text-brand-charcoal flex items-center gap-3 group"
+                  >
+                    <Sparkles size={18} className="text-purple-600 group-hover:scale-110 transition-transform" />
+                    <span>Sermon Slides</span>
+                  </button>
+                  <button
                     onClick={() => { onAddItem('announcement'); setShowAddMenu(false); }}
                     className="w-full text-left px-4 py-2 hover:bg-yellow-50 text-brand-charcoal last:rounded-b-lg flex items-center gap-3 group"
                   >
@@ -573,6 +605,15 @@ export function ServiceEditorModal({
         isOpen={editingItem !== null}
         onClose={() => setEditingItem(null)}
         onSave={handleSaveEditedItem}
+        onEditVisuals={(item) => {
+          setEditingItem(null);
+          // Check if sermon-slides to open appropriate editor
+          if (item.type === 'sermon-slides') {
+            setSermonEditingItem(item);
+          } else {
+            setVisualEditingItem(item);
+          }
+        }}
       />
 
       {/* Visual Item Editor Modal */}
@@ -584,6 +625,31 @@ export function ServiceEditorModal({
         onClose={() => setVisualEditingItem(null)}
         onSave={handleSaveVisualItem}
       />
+
+      {/* Sermon Slide Editor */}
+      {sermonEditingItem && sermonEditingItem.content && (() => {
+        try {
+          const slides: Slide[] = JSON.parse(sermonEditingItem.content);
+          const backgrounds: (BackgroundImage | null)[] = slides.map(() => null);
+          const layouts: LayoutType[] = slides.map(() => 'center' as LayoutType);
+          const sermonNotes = sermonEditingItem.notes || '';
+
+          return (
+            <SermonSlideEditor
+              slides={slides}
+              backgrounds={backgrounds}
+              layouts={layouts}
+              sermonNotes={sermonNotes}
+              onSave={handleSaveSermonSlides}
+              onClose={() => setSermonEditingItem(null)}
+              sermonTitle={sermonEditingItem.title || 'Sermon'}
+            />
+          );
+        } catch (e) {
+          console.error('Failed to parse sermon slides:', e);
+          return null;
+        }
+      })()}
 
       {/* Presentation Mode */}
       {isPresentationMode && (
