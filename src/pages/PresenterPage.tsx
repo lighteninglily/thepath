@@ -592,7 +592,14 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
         
         <button
           onClick={handleNextClick}
-          disabled={currentItemIndex >= service.items.length - 1 && (!currentSong?.slidesData || currentSlideIndex >= currentSong.slidesData.length - 1)}
+          disabled={
+            currentItemIndex >= service.items.length - 1 && 
+            (currentItem?.type === 'song' 
+              ? (!currentSong?.slidesData || currentSlideIndex >= currentSong.slidesData.length - 1)
+              : currentItem?.type === 'sermon-slides'
+                ? (!currentSermonSlides || currentSlideIndex >= currentSermonSlides.length - 1)
+                : true)
+          }
           className="px-6 py-3 bg-brand-skyBlue hover:bg-brand-skyBlue/90 text-white rounded-lg flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           Next
