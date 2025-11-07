@@ -49,6 +49,7 @@ export function SermonSlideEditor({
   // Track if we're currently editing to prevent re-applying design during typing
   const isEditingRef = useRef(false);
   const editTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const designUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update current slide
   const handleUpdateSlide = (updates: Partial<Slide>) => {
@@ -271,15 +272,23 @@ export function SermonSlideEditor({
     const newCustomizations = { ...designCustomizations, backgroundColor: color };
     setDesignCustomizations(newCustomizations);
     
-    if (globalDesignMode) {
-      const updatedSlides = applyDesignToAllSlides(slides, currentDesignId, newCustomizations);
-      setSlides(updatedSlides);
-    } else {
-      const updatedSlide = applyDesignToSlide(currentSlide, currentDesignId, newCustomizations);
-      const newSlides = [...slides];
-      newSlides[currentSlideIndex] = updatedSlide;
-      setSlides(newSlides);
+    // Debounce design application (especially important for global mode)
+    if (designUpdateTimeoutRef.current) {
+      clearTimeout(designUpdateTimeoutRef.current);
     }
+    
+    designUpdateTimeoutRef.current = setTimeout(() => {
+      if (globalDesignMode) {
+        console.log('🌍 Applying color change to all slides (debounced)');
+        const updatedSlides = applyDesignToAllSlides(slides, currentDesignId, newCustomizations);
+        setSlides(updatedSlides);
+      } else {
+        const updatedSlide = applyDesignToSlide(currentSlide, currentDesignId, newCustomizations);
+        const newSlides = [...slides];
+        newSlides[currentSlideIndex] = updatedSlide;
+        setSlides(newSlides);
+      }
+    }, 300); // 300ms debounce for smoother interaction
   };
   
   const handleChangeFontSize = (type: 'title' | 'body' | 'scripture', size: number) => {
@@ -289,15 +298,23 @@ export function SermonSlideEditor({
     if (type === 'scripture') newCustomizations.scriptureFontSize = size;
     setDesignCustomizations(newCustomizations);
     
-    if (globalDesignMode) {
-      const updatedSlides = applyDesignToAllSlides(slides, currentDesignId, newCustomizations);
-      setSlides(updatedSlides);
-    } else {
-      const updatedSlide = applyDesignToSlide(currentSlide, currentDesignId, newCustomizations);
-      const newSlides = [...slides];
-      newSlides[currentSlideIndex] = updatedSlide;
-      setSlides(newSlides);
+    // Debounce design application (especially important for global mode)
+    if (designUpdateTimeoutRef.current) {
+      clearTimeout(designUpdateTimeoutRef.current);
     }
+    
+    designUpdateTimeoutRef.current = setTimeout(() => {
+      if (globalDesignMode) {
+        console.log('🌍 Applying font size change to all slides (debounced)');
+        const updatedSlides = applyDesignToAllSlides(slides, currentDesignId, newCustomizations);
+        setSlides(updatedSlides);
+      } else {
+        const updatedSlide = applyDesignToSlide(currentSlide, currentDesignId, newCustomizations);
+        const newSlides = [...slides];
+        newSlides[currentSlideIndex] = updatedSlide;
+        setSlides(newSlides);
+      }
+    }, 300); // 300ms debounce for smoother slider interaction
   };
   
   const handleChangeFontFamily = (titleFont: string, bodyFont: string) => {
@@ -308,15 +325,23 @@ export function SermonSlideEditor({
     };
     setDesignCustomizations(newCustomizations);
     
-    if (globalDesignMode) {
-      const updatedSlides = applyDesignToAllSlides(slides, currentDesignId, newCustomizations);
-      setSlides(updatedSlides);
-    } else {
-      const updatedSlide = applyDesignToSlide(currentSlide, currentDesignId, newCustomizations);
-      const newSlides = [...slides];
-      newSlides[currentSlideIndex] = updatedSlide;
-      setSlides(newSlides);
+    // Debounce design application (especially important for global mode)
+    if (designUpdateTimeoutRef.current) {
+      clearTimeout(designUpdateTimeoutRef.current);
     }
+    
+    designUpdateTimeoutRef.current = setTimeout(() => {
+      if (globalDesignMode) {
+        console.log('🌍 Applying font family change to all slides (debounced)');
+        const updatedSlides = applyDesignToAllSlides(slides, currentDesignId, newCustomizations);
+        setSlides(updatedSlides);
+      } else {
+        const updatedSlide = applyDesignToSlide(currentSlide, currentDesignId, newCustomizations);
+        const newSlides = [...slides];
+        newSlides[currentSlideIndex] = updatedSlide;
+        setSlides(newSlides);
+      }
+    }, 300); // 300ms debounce
   };
 
   const handleSave = () => {
