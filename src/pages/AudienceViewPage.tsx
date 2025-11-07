@@ -352,10 +352,17 @@ export function AudienceViewPage() {
                     fontSize: element.fontSize ? `${(element.fontSize / 1080) * 100}vh` : `${((element.style?.fontSize || 48) / 1080) * 100}vh`,
                     fontFamily: element.style?.fontFamily || element.fontFamily,
                     fontWeight: element.style?.fontWeight || element.fontWeight,
+                    fontStyle: element.style?.fontStyle || element.fontStyle,
                     color: element.style?.color || element.color,
                     textAlign: (element.style?.textAlign || element.textAlign) as any,
+                    textShadow: element.style?.textShadow || element.textShadow,
+                    letterSpacing: element.style?.letterSpacing ? `${element.style.letterSpacing}px` : undefined,
+                    lineHeight: element.style?.lineHeight || element.lineHeight,
                     zIndex: element.zIndex || 10,
                     opacity: element.opacity ?? 1,
+                    display: 'flex',
+                    alignItems: element.style?.textAlign === 'center' ? 'center' : 'flex-start',
+                    justifyContent: element.style?.textAlign === 'center' ? 'center' : element.style?.textAlign === 'right' ? 'flex-end' : 'flex-start',
                   }}
                 >
                   {element.content}
