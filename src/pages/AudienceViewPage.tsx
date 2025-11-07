@@ -57,19 +57,23 @@ export function AudienceViewPage() {
       
       // Set up listener for state updates
       const unsubscribe = window.electron.presentation.onStateUpdate((state) => {
-        console.log('📺 AUDIENCE: Received state update:', {
-          hasService: !!state.service,
-          currentItemIndex: state.currentItemIndex,
-          currentSlideIndex: state.currentSlideIndex,
-          hasSongData: !!state.currentSongData,
-          songDataTitle: state.currentSongData?.title,
-          songDataSlidesCount: state.currentSongData?.slidesData?.length,
-          isBlank: state.isBlank,
-          currentItemType: state.service?.items[state.currentItemIndex]?.type
-        });
+        const currentItem = state.service?.items[state.currentItemIndex];
+        console.log('📺 AUDIENCE: Received state update');
+        console.log('  - Has Service:', !!state.service);
+        console.log('  - Current Item Index:', state.currentItemIndex);
+        console.log('  - Current Slide Index:', state.currentSlideIndex);
+        console.log('  - Current Item Type:', currentItem?.type);
+        console.log('  - Current Item Has Content:', !!currentItem?.content);
+        console.log('  - Current Item Content Length:', currentItem?.content?.length);
+        console.log('  - Is Blank:', state.isBlank);
         
-        // Log the full state for debugging
-        console.log('📦 AUDIENCE: Full state object:', JSON.stringify(state, null, 2));
+        // CRITICAL: Log item type check
+        if (currentItem) {
+          console.log('🔍 AUDIENCE ITEM CHECK:');
+          console.log('  - Type value:', JSON.stringify(currentItem.type));
+          console.log('  - Type === "sermon-slides":', currentItem.type === 'sermon-slides');
+          console.log('  - Type === "song":', currentItem.type === 'song');
+        }
         
         setPresentationState(state);
       });
@@ -98,13 +102,13 @@ export function AudienceViewPage() {
   const currentItem = service?.items[currentItemIndex];
   const currentSongData = presentationState?.currentSongData;
 
-  console.log('🔍 Render check:', {
-    hasService: !!service,
-    hasCurrentItem: !!currentItem,
-    hasCurrentSongData: !!currentSongData,
-    currentItemIndex,
-    currentSlideIndex
-  });
+  console.log('🔍 AUDIENCE Render check:');
+  console.log('  - Has Service:', !!service);
+  console.log('  - Has Current Item:', !!currentItem);
+  console.log('  - Current Item Type:', currentItem?.type);
+  console.log('  - Has Current Song Data:', !!currentSongData);
+  console.log('  - Current Item Index:', currentItemIndex);
+  console.log('  - Current Slide Index:', currentSlideIndex);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -141,15 +145,23 @@ export function AudienceViewPage() {
   // Get visual data from song slides or item content
   let visualData = null;
   
-  console.log('🎵 AUDIENCE: Checking for visual data:', {
-    itemType: currentItem?.type,
-    hasSongData: !!currentSongData,
-    songDataId: currentSongData?.id,
-    songTitle: currentSongData?.title,
-    slidesDataLength: currentSongData?.slidesData?.length,
-    currentSlideIndex,
-    hasContent: !!currentItem?.content
-  });
+  console.log('🎵 AUDIENCE: Checking for visual data');
+  console.log('  - Item Type:', currentItem?.type);
+  console.log('  - Has Song Data:', !!currentSongData);
+  console.log('  - Song Title:', currentSongData?.title);
+  console.log('  - Slides Data Length:', currentSongData?.slidesData?.length);
+  console.log('  - Current Slide Index:', currentSlideIndex);
+  console.log('  - Has Content:', !!currentItem?.content);
+  
+  // CRITICAL DEBUG: Check exact type value
+  console.log('🔍 AUDIENCE CRITICAL CHECK');
+  console.log('  - Item Type Raw:', JSON.stringify(currentItem?.type));
+  console.log('  - Type === "sermon-slides":', currentItem?.type === 'sermon-slides');
+  console.log('  - Has Content:', !!currentItem?.content);
+  console.log('  - Content Length:', currentItem?.content?.length);
+  if (currentItem?.content) {
+    console.log('  - Content Preview (first 100):', currentItem.content.substring(0, 100));
+  }
   
   // Handle sermon-slides type (array of slides)
   if (currentItem?.type === 'sermon-slides' && currentItem?.content) {
