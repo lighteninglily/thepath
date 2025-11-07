@@ -151,7 +151,16 @@ export function AddSermonSlidesModal({ isOpen, onClose, onAddSlides }: AddSermon
       // Add title slide
       allSlides.push(createSermonTitleSlide(title, analysis.mainScripture));
 
-      // Interleave points and scriptures
+      // Add MAIN scripture slides right after title (primary sermon text)
+      const mainScriptureSlides = scriptureSlides.filter(slide => {
+        const slideRef = slide.visualData?.elements?.find((e: any) => 
+          e.content?.match(/[A-Za-z]+ \d+:\d+/)
+        )?.content;
+        return slideRef && analysis.mainScripture && slideRef.includes(analysis.mainScripture);
+      });
+      allSlides.push(...mainScriptureSlides);
+
+      // Interleave points and their associated scriptures
       analysis.mainPoints.forEach((point, index) => {
         // Add point slide
         const pointSlide = pointSlides[index];
@@ -159,9 +168,11 @@ export function AddSermonSlidesModal({ isOpen, onClose, onAddSlides }: AddSermon
           allSlides.push(pointSlide);
         }
 
-        // Add associated scripture if it exists
+        // Add scripture associated with this specific point (not main scripture)
         const pointScripture = scripturesToProcess.find(s => 
-          point.scripture && s.reference.includes(point.scripture)
+          point.scripture && 
+          s.reference.includes(point.scripture) &&
+          (!analysis.mainScripture || !s.reference.includes(analysis.mainScripture))
         );
         if (pointScripture) {
           const relatedSlides = scriptureSlides.filter(s => 
@@ -171,18 +182,17 @@ export function AddSermonSlidesModal({ isOpen, onClose, onAddSlides }: AddSermon
         }
       });
 
-      // Add remaining scriptures that weren't associated with points
-      const usedScriptures = new Set(
-        analysis.mainPoints
-          .map(p => p.scripture)
-          .filter(Boolean)
-      );
+      // Add remaining scriptures not yet included
+      const usedScriptures = new Set([
+        analysis.mainScripture,
+        ...analysis.mainPoints.map(p => p.scripture).filter(Boolean)
+      ]);
       const remainingScriptureSlides = scriptureSlides.filter(slide => {
         const slideRef = slide.visualData?.elements?.find((e: any) => 
           e.content?.match(/[A-Za-z]+ \d+:\d+/)
         )?.content;
         return slideRef && !Array.from(usedScriptures).some(ref => 
-          slideRef.includes(ref as string)
+          ref && slideRef.includes(ref as string)
         );
       });
       allSlides.push(...remainingScriptureSlides);

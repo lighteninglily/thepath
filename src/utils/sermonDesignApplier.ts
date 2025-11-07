@@ -208,13 +208,20 @@ export function applyDesignToSlide(
 
 /**
  * Apply design to all slides in array
+ * Skips title slides (type='title') to preserve their special design
  */
 export function applyDesignToAllSlides(
   slides: Slide[],
   designId: string,
   customizations?: SermonDesignCustomization
 ): Slide[] {
-  return slides.map(slide => applyDesignToSlide(slide, designId, customizations));
+  return slides.map(slide => {
+    // Skip title slides - they have their own design system
+    if (slide.type === 'title') {
+      return slide;
+    }
+    return applyDesignToSlide(slide, designId, customizations);
+  });
 }
 
 /**
