@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "vite",
     "dev:electron": "concurrently \"npm run dev\" \"npm run electron:start\"",
-    "electron:start": "wait-on http://localhost:5173 && cross-env NODE_ENV=development npm run build:electron && electron .",
+    "electron:start": "wait-on http://localhost:5173 && cross-env NODE_ENV=development ELECTRON_START_URL=http://localhost:5173 npm run build:electron && electron .",
     "build": "tsc && vite build && npm run build:electron",
     "build:electron": "tsc -p tsconfig.electron.json",
     "dist": "npm run build && electron-builder",
