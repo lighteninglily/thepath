@@ -303,6 +303,13 @@ export function AudienceViewPage() {
         overlayData: background?.overlay,
         calculatedOpacity: overlayOpacity
       });
+      
+      console.log('🎨 AUDIENCE: About to render visual slide with:', {
+        hasBackground: !!background,
+        backgroundType: background?.type,
+        elementCount: elements?.length,
+        elementsArray: elements
+      });
 
       return (
         <div className="w-full h-full relative overflow-hidden">
@@ -332,8 +339,19 @@ export function AudienceViewPage() {
 
           {/* Elements */}
           {elements?.map((element: any, index: number) => {
+            console.log(`🔍 AUDIENCE: Rendering element ${index}/${elements.length}:`, {
+              type: element.type,
+              visible: element.visible,
+              hasContent: !!element.content,
+              position: element.position,
+              size: element.size
+            });
+            
             // Only skip if explicitly set to false (undefined or true should render)
-            if (element.visible === false) return null;
+            if (element.visible === false) {
+              console.log(`⏭️ AUDIENCE: Skipping element ${index} (visible=false)`);
+              return null;
+            }
 
             // Safety defaults for position and size
             const position = element.position || { x: 0, y: 0 };
