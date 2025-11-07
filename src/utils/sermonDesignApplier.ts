@@ -226,13 +226,29 @@ export function applyDesignToAllSlides(
   designId: string,
   customizations?: SermonDesignCustomization
 ): Slide[] {
-  return slides.map(slide => {
+  console.log('🎨 applyDesignToAllSlides called:', {
+    totalSlides: slides.length,
+    designId,
+    customizations
+  });
+  
+  const updatedSlides = slides.map((slide, index) => {
     // Skip title slides - they have their own design system
     if (slide.type === 'title') {
+      console.log(`⏭️ Skipping slide ${index} (type=title)`);
       return slide;
     }
+    
+    console.log(`✏️ Applying design to slide ${index}:`, {
+      content: slide.content?.substring(0, 50),
+      type: slide.type
+    });
+    
     return applyDesignToSlide(slide, designId, customizations);
   });
+  
+  console.log('✅ applyDesignToAllSlides complete:', updatedSlides.length);
+  return updatedSlides;
 }
 
 /**

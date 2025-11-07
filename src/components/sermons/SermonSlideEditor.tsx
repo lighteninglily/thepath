@@ -242,14 +242,24 @@ export function SermonSlideEditor({
 
   // Design handlers
   const handleSelectDesign = (designId: string) => {
+    console.log('🎨 handleSelectDesign called:', {
+      designId,
+      globalDesignMode,
+      totalSlides: slides.length,
+      currentSlideIndex
+    });
+    
     setCurrentDesignId(designId);
     
     if (globalDesignMode) {
       // Apply to all slides
+      console.log('🌍 Global mode: Applying to all slides');
       const updatedSlides = applyDesignToAllSlides(slides, designId, designCustomizations);
+      console.log('📝 Setting updated slides:', updatedSlides.length);
       setSlides(updatedSlides);
     } else {
       // Apply to current slide only
+      console.log('📄 Single slide mode: Applying to current slide only');
       const updatedSlide = applyDesignToSlide(currentSlide, designId, designCustomizations);
       const newSlides = [...slides];
       newSlides[currentSlideIndex] = updatedSlide;
