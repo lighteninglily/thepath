@@ -192,14 +192,14 @@ export function SlideEditorPanel({
             <label className="text-sm font-medium text-gray-700">
               Slide Text
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={handleAddBullet}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                 title="Add bullet point (•)"
               >
-                <span className="font-bold">•</span>
-                Bullet
+                <span className="text-lg font-bold">•</span>
+                Add Bullet
               </button>
               <span className="text-xs text-gray-500">
                 {lineCount} {lineCount === 1 ? 'line' : 'lines'}
