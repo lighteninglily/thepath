@@ -99,10 +99,11 @@ export function SlideEditorPanel({
   
   // Detect sermon point slides - check for POINT keyword OR if slide type is 'custom' (sermon slides)
   // Also check if content has bullet points already
-  const hasPointKeyword = slide.content.toUpperCase().includes('POINT');
-  const hasBullets = slide.content.match(/^[•\-\*]\s/m);
+  const hasPointKeyword = slide.content?.toUpperCase().includes('POINT');
+  const hasBullets = slide.content?.match(/^[•\-\*]\s/m);
   const isCustomSlide = slide.type === 'custom';
-  const isSermonPointSlide = hasPointKeyword || (isCustomSlide && hasBullets);
+  // For sermon slides, always show sub-point editor for custom slides
+  const isSermonPointSlide = hasPointKeyword || hasBullets || isCustomSlide;
   
   // Parse sermon content if it's a sermon slide
   const sermonContent = isSermonPointSlide ? parseSermonSlideContent(slide) : null;
@@ -232,13 +233,14 @@ export function SlideEditorPanel({
             </span>
           </div>
           <textarea
-            value={slide.content}
+            value={slide.content || ''}
             onChange={(e) => handleTextChange(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
               text-base font-mono leading-relaxed resize-none"
             rows={6}
             placeholder="Type text here - preview updates live..."
+            spellCheck={false}
           />
         </div>
 
