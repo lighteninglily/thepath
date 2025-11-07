@@ -87,7 +87,7 @@ export const DESIGN_CLASSIC: SermonSlideDesign = {
   }
 };
 
-// TEMPLATE 2: Modern (Coral & Teal Gradient)
+// TEMPLATE 2: Modern (Teal & Blue Gradient)
 export const DESIGN_MODERN: SermonSlideDesign = {
   id: 'modern',
   name: 'Modern',
@@ -95,8 +95,8 @@ export const DESIGN_MODERN: SermonSlideDesign = {
     type: 'gradient',
     gradient: {
       type: 'linear',
-      from: '#f093fb',
-      to: '#f5576c',
+      from: '#56CCF2',
+      to: '#2F80ED',
       angle: 45
     }
   },
