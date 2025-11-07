@@ -20,6 +20,39 @@ const ServiceItemSlidePreviewComponent = ({ item, slideIndex = 0, songData, clas
   console.log('🎬 ServiceItemSlidePreview rendering:', item.type, item.title, 'slideIndex:', slideIndex);
   console.log('📊 Song data received:', songData ? `${songData.title} (${songData.slidesData?.length || 0} slides)` : 'NO SONG DATA');
   
+  // Handle sermon-slides type (array of slides with visualData)
+  if (item.type === 'sermon-slides' && item.content) {
+    try {
+      const slides = JSON.parse(item.content);
+      console.log('📖 Sermon slides parsed:', slides.length, 'total slides');
+      
+      if (Array.isArray(slides) && slides[slideIndex]) {
+        const currentSlide = slides[slideIndex];
+        console.log('📄 Rendering sermon slide', slideIndex + 1, 'of', slides.length);
+        
+        // Sermon slides have visualData directly on the slide object
+        if (currentSlide.visualData) {
+          console.log('✅ Found visualData on sermon slide');
+          return renderVisualSlide(currentSlide.visualData, className, currentSlide, false);
+        }
+        
+        // Fallback to simple text if no visualData
+        console.warn('⚠️ Sermon slide missing visualData, using content');
+        return (
+          <div className="relative overflow-hidden aspect-video bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-12">
+            <div className="text-white text-center">
+              <p className="text-4xl font-bold whitespace-pre-wrap">{currentSlide.content}</p>
+            </div>
+          </div>
+        );
+      }
+      
+      console.error('❌ Sermon slide not found at index', slideIndex, 'of', slides?.length || 0);
+    } catch (e) {
+      console.error('❌ Failed to parse sermon slides:', e);
+    }
+  }
+  
   // Handle song items with song data
   if (item.type === 'song') {
     if (!songData) {
@@ -55,7 +88,7 @@ const ServiceItemSlidePreviewComponent = ({ item, slideIndex = 0, songData, clas
     console.log('⚠️ Song slide not found at index', slideIndex);
   }
   
-  // Has visual data from template editor
+  // Has visual data from template editor (announcements, custom items, etc.)
   if (item.content) {
     try {
       const visualData = JSON.parse(item.content);
