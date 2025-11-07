@@ -1,7 +1,6 @@
 // Utility functions for applying sermon slide designs to visualData
 
 import type { Slide } from '../types';
-import type { SermonSlideDesign } from '../config/sermonSlideDesigns';
 import { getSermonDesignById, getDefaultSermonDesign } from '../config/sermonSlideDesigns';
 
 export interface SermonDesignCustomization {
@@ -112,10 +111,25 @@ export function applyDesignToSlide(
   
   // Build elements array
   const elements: any[] = [];
-  let yOffset = 300; // Starting Y position
+  
+  // Calculate total content height to center vertically
+  const titleFontSize = customizations?.titleFontSize || design.titleStyle.fontSize;
+  const bodyFontSize = customizations?.bodyFontSize || design.bodyStyle.fontSize;
+  const scriptureRefFontSize = design.scriptureRefStyle.fontSize;
+  
+  let totalHeight = 0;
+  if (title) totalHeight += titleFontSize + 100; // Title + spacing
+  if (subPoints && subPoints.length > 0) {
+    totalHeight += (subPoints.length * (bodyFontSize + 30)) + 60; // Sub-points + spacing
+  }
+  if (scriptureRef) totalHeight += scriptureRefFontSize + 40; // Scripture ref + spacing
+  
+  // Start position to center content vertically (1080px slide height)
+  let yOffset = Math.max(250, (1080 - totalHeight) / 2);
   
   // Title element
   if (title) {
+    const titleHeight = titleFontSize * 2.5; // Allow room for wrapping
     elements.push({
       id: `title_${Date.now()}`,
       type: 'text',
@@ -125,9 +139,9 @@ export function applyDesignToSlide(
       zIndex: 10,
       rotation: 0,
       position: { x: 160, y: yOffset },
-      size: { width: 1600, height: 180 },
+      size: { width: 1600, height: titleHeight },
       style: {
-        fontSize: customizations?.titleFontSize || design.titleStyle.fontSize,
+        fontSize: titleFontSize,
         fontFamily: customizations?.titleFontFamily || design.titleStyle.fontFamily,
         fontWeight: design.titleStyle.fontWeight,
         color: design.titleStyle.color,
@@ -136,15 +150,13 @@ export function applyDesignToSlide(
         letterSpacing: design.titleStyle.letterSpacing
       }
     });
-    yOffset += 200;
+    yOffset += titleHeight + 50;
   }
   
   // Sub-points elements (with bullets)
   if (subPoints && subPoints.length > 0) {
-    // Add some spacing before sub-points
-    yOffset += 30;
-    
     subPoints.forEach((subPoint, index) => {
+      const subPointHeight = bodyFontSize * 2; // Dynamic height based on font size
       elements.push({
         id: `subpoint_${Date.now()}_${index}`,
         type: 'text',
@@ -154,9 +166,9 @@ export function applyDesignToSlide(
         zIndex: 10,
         rotation: 0,
         position: { x: 240, y: yOffset }, // Indent 80px for sub-points
-        size: { width: 1440, height: 80 },
+        size: { width: 1440, height: subPointHeight },
         style: {
-          fontSize: customizations?.bodyFontSize || design.bodyStyle.fontSize,
+          fontSize: bodyFontSize,
           fontFamily: customizations?.bodyFontFamily || design.bodyStyle.fontFamily,
           fontWeight: design.bodyStyle.fontWeight,
           color: design.bodyStyle.color,
@@ -165,11 +177,10 @@ export function applyDesignToSlide(
           lineHeight: design.bodyStyle.lineHeight || 1.4
         }
       });
-      yOffset += 70; // Spacing between sub-points
+      yOffset += bodyFontSize + 30; // Dynamic spacing based on font size
     });
     
-    // Add spacing after sub-points
-    yOffset += 30;
+    yOffset += 40; // Spacing after sub-points
   }
   
   // Scripture reference element

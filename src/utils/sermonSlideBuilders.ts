@@ -252,7 +252,7 @@ export function createSermonTitleSlide(title: string, scripture?: string): Slide
         gradient: 'linear-gradient(135deg, #232526 0%, #414345 100%)'
       },
       elements: [
-        // Label
+        // Label - moved higher to prevent overlap
         {
           id: `label_${Date.now()}`,
           type: 'text',
@@ -261,7 +261,7 @@ export function createSermonTitleSlide(title: string, scripture?: string): Slide
           opacity: 1,
           zIndex: 10,
           rotation: 0,
-          position: { x: 160, y: 280 },
+          position: { x: 160, y: 200 },
           size: { width: 1600, height: 40 },
           style: {
             fontSize: 24,
@@ -274,7 +274,7 @@ export function createSermonTitleSlide(title: string, scripture?: string): Slide
             textShadow: '2px 2px 8px rgba(0, 0, 0, 0.5)'
           }
         },
-        // Title
+        // Title - increased spacing from label
         {
           id: `title_${Date.now()}`,
           type: 'text',
@@ -283,8 +283,8 @@ export function createSermonTitleSlide(title: string, scripture?: string): Slide
           opacity: 1,
           zIndex: 10,
           rotation: 0,
-          position: { x: 160, y: 360 },
-          size: { width: 1600, height: 240 },
+          position: { x: 160, y: 280 },
+          size: { width: 1600, height: 300 },
           style: {
             fontSize: 88,
             fontFamily: 'Inter',
@@ -295,7 +295,7 @@ export function createSermonTitleSlide(title: string, scripture?: string): Slide
             textShadow: '4px 4px 20px rgba(0, 0, 0, 0.95)'
           }
         },
-        // Scripture reference (if provided)
+        // Scripture reference (if provided) - adjusted position
         ...(scripture ? [{
           id: `scripture_ref_${Date.now()}`,
           type: 'text' as const,
@@ -304,7 +304,7 @@ export function createSermonTitleSlide(title: string, scripture?: string): Slide
           opacity: 1,
           zIndex: 10,
           rotation: 0,
-          position: { x: 160, y: 640 },
+          position: { x: 160, y: 620 },
           size: { width: 1600, height: 80 },
           style: {
             fontSize: 36,
