@@ -49,6 +49,7 @@ const electronAPI: ElectronAPI = {
       ipcRenderer.invoke('presentation:syncState', state),
     syncToPresenter: (state: any) =>
       ipcRenderer.invoke('presentation:syncToPresenter', state),
+    reloadAudience: () => ipcRenderer.invoke('presentation:reloadAudience'),
     onStateUpdate: (callback: (state: any) => void) => {
       const listener = (_event: any, state: any) => callback(state);
       ipcRenderer.on('presentation:stateUpdate', listener);

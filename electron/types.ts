@@ -140,6 +140,7 @@ export interface ElectronAPI {
     close: () => Promise<void>;
     syncState: (state: any) => Promise<void>;
     syncToPresenter: (state: any) => Promise<void>;
+    reloadAudience: () => Promise<boolean>;
     onStateUpdate: (callback: (state: any) => void) => () => void;
     onBlank: (callback: (type: string) => void) => () => void;
     onUnblank: (callback: () => void) => () => void;

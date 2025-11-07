@@ -289,6 +289,17 @@ function createPresentationWindow() {
     });
   }
 
+  // Enable F5 reload in dev mode
+  if (process.env.NODE_ENV === 'development' || process.env.ELECTRON_START_URL) {
+    presentationWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.key === 'F5') {
+        console.log('🔄 F5 pressed - Reloading audience window');
+        presentationWindow?.webContents.reload();
+        event.preventDefault();
+      }
+    });
+  }
+
   // Show and fullscreen window once content is loaded
   presentationWindow.webContents.once('did-finish-load', () => {
     if (presentationWindow && !presentationWindow.isDestroyed()) {
@@ -744,6 +755,16 @@ ipcMain.handle('presentation:exit', async () => {
     presenterWindow = null;
   }
   return true;
+});
+
+// Reload audience window (dev mode helper)
+ipcMain.handle('presentation:reloadAudience', async () => {
+  console.log('🔄 Reloading audience window...');
+  if (presentationWindow && !presentationWindow.isDestroyed()) {
+    presentationWindow.webContents.reload();
+    return true;
+  }
+  return false;
 });
 
 // AI Sermon Formatting handler - Claude API
