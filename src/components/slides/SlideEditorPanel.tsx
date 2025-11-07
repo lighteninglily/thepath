@@ -39,6 +39,24 @@ export function SlideEditorPanel({
 }: SlideEditorPanelProps) {
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
 
+  // Calculate slide properties FIRST
+  const lineCount = slide.content?.split('\n').length || 0;
+  const isLongSlide = lineCount > 6;
+  const canMerge = slideIndex < totalSlides - 1;
+  const isTitleSlide = slide.type === 'title';
+  
+  // Detect sermon point slides - check for POINT keyword OR if slide type is 'custom' (sermon slides)
+  // Also check if content has bullet points already
+  const hasPointKeyword = slide.content?.toUpperCase().includes('POINT');
+  const hasBullets = slide.content?.match(/^[•\-\*]\s/m);
+  const isCustomSlide = slide.type === 'custom';
+  // For sermon slides, always show sub-point editor for custom slides
+  const isSermonPointSlide = hasPointKeyword || hasBullets || isCustomSlide;
+  
+  // Parse sermon content if it's a sermon slide
+  const sermonContent = isSermonPointSlide ? parseSermonSlideContent(slide) : null;
+
+  // NOW define handlers AFTER variables they depend on
   const handleTextChange = (newContent: string) => {
     // Always update content first for textarea to work
     onUpdate({ content: newContent });
@@ -46,16 +64,12 @@ export function SlideEditorPanel({
   
   // Sermon sub-point handlers
   const handleAddSubPoint = () => {
-    if (!isSermonPointSlide || !sermonContent) return;
-    
     const newSubPoint = `\n• New sub-point`;
     const updatedContent = slide.content + newSubPoint;
     onUpdate({ content: updatedContent });
   };
   
   const handleUpdateSubPoint = (id: string, content: string) => {
-    if (!isSermonPointSlide || !sermonContent) return;
-    
     // Reconstruct content with updated sub-point
     const lines = slide.content.split('\n');
     const subPointIndex = parseInt(id.replace('subpoint-', ''));
@@ -75,8 +89,6 @@ export function SlideEditorPanel({
   };
   
   const handleDeleteSubPoint = (id: string) => {
-    if (!isSermonPointSlide || !sermonContent) return;
-    
     const subPointIndex = parseInt(id.replace('subpoint-', ''));
     const lines = slide.content.split('\n');
     
@@ -91,22 +103,6 @@ export function SlideEditorPanel({
     
     onUpdate({ content: filteredLines.join('\n') });
   };
-
-  const lineCount = slide.content.split('\n').length;
-  const isLongSlide = lineCount > 6;
-  const canMerge = slideIndex < totalSlides - 1;
-  const isTitleSlide = slide.type === 'title';
-  
-  // Detect sermon point slides - check for POINT keyword OR if slide type is 'custom' (sermon slides)
-  // Also check if content has bullet points already
-  const hasPointKeyword = slide.content?.toUpperCase().includes('POINT');
-  const hasBullets = slide.content?.match(/^[•\-\*]\s/m);
-  const isCustomSlide = slide.type === 'custom';
-  // For sermon slides, always show sub-point editor for custom slides
-  const isSermonPointSlide = hasPointKeyword || hasBullets || isCustomSlide;
-  
-  // Parse sermon content if it's a sermon slide
-  const sermonContent = isSermonPointSlide ? parseSermonSlideContent(slide) : null;
   
   // Handle title design change
   const handleTitleDesignChange = (designId: string) => {
