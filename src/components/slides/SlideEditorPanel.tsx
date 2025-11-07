@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight, Image as ImageIcon, Scissors, Merge, Sparkle
 import { AdvancedSlidePreview } from './AdvancedSlidePreview';
 import { BackgroundPicker } from '../backgrounds/BackgroundPicker';
 import { TITLE_SLIDE_DESIGNS, getTitleSlideDesign, applyTitleSlideDesign } from '../../config/titleSlideDesigns';
+import { SubPointEditor, type SubPoint } from '../sermons/SubPointEditor';
+import { parseSermonSlideContent } from '../../utils/sermonDesignApplier';
 import type { Slide } from '../../types';
 import type { BackgroundImage } from '../../assets/backgrounds';
 import type { LayoutType } from '../../utils/layouts';
@@ -83,11 +85,65 @@ export function SlideEditorPanel({
       onUpdate({ content: newContent });
     }
   };
+  
+  // Sermon sub-point handlers
+  const handleAddSubPoint = () => {
+    if (!isSermonPointSlide || !sermonContent) return;
+    
+    const newSubPoint = `\n• New sub-point`;
+    const updatedContent = slide.content + newSubPoint;
+    onUpdate({ content: updatedContent });
+  };
+  
+  const handleUpdateSubPoint = (id: string, content: string) => {
+    if (!isSermonPointSlide || !sermonContent) return;
+    
+    // Reconstruct content with updated sub-point
+    const lines = slide.content.split('\n');
+    const subPointIndex = parseInt(id.replace('subpoint-', ''));
+    
+    let currentSubPointIndex = -1;
+    const updatedLines = lines.map(line => {
+      if (line.match(/^[•\-\*]\s/)) {
+        currentSubPointIndex++;
+        if (currentSubPointIndex === subPointIndex) {
+          return `• ${content}`;
+        }
+      }
+      return line;
+    });
+    
+    onUpdate({ content: updatedLines.join('\n') });
+  };
+  
+  const handleDeleteSubPoint = (id: string) => {
+    if (!isSermonPointSlide || !sermonContent) return;
+    
+    const subPointIndex = parseInt(id.replace('subpoint-', ''));
+    const lines = slide.content.split('\n');
+    
+    let currentSubPointIndex = -1;
+    const filteredLines = lines.filter(line => {
+      if (line.match(/^[•\-\*]\s/)) {
+        currentSubPointIndex++;
+        return currentSubPointIndex !== subPointIndex;
+      }
+      return true;
+    });
+    
+    onUpdate({ content: filteredLines.join('\n') });
+  };
 
   const lineCount = slide.content.split('\n').length;
   const isLongSlide = lineCount > 6;
   const canMerge = slideIndex < totalSlides - 1;
   const isTitleSlide = slide.type === 'title';
+  
+  // Detect sermon point slides (contain "POINT" keyword)
+  const isSermonPointSlide = slide.content.toUpperCase().includes('POINT');
+  
+  // Parse sermon content if it's a sermon slide
+  const sermonContent = isSermonPointSlide ? parseSermonSlideContent(slide) : null;
   
   // Handle title design change
   const handleTitleDesignChange = (designId: string) => {
@@ -223,6 +279,26 @@ export function SlideEditorPanel({
             placeholder="Type text here - preview updates live..."
           />
         </div>
+
+        {/* Sermon Sub-Points Editor (only for sermon point slides) */}
+        {isSermonPointSlide && sermonContent && (
+          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <SubPointEditor
+              subPoints={sermonContent.subPoints.map((sp, i) => ({
+                id: `subpoint-${i}`,
+                content: sp,
+                order: i + 1
+              }))}
+              onAdd={handleAddSubPoint}
+              onUpdate={handleUpdateSubPoint}
+              onDelete={handleDeleteSubPoint}
+              onReorder={(from, to) => {
+                // TODO: Implement reordering if needed
+                console.log('Reorder from', from, 'to', to);
+              }}
+            />
+          </div>
+        )}
 
         {/* Layout Selector */}
         <div>

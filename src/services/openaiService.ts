@@ -530,6 +530,10 @@ Keep it warm, grateful, and forward-looking.`
       title: string;
       description?: string;
       scripture?: string;
+      subPoints?: Array<{
+        content: string;
+        order: number;
+      }>;
     }>;
   }> {
     if (!this.client) {
@@ -543,70 +547,124 @@ Keep it warm, grateful, and forward-looking.`
       model: 'gpt-5', // GPT-5 full version
       messages: [{
         role: 'user',
-        content: `You are a senior pastor reviewing sermon notes to create presentation slides.
+        content: includeAllScriptures ? `You are a sermon analysis expert. Analyze the sermon notes and extract structured information with hierarchical points.
 
-TASK: Analyze the sermon structure and extract content for slides.
+Your task is to intelligently identify the sermon's core structure:
 
-STEP 1: UNDERSTAND THE SERMON STRUCTURE
-- Read through and identify the organizational pattern
-- Look for the main outline/skeleton (Roman numerals, numbers, headers, bold text)
-- Distinguish between HIGH-LEVEL POINTS (main headings) vs SUB-POINTS (details under each heading)
-- Recognize the sermon's flow: Introduction → Main Points → Conclusion
+1. SCRIPTURE ANALYSIS:
+   - Identify the PRIMARY scripture text (the main passage the sermon is built around)
+   - Find SUPPORTING scriptures (verses that illustrate or support main points)
+   - Distinguish between:
+     * Foundation scriptures (sermon is based on these)
+     * Illustration scriptures (used as examples or cross-references)
+   - Include ALL scriptures mentioned, but categorize their importance
 
-STEP 2: EXTRACT HIGH-LEVEL POINTS ONLY
-- Only extract PARENT/TOP-LEVEL points that form the main sermon structure
-- Examples of what TO extract:
-  * "1. God's Love is Unconditional"
-  * "I. The Problem of Sin" 
-  * "First: We Must Believe"
-- Examples of what NOT to extract (sub-points/details):
-  * "a. Love doesn't keep score"
-  * "- This means trusting fully"
-  * "For example, consider Abraham..."
+2. MAIN POINTS ANALYSIS (Hierarchical Structure):
+   - Identify only HIGH-LEVEL sermon points (typically 2-4 main divisions)
+   - Look for major section breaks, numbered points, or thematic shifts
+   - Each main point should be a major sermon division
+   
+   SUB-POINTS (under each main point):
+   - Automatically extract supporting details, examples, or applications
+   - Look for: bullet points, indented text, 'a/b/c' lists, supporting ideas
+   - Maximum 3-4 sub-points per main point (prioritize most important)
+   - Only include if they add clarity and fit on one slide
+   - Keep concise (1-2 sentences max per sub-point)
+   - If a main point has many details, intelligently select the most critical 3-4
 
-STEP 3: IDENTIFY SCRIPTURES INTELLIGENTLY
-${includeAllScriptures 
-  ? `MODE: COMPREHENSIVE - Extract ALL scripture references
-- Include: Main text, supporting verses, cross-references, illustrations, examples
-- If a verse is mentioned anywhere, include it
-- Better to include too many than miss any`
-  : `MODE: FOUNDATIONAL ONLY - Extract scriptures that CARRY the sermon
-- Main scripture text (the anchor/foundation of the message)
-- Key supporting texts that are ESSENTIAL to the main points
-- IGNORE: passing references, brief mentions, story illustrations, rabbit trails
-- Ask yourself: "If I removed this verse, would the sermon still make sense?" If YES, don't include it.`}
+CRITICAL: We want the sermon STRUCTURE with hierarchy:
+- Main points: Broad divisions (2-4 total)
+- Sub-points: Key supporting ideas under each main point (0-4 each)
+- Total content per slide must fit visually (don't overcrowd)
 
-STEP 4: SERMON METADATA
-- Extract title if clearly stated
-- Identify the main/primary scripture (usually mentioned early or repeated)
-- Determine the overarching theme
-
-Return JSON format:
+Return ONLY a valid JSON object with this structure:
 {
-  "title": "sermon title or null",
-  "mainScripture": "primary foundational text or null",
-  "theme": "one sentence theme or null",
+  "title": "sermon title if found",
+  "mainScripture": "primary scripture reference",
+  "theme": "overall theme",
   "scriptures": [
     {
-      "reference": "John 3:16-17",
-      "book": "John",
-      "chapter": 3,
-      "startVerse": 16,
-      "endVerse": 17,
-      "context": "brief note about how it's used"
+      "reference": "Book chapter:verse",
+      "importance": "primary" | "supporting" | "illustration",
+      "context": "how it's used in the sermon"
     }
   ],
   "mainPoints": [
     {
       "number": 1,
-      "title": "High-Level Point Title",
-      "description": "One sentence summary",
-      "scripture": "Related key verse if any"
+      "title": "High-level point title",
+      "description": "Brief summary of this major section",
+      "subPoints": [
+        {
+          "content": "First supporting detail or application",
+          "order": 1
+        },
+        {
+          "content": "Second supporting detail",
+          "order": 2
+        }
+      ]
+    }
+  ]
+}` : `You are a sermon analysis expert. Analyze the sermon notes and extract structured information with hierarchical points.
+
+Your task is to intelligently identify the sermon's core structure:
+
+1. SCRIPTURE ANALYSIS:
+   - Identify ONLY the PRIMARY scripture text (the main passage)
+   - Find 1-2 KEY SUPPORTING scriptures that are central to the message
+   - Ignore minor cross-references and illustrations
+   - Maximum 3-4 total scriptures
+   - Focus on scriptures that form the backbone of the sermon
+
+2. MAIN POINTS ANALYSIS (Hierarchical Structure):
+   - Identify only HIGH-LEVEL sermon points (typically 2-4 main divisions)
+   - Look for major section breaks, numbered points, or thematic shifts
+   - Each main point should be a major sermon division
+   
+   SUB-POINTS (under each main point):
+   - Automatically extract supporting details, examples, or applications
+   - Look for: bullet points, indented text, 'a/b/c' lists, supporting ideas
+   - Maximum 3-4 sub-points per main point (prioritize most important)
+   - Only include if they add clarity and fit on one slide
+   - Keep concise (1-2 sentences max per sub-point)
+   - If a main point has many details, intelligently select the most critical 3-4
+
+CRITICAL: We want the sermon STRUCTURE with hierarchy:
+- Main points: Broad divisions (2-4 total)
+- Sub-points: Key supporting ideas under each main point (0-4 each)
+- Total content per slide must fit visually (don't overcrowd)
+
+Return ONLY a valid JSON object with this structure:
+{
+  "title": "sermon title if found",
+  "mainScripture": "primary scripture reference",
+  "theme": "overall theme",
+  "scriptures": [
+    {
+      "reference": "Book chapter:verse",
+      "importance": "primary" | "supporting",
+      "context": "how it's used in the sermon"
+    }
+  ],
+  "mainPoints": [
+    {
+      "number": 1,
+      "title": "High-level point title",
+      "description": "Brief summary of this major section",
+      "subPoints": [
+        {
+          "content": "First supporting detail or application",
+          "order": 1
+        },
+        {
+          "content": "Second supporting detail",
+          "order": 2
+        }
+      ]
     }
   ]
 }
-
-CRITICAL: Think like a pastor creating a slide deck. Focus on CLARITY and STRUCTURE, not exhaustive detail.
 
 Sermon notes to analyze:
 ${sermonText}`

@@ -365,3 +365,42 @@ function splitTextIntoSlides(text: string, maxWordsPerSlide: number = 80): strin
 
   return parts.filter(part => part.length > 0);
 }
+
+/**
+ * Build a sermon point slide with optional sub-points
+ */
+export function buildSermonPointSlide(
+  point: { 
+    number: number; 
+    title: string; 
+    description?: string; 
+    scripture?: string;
+    subPoints?: Array<{ content: string; order: number; }>;
+  },
+  slideNumber: number
+): Slide {
+  // Build content with hierarchical structure
+  let content = `POINT ${point.number}\n${point.title}`;
+  
+  // Add sub-points with bullet markers
+  if (point.subPoints && point.subPoints.length > 0) {
+    content += '\n'; // Extra line break before sub-points
+    point.subPoints.forEach(subPoint => {
+      content += `\n• ${subPoint.content}`;
+    });
+  }
+  
+  // Add scripture reference at the end
+  if (point.scripture) {
+    content += `\n\n${point.scripture}`;
+  }
+
+  return {
+    id: `slide_point_${point.number}_${Date.now()}`,
+    content,
+    type: 'custom',
+    order: slideNumber,
+    backgroundId: null,
+    layout: 'center'
+  };
+}

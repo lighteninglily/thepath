@@ -38,13 +38,13 @@ export function detectSermonSlideType(slide: Slide): 'title' | 'scripture' | 'po
 }
 
 /**
- * Parse slide content to extract title, body, and scripture reference
+ * Parse slide content to extract title, sub-points, and scripture reference
  */
 export function parseSermonSlideContent(slide: Slide) {
   const lines = (slide.content || '').split('\n').filter(line => line.trim());
   
   if (lines.length === 0) {
-    return { title: '', body: '', scriptureRef: '' };
+    return { title: '', subPoints: [], scriptureRef: '' };
   }
   
   // Check for scripture reference (usually at the end)
@@ -58,29 +58,26 @@ export function parseSermonSlideContent(slide: Slide) {
     contentLines = lines.slice(0, -1);
   }
   
-  // First line (or first few) is title, rest is body
-  if (contentLines.length === 1) {
-    return {
-      title: contentLines[0],
-      body: '',
-      scriptureRef
-    };
-  } else if (contentLines.length === 2) {
-    return {
-      title: contentLines[0],
-      body: contentLines[1],
-      scriptureRef
-    };
-  } else {
-    // Multiple lines: first 1-2 lines are title, rest is body
-    const titleLines = contentLines.slice(0, 2).join('\n');
-    const bodyLines = contentLines.slice(2).join('\n');
-    return {
-      title: titleLines,
-      body: bodyLines,
-      scriptureRef
-    };
+  // Separate title from sub-points
+  const title: string[] = [];
+  const subPoints: string[] = [];
+  
+  for (const line of contentLines) {
+    // Check if line is a bullet point or sub-point
+    if (line.match(/^[•\-\*]\s/) || line.match(/^\d+\.\s/)) {
+      // Remove bullet marker and add to sub-points
+      subPoints.push(line.replace(/^[•\-\*]\s/, '').replace(/^\d+\.\s/, '').trim());
+    } else {
+      // Add to title (main content)
+      title.push(line);
+    }
   }
+  
+  return {
+    title: title.join('\n'),
+    subPoints,
+    scriptureRef
+  };
 }
 
 /**
@@ -92,7 +89,7 @@ export function applyDesignToSlide(
   customizations?: SermonDesignCustomization
 ): Slide {
   const design = getSermonDesignById(designId) || getDefaultSermonDesign();
-  const { title, body, scriptureRef } = parseSermonSlideContent(slide);
+  const { title, subPoints, scriptureRef } = parseSermonSlideContent(slide);
   
   // Determine background
   let backgroundStyle: any = {};
@@ -115,7 +112,7 @@ export function applyDesignToSlide(
   
   // Build elements array
   const elements: any[] = [];
-  let yOffset = 350; // Starting Y position
+  let yOffset = 300; // Starting Y position
   
   // Title element
   if (title) {
@@ -128,7 +125,7 @@ export function applyDesignToSlide(
       zIndex: 10,
       rotation: 0,
       position: { x: 160, y: yOffset },
-      size: { width: 1600, height: 200 },
+      size: { width: 1600, height: 180 },
       style: {
         fontSize: customizations?.titleFontSize || design.titleStyle.fontSize,
         fontFamily: customizations?.titleFontFamily || design.titleStyle.fontFamily,
@@ -139,32 +136,40 @@ export function applyDesignToSlide(
         letterSpacing: design.titleStyle.letterSpacing
       }
     });
-    yOffset += 220;
+    yOffset += 200;
   }
   
-  // Body element
-  if (body) {
-    elements.push({
-      id: `body_${Date.now()}_1`,
-      type: 'text',
-      content: body,
-      visible: true,
-      opacity: 1,
-      zIndex: 10,
-      rotation: 0,
-      position: { x: 160, y: yOffset },
-      size: { width: 1600, height: 300 },
-      style: {
-        fontSize: customizations?.bodyFontSize || design.bodyStyle.fontSize,
-        fontFamily: customizations?.bodyFontFamily || design.bodyStyle.fontFamily,
-        fontWeight: design.bodyStyle.fontWeight,
-        color: design.bodyStyle.color,
-        textAlign: design.bodyStyle.textAlign,
-        textShadow: design.bodyStyle.textShadow,
-        lineHeight: design.bodyStyle.lineHeight
-      }
+  // Sub-points elements (with bullets)
+  if (subPoints && subPoints.length > 0) {
+    // Add some spacing before sub-points
+    yOffset += 30;
+    
+    subPoints.forEach((subPoint, index) => {
+      elements.push({
+        id: `subpoint_${Date.now()}_${index}`,
+        type: 'text',
+        content: `• ${subPoint}`,
+        visible: true,
+        opacity: 1,
+        zIndex: 10,
+        rotation: 0,
+        position: { x: 240, y: yOffset }, // Indent 80px for sub-points
+        size: { width: 1440, height: 80 },
+        style: {
+          fontSize: customizations?.bodyFontSize || design.bodyStyle.fontSize,
+          fontFamily: customizations?.bodyFontFamily || design.bodyStyle.fontFamily,
+          fontWeight: design.bodyStyle.fontWeight,
+          color: design.bodyStyle.color,
+          textAlign: 'left', // Left-align sub-points
+          textShadow: design.bodyStyle.textShadow,
+          lineHeight: design.bodyStyle.lineHeight || 1.4
+        }
+      });
+      yOffset += 70; // Spacing between sub-points
     });
-    yOffset += 320;
+    
+    // Add spacing after sub-points
+    yOffset += 30;
   }
   
   // Scripture reference element
@@ -178,7 +183,7 @@ export function applyDesignToSlide(
       zIndex: 10,
       rotation: 0,
       position: { x: 160, y: yOffset },
-      size: { width: 1600, height: 80 },
+      size: { width: 1600, height: 60 },
       style: {
         fontSize: customizations?.scriptureFontSize || design.scriptureRefStyle.fontSize,
         fontFamily: design.scriptureRefStyle.fontFamily,
