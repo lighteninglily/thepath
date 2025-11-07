@@ -38,17 +38,36 @@ export function SlideEditorPanel({
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
 
   const handleTextChange = (newContent: string) => {
-    // For sermon slides with visualData from design system, clear visualData to force re-render from content
-    // This ensures live preview updates as you type
-    if (slide.visualData && slide.type === 'custom') {
-      // Clear visualData so preview renders from content
-      onUpdate({ 
-        content: newContent,
-        visualData: undefined
-      });
-    } else {
-      // For other slides, just update content
+    // Just update content - parent will handle re-applying design if needed
+    onUpdate({ content: newContent });
+  };
+  
+  const handleAddBullet = () => {
+    // Insert bullet at cursor position or at end
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const content = slide.content || '';
+      
+      // Insert bullet at cursor or start of new line
+      let newContent;
+      if (start === 0 || content[start - 1] === '\n') {
+        // At start or after newline, just add bullet
+        newContent = content.substring(0, start) + '• ' + content.substring(end);
+      } else {
+        // Middle of line, add newline then bullet
+        newContent = content.substring(0, start) + '\n• ' + content.substring(end);
+      }
+      
       onUpdate({ content: newContent });
+      
+      // Set cursor position after bullet
+      setTimeout(() => {
+        const newPos = start + (start === 0 || content[start - 1] === '\n' ? 2 : 3);
+        textarea.setSelectionRange(newPos, newPos);
+        textarea.focus();
+      }, 0);
     }
   };
 
@@ -171,15 +190,21 @@ export function SlideEditorPanel({
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-gray-700">
-              Slide Text {isLongSlide && (
-                <span className="ml-2 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-                  Long ({lineCount} lines)
-                </span>
-              )}
+              Slide Text
             </label>
-            <span className="text-xs text-gray-500">
-              {lineCount} {lineCount === 1 ? 'line' : 'lines'}
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAddBullet}
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                title="Add bullet point (•)"
+              >
+                <span className="font-bold">•</span>
+                Bullet
+              </button>
+              <span className="text-xs text-gray-500">
+                {lineCount} {lineCount === 1 ? 'line' : 'lines'}
+              </span>
+            </div>
           </div>
           <textarea
             value={slide.content}

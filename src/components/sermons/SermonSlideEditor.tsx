@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Save, FileText } from 'lucide-react';
 import { SlideNavigator } from '../slides/SlideNavigator';
 import { SlideEditorPanel } from '../slides/SlideEditorPanel';
@@ -45,6 +45,25 @@ export function SermonSlideEditor({
   
   // Extract current design from slide
   const currentSlideDesign = currentSlide ? extractDesignFromSlide(currentSlide) : {};
+  
+  // Track previous content to detect changes
+  const prevContentRef = useRef<string>(currentSlide?.content || '');
+  
+  // Re-apply design when content changes (for live preview)
+  useEffect(() => {
+    if (!currentSlide || !currentSlide.visualData) return;
+    
+    const contentChanged = currentSlide.content !== prevContentRef.current;
+    if (contentChanged && currentSlide.type === 'custom') {
+      // Re-apply current design with new content
+      const updatedSlide = applyDesignToSlide(currentSlide, currentDesignId, designCustomizations);
+      const newSlides = [...slides];
+      newSlides[currentSlideIndex] = updatedSlide;
+      setSlides(newSlides);
+    }
+    
+    prevContentRef.current = currentSlide.content || '';
+  }, [currentSlide?.content]);
 
   // Update current slide
   const handleUpdateSlide = (updates: Partial<Slide>) => {
