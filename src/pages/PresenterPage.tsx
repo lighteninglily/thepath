@@ -247,9 +247,21 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
     ? songs.find(s => s.id === currentItem.songId)
     : null;
   
+  // Parse sermon slides if current item is sermon-slides
+  const currentSermonSlides = currentItem?.type === 'sermon-slides' && currentItem.content
+    ? (() => {
+        try {
+          return JSON.parse(currentItem.content);
+        } catch {
+          return null;
+        }
+      })()
+    : null;
+  
   console.log('🎵 Current item:', currentItem?.type, currentItem?.songId, currentItem?.songTitle);
   console.log('📚 Available songs:', songs.length, songs.map(s => ({ id: s.id, title: s.title })));
   console.log('🎯 Current song found:', currentSong ? `${currentSong.title} (${currentSong.slidesData?.length} slides)` : 'NOT FOUND');
+  console.log('📖 Sermon slides:', currentSermonSlides ? `${currentSermonSlides.length} slides` : 'N/A');
   
   const nextSong = nextItem?.type === 'song' && nextItem.songId
     ? songs.find(s => s.id === nextItem.songId)
@@ -264,12 +276,19 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
   
   // Navigation handlers for buttons
   const handleNextClick = () => {
-    // Check if current song has more slides
+    // Check if current item has more slides (song or sermon)
     if (currentItem?.type === 'song' && currentSong?.slidesData) {
       const slideCount = currentSong.slidesData.length;
       if (currentSlideIndex < slideCount - 1) {
         useServicePresentationStore.setState({ currentSlideIndex: currentSlideIndex + 1 });
         console.log('➡️ Next song slide:', currentSlideIndex + 1, '/', slideCount);
+        return;
+      }
+    } else if (currentItem?.type === 'sermon-slides' && currentSermonSlides) {
+      const slideCount = currentSermonSlides.length;
+      if (currentSlideIndex < slideCount - 1) {
+        useServicePresentationStore.setState({ currentSlideIndex: currentSlideIndex + 1 });
+        console.log('➡️ Next sermon slide:', currentSlideIndex + 1, '/', slideCount);
         return;
       }
     }
@@ -280,7 +299,7 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
     // If not at first slide of current item, go back within item
     if (currentSlideIndex > 0) {
       useServicePresentationStore.setState({ currentSlideIndex: currentSlideIndex - 1 });
-      console.log('⬅️ Previous song slide:', currentSlideIndex - 1);
+      console.log('⬅️ Previous slide:', currentSlideIndex - 1);
       return;
     }
     
@@ -300,6 +319,22 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
           console.log('⬅️ Previous item (song), going to last slide:', lastSlideIndex);
           return;
         }
+      }
+      
+      // If previous item is sermon-slides, go to its LAST slide
+      if (prevItem.type === 'sermon-slides' && prevItem.content) {
+        try {
+          const prevSermonSlides = JSON.parse(prevItem.content);
+          if (Array.isArray(prevSermonSlides) && prevSermonSlides.length > 0) {
+            const lastSlideIndex = prevSermonSlides.length - 1;
+            useServicePresentationStore.setState({ 
+              currentItemIndex: currentItemIndex - 1,
+              currentSlideIndex: lastSlideIndex
+            });
+            console.log('⬅️ Previous item (sermon), going to last slide:', lastSlideIndex);
+            return;
+          }
+        } catch {}
       }
       
       // Otherwise, go to previous item at slide 0
@@ -329,6 +364,44 @@ export function PresenterPage({ onClose }: PresenterPageProps) {
           item,
           song: song || null,
           title: `${item.songTitle || item.title} (${slideIndex + 1}/${slideCount})`,
+          slideNumber: globalSlideNumber++
+        });
+      }
+    } else if (item.type === 'sermon-slides' && item.content) {
+      // Parse sermon slides to get count
+      try {
+        const sermonSlides = JSON.parse(item.content);
+        if (Array.isArray(sermonSlides)) {
+          const slideCount = sermonSlides.length;
+          for (let slideIndex = 0; slideIndex < slideCount; slideIndex++) {
+            allSlides.push({
+              itemIndex,
+              slideIndex,
+              item,
+              song: null,
+              title: `${item.title || 'Sermon'} (${slideIndex + 1}/${slideCount})`,
+              slideNumber: globalSlideNumber++
+            });
+          }
+        } else {
+          // Fallback if parse fails
+          allSlides.push({
+            itemIndex,
+            slideIndex: 0,
+            item,
+            song: null,
+            title: item.title || 'Sermon Slides',
+            slideNumber: globalSlideNumber++
+          });
+        }
+      } catch {
+        // Fallback if parse fails
+        allSlides.push({
+          itemIndex,
+          slideIndex: 0,
+          item,
+          song: null,
+          title: item.title || 'Sermon Slides',
           slideNumber: globalSlideNumber++
         });
       }
