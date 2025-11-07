@@ -24,6 +24,8 @@ log('App packaged: ' + app.isPackaged);
 log('App path: ' + app.getAppPath());
 log('User data path: ' + app.getPath('userData'));
 log('Log file: ' + logPath);
+log('NODE_ENV: ' + process.env.NODE_ENV);
+log('ELECTRON_START_URL: ' + process.env.ELECTRON_START_URL);
 import { initializeDatabase, closeDatabase } from './database/db';
 import { SongService } from './database/songService';
 import { TemplateService } from './database/templateService';
@@ -195,7 +197,7 @@ function getAudienceDisplay() {
   return primary;
 }
 
-function createPresentationWindow() {
+async function createPresentationWindow() {
   log('========================================');
   log('📺 createPresentationWindow() called');
   
@@ -250,15 +252,20 @@ function createPresentationWindow() {
   });
 
   // Load Audience View
-  // Check if dev server is specified (only set in dev mode)
-  const startURL = process.env.ELECTRON_START_URL;
+  // Try dev server first (same approach as main window)
+  const devServerUrl = 'http://localhost:5173';
   
-  if (startURL && startURL.startsWith('http')) {
-    // Dev mode - use Vite dev server
-    log('📺 DEV MODE: Loading from Vite server: ' + startURL);
-    presentationWindow.loadURL(`${startURL}/#/audience`);
-  } else {
-    // Production mode - use correct path resolution
+  try {
+    // Check if dev server is running
+    const response = await fetch(devServerUrl);
+    if (response.ok) {
+      log('📺 DEV MODE: Loading audience from Vite dev server');
+      presentationWindow.loadURL(`${devServerUrl}/#/audience`);
+    } else {
+      throw new Error('Dev server not responding');
+    }
+  } catch (error) {
+    // Dev server not available, load from built files
     const indexPath = resolveIndexHtml();
     
     log('📺 PRODUCTION MODE - Audience Window');
