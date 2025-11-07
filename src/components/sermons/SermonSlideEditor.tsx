@@ -354,7 +354,6 @@ export function SermonSlideEditor({
           {/* Center: Slide Editor */}
           {currentSlide && (
             <SlideEditorPanel
-            key={currentSlideIndex}
             slide={currentSlide}
             slideIndex={currentSlideIndex}
             totalSlides={slides.length}
