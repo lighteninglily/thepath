@@ -358,11 +358,34 @@ export function AddSermonSlidesModal({ isOpen, onClose, onAddSlides }: AddSermon
               </div>
 
               {/* Scripture Settings */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <BookOpen size={18} className="text-purple-600" />
                   Scripture Options
                 </h3>
+                
+                {/* Bible Translation Selector */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Bible Translation
+                  </label>
+                  <select
+                    value={bibleTranslation}
+                    onChange={(e) => setBibleTranslation(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    disabled={processing}
+                  >
+                    <option value="NIV">NIV - New International Version</option>
+                    <option value="ESV">ESV - English Standard Version</option>
+                    <option value="KJV">KJV - King James Version</option>
+                    <option value="NKJV">NKJV - New King James Version</option>
+                    <option value="NLT">NLT - New Living Translation</option>
+                    <option value="NASB">NASB - New American Standard Bible</option>
+                    <option value="CSB">CSB - Christian Standard Bible</option>
+                  </select>
+                </div>
+
+                {/* Include All Scriptures Checkbox */}
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -385,53 +408,26 @@ export function AddSermonSlidesModal({ isOpen, onClose, onAddSlides }: AddSermon
 
           {/* Selected File */}
           {selectedFile && currentStep === 'upload' && (
-            <>
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileText className="text-purple-600" size={24} />
-                    <div>
-                      <p className="font-medium text-gray-900">{selectedFile.name}</p>
-                      <p className="text-sm text-gray-600">
-                        {(selectedFile.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileText className="text-purple-600" size={24} />
+                  <div>
+                    <p className="font-medium text-gray-900">{selectedFile.name}</p>
+                    <p className="text-sm text-gray-600">
+                      {(selectedFile.size / 1024).toFixed(1)} KB
+                    </p>
                   </div>
-                  <button
-                    onClick={handleRemoveFile}
-                    className="p-2 hover:bg-purple-100 rounded-lg transition-colors"
-                    disabled={processing}
-                  >
-                    <Trash2 size={18} className="text-gray-600" />
-                  </button>
                 </div>
-              </div>
-
-              {/* Bible Translation Selector */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <BookOpen className="inline-block mr-2 mb-1" size={16} />
-                  Bible Translation
-                </label>
-                <select
-                  value={bibleTranslation}
-                  onChange={(e) => setBibleTranslation(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                <button
+                  onClick={handleRemoveFile}
+                  className="p-2 hover:bg-purple-100 rounded-lg transition-colors"
                   disabled={processing}
                 >
-                  <option value="NIV">NIV - New International Version</option>
-                  <option value="ESV">ESV - English Standard Version</option>
-                  <option value="KJV">KJV - King James Version</option>
-                  <option value="NKJV">NKJV - New King James Version</option>
-                  <option value="NLT">NLT - New Living Translation</option>
-                  <option value="NASB">NASB - New American Standard Bible</option>
-                  <option value="CSB">CSB - Christian Standard Bible</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  This translation will be used for all scripture texts in your sermon slides
-                </p>
+                  <Trash2 size={18} className="text-gray-600" />
+                </button>
               </div>
-            </>
+            </div>
           )}
 
           {/* Processing Steps */}
