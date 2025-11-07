@@ -151,8 +151,36 @@ export function AudienceViewPage() {
     hasContent: !!currentItem?.content
   });
   
+  // Handle sermon-slides type (array of slides)
+  if (currentItem?.type === 'sermon-slides' && currentItem?.content) {
+    try {
+      const slides = JSON.parse(currentItem.content);
+      console.log('📖 AUDIENCE: Sermon slides parsed:', {
+        slidesCount: slides.length,
+        currentSlideIndex,
+        hasSlide: !!slides[currentSlideIndex]
+      });
+      
+      if (Array.isArray(slides) && slides[currentSlideIndex]) {
+        const currentSlide = slides[currentSlideIndex];
+        if (currentSlide.visualData) {
+          visualData = currentSlide.visualData;
+          console.log('✅ AUDIENCE: Using sermon slide visual data:', {
+            hasBackground: !!visualData.background,
+            elementCount: visualData.elements?.length
+          });
+        } else {
+          console.error('❌ AUDIENCE: Sermon slide missing visualData!', currentSlide);
+        }
+      } else {
+        console.error('❌ AUDIENCE: Invalid sermon slides structure');
+      }
+    } catch (e) {
+      console.error('❌ AUDIENCE: Failed to parse sermon slides:', e);
+    }
+  }
   // If it's a song, use the song slide data
-  if (currentItem?.type === 'song' && currentSongData?.slidesData) {
+  else if (currentItem?.type === 'song' && currentSongData?.slidesData) {
     const currentSlide = currentSongData.slidesData[currentSlideIndex];
     console.log('📺 AUDIENCE: Song slide data:', {
       slideIndex: currentSlideIndex,
@@ -176,7 +204,7 @@ export function AudienceViewPage() {
       songId: currentItem?.songId
     });
   }
-  // Otherwise try to parse content
+  // Otherwise try to parse content (announcements, etc.)
   else if (currentItem?.content) {
     try {
       const parsed = typeof currentItem.content === 'string' 
