@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { X, Save, FileText } from 'lucide-react';
 import { SlideNavigator } from '../slides/SlideNavigator';
 import { SlideEditorPanel } from '../slides/SlideEditorPanel';
@@ -46,30 +46,35 @@ export function SermonSlideEditor({
   // Extract current design from slide
   const currentSlideDesign = currentSlide ? extractDesignFromSlide(currentSlide) : {};
   
-  // Track previous content to detect changes
-  const prevContentRef = useRef<string>(currentSlide?.content || '');
-  
-  // Re-apply design when content changes (for live preview)
-  useEffect(() => {
-    if (!currentSlide || !currentSlide.visualData) return;
-    
-    const contentChanged = currentSlide.content !== prevContentRef.current;
-    if (contentChanged && currentSlide.type === 'custom') {
-      // Re-apply current design with new content
-      const updatedSlide = applyDesignToSlide(currentSlide, currentDesignId, designCustomizations);
-      const newSlides = [...slides];
-      newSlides[currentSlideIndex] = updatedSlide;
-      setSlides(newSlides);
-    }
-    
-    prevContentRef.current = currentSlide.content || '';
-  }, [currentSlide?.content]);
+  // Track if we're currently editing to prevent re-applying design during typing
+  const isEditingRef = useRef(false);
+  const editTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update current slide
   const handleUpdateSlide = (updates: Partial<Slide>) => {
     const newSlides = [...slides];
     newSlides[currentSlideIndex] = { ...currentSlide, ...updates };
     setSlides(newSlides);
+    
+    // If content changed and slide has visualData, re-apply design after user stops typing
+    if (updates.content !== undefined && currentSlide.visualData && currentSlide.type === 'custom') {
+      isEditingRef.current = true;
+      
+      // Clear existing timeout
+      if (editTimeoutRef.current) {
+        clearTimeout(editTimeoutRef.current);
+      }
+      
+      // Re-apply design after 500ms of no typing (debounced)
+      editTimeoutRef.current = setTimeout(() => {
+        const slideToUpdate = { ...currentSlide, ...updates };
+        const updatedSlide = applyDesignToSlide(slideToUpdate, currentDesignId, designCustomizations);
+        const finalSlides = [...newSlides];
+        finalSlides[currentSlideIndex] = updatedSlide;
+        setSlides(finalSlides);
+        isEditingRef.current = false;
+      }, 500);
+    }
   };
 
   // Navigate between slides
