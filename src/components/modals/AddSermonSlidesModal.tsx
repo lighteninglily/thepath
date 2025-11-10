@@ -4,6 +4,7 @@ import { parseDocument, detectFileType, validateFileSize } from '../../services/
 import { openaiService } from '../../services/openaiService';
 import { createScriptureSlides, createPointSlide, createSermonTitleSlide } from '../../utils/sermonSlideBuilders';
 import { SermonSlideEditor } from '../sermons/SermonSlideEditor';
+import { shouldApplyBranding, applyBrandingToSlide, getBrandProfile } from '../../utils/brandProfile';
 import type { Slide } from '../../types';
 import type { BackgroundImage } from '../../assets/backgrounds';
 import type { LayoutType } from '../../utils/layouts';
@@ -206,6 +207,24 @@ export function AddSermonSlidesModal({ isOpen, onClose, onAddSlides }: AddSermon
       allSlides.forEach((slide, index) => {
         slide.order = index;
       });
+
+      // Apply branding if configured
+      const brandProfile = getBrandProfile();
+      if (brandProfile.autoApply.toNewSermons && shouldApplyBranding('sermons')) {
+        console.log('🏷️ Applying branding to sermon slides...');
+        allSlides.forEach((slide) => {
+          if (slide.visualData && slide.visualData.elements) {
+            // Apply branding (title slides are typically index 0)
+            const isTitle = slide.order === 0;
+            slide.visualData = applyBrandingToSlide(
+              slide.visualData,
+              'sermons',
+              isTitle
+            );
+          }
+        });
+        console.log('✅ Branding applied to', allSlides.length, 'sermon slides');
+      }
 
       setGeneratedSlides(allSlides);
       setSlidePreview({
