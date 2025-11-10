@@ -315,22 +315,42 @@ export class SlideGeneratorService {
       let allSlides = [titleSlide, ...generatedSlides];
 
       // ⭐ APPLY BRANDING if configured
+      console.log('🔍 DEBUG: Checking branding configuration...');
       const brandProfile = getBrandProfile();
+      console.log('🔍 DEBUG: Brand Profile:', JSON.stringify(brandProfile, null, 2));
+      console.log('🔍 DEBUG: autoApply.toNewSongs:', brandProfile.autoApply.toNewSongs);
+      console.log('🔍 DEBUG: shouldApplyBranding("songs"):', shouldApplyBranding('songs'));
+      
       if (brandProfile.autoApply.toNewSongs && shouldApplyBranding('songs')) {
         console.log('🏷️ Applying branding to song slides...');
-        allSlides = allSlides.map((slide) => {
+        allSlides = allSlides.map((slide, index) => {
+          console.log(`🔍 DEBUG: Processing slide ${index + 1}/${allSlides.length}`, {
+            hasVisualData: !!slide.visualData,
+            hasElements: !!slide.visualData?.elements,
+            elementCount: slide.visualData?.elements?.length,
+            slideType: slide.type
+          });
+          
           if (slide.visualData && slide.visualData.elements) {
             // Apply branding (respects excludeFromTitleSlides setting)
             const isTitle = slide.type === 'title';
+            console.log(`🔍 DEBUG: Applying branding to slide ${index + 1}, isTitle: ${isTitle}`);
+            const beforeElements = slide.visualData.elements.length;
             slide.visualData = applyBrandingToSlide(
               slide.visualData,
               'songs',
               isTitle
             );
+            const afterElements = slide.visualData.elements.length;
+            console.log(`🔍 DEBUG: Elements before: ${beforeElements}, after: ${afterElements}`);
           }
           return slide;
         });
         console.log('✅ Branding applied to', allSlides.length, 'slides');
+      } else {
+        console.log('⚠️ Branding NOT applied. Reasons:');
+        console.log('  - autoApply.toNewSongs:', brandProfile.autoApply.toNewSongs);
+        console.log('  - shouldApplyBranding("songs"):', shouldApplyBranding('songs'));
       }
 
       onProgress?.({
