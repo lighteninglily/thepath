@@ -4,6 +4,7 @@ import { selectTemplate } from '../config/templateMappings';
 import { getEnabledBackgrounds } from '../config/backgroundConfig';
 import { calculateSongLyricsFontSize } from '../utils/fontSizeCalculator';
 import { getRandomTitleSlideDesign, applyTitleSlideDesign } from '../config/titleSlideDesigns';
+import { shouldApplyBranding, applyBrandingToSlide, getBrandProfile } from '../utils/brandProfile';
 
 export interface GeneratedSlide {
   id: string;
@@ -311,7 +312,26 @@ export class SlideGeneratorService {
       });
 
       // Insert title slide at the beginning
-      const allSlides = [titleSlide, ...generatedSlides];
+      let allSlides = [titleSlide, ...generatedSlides];
+
+      // ⭐ APPLY BRANDING if configured
+      const brandProfile = getBrandProfile();
+      if (brandProfile.autoApply.toNewSongs && shouldApplyBranding('songs')) {
+        console.log('🏷️ Applying branding to song slides...');
+        allSlides = allSlides.map((slide) => {
+          if (slide.visualData && slide.visualData.elements) {
+            // Apply branding (respects excludeFromTitleSlides setting)
+            const isTitle = slide.type === 'title';
+            slide.visualData = applyBrandingToSlide(
+              slide.visualData,
+              'songs',
+              isTitle
+            );
+          }
+          return slide;
+        });
+        console.log('✅ Branding applied to', allSlides.length, 'slides');
+      }
 
       onProgress?.({
         step: 4,
