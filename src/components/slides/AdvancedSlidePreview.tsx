@@ -449,6 +449,29 @@ function renderVisualSlide(visualData: any, className: string) {
                 </div>
               );
             }
+            
+            if (element.type === 'image') {
+              console.log('🖼️ Rendering image element:', element.id, element.isBrandElement ? '(LOGO)' : '');
+              return (
+                <img
+                  key={element.id}
+                  src={element.content}
+                  alt=""
+                  className="absolute object-contain"
+                  style={{
+                    left: `${(element.position.x / 1920) * 100}%`,
+                    top: `${(element.position.y / 1080) * 100}%`,
+                    width: `${(element.size.width / 1920) * 100}%`,
+                    height: `${(element.size.height / 1080) * 100}%`,
+                    transform: `rotate(${element.rotation || 0}deg)`,
+                    opacity: element.opacity || 1,
+                    zIndex: element.zIndex || 1,
+                    pointerEvents: element.locked ? 'none' : 'auto',
+                  }}
+                />
+              );
+            }
+            
             return null;
           })}
       </div>
