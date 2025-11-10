@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Sparkles } from 'lucide-react';
 import { SlideNavigator } from './SlideNavigator';
 import { SlideEditorPanel } from './SlideEditorPanel';
 import { LyricsPanel } from './LyricsPanel';
+import { refreshBrandingOnSlides, isBrandingConfigured } from '../../utils/brandProfile';
 import type { Slide } from '../../types';
 import type { BackgroundImage } from '../../assets/backgrounds';
 import type { LayoutType } from '../../utils/layouts';
@@ -237,6 +238,19 @@ export function SlideEditorNew({
     setFullLyrics(lyrics);
   };
 
+  // Refresh branding on all slides
+  const handleRefreshBranding = () => {
+    if (!isBrandingConfigured()) {
+      alert('No branding is configured. Please set up your brand settings first.');
+      return;
+    }
+    
+    console.log('🔄 Refreshing branding on all slides...');
+    const updatedSlides = refreshBrandingOnSlides(slides, 'songs');
+    setSlides(updatedSlides);
+    console.log('✅ Branding refreshed!');
+  };
+
   // Save changes
   const handleSave = () => {
     console.log('💾 SlideEditorNew - Saving slides...');
@@ -326,6 +340,17 @@ export function SlideEditorNew({
           </div>
           
           <div className="flex items-center gap-3">
+            {isBrandingConfigured() && (
+              <button
+                onClick={handleRefreshBranding}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg
+                  hover:bg-purple-700 transition-colors font-medium shadow-sm"
+                title="Update all slides with current brand settings"
+              >
+                <Sparkles size={18} />
+                Refresh Branding
+              </button>
+            )}
             <button
               onClick={handleSave}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg

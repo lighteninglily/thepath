@@ -326,6 +326,34 @@ export function hasBranding(visualData: any): boolean {
 }
 
 /**
+ * Refresh branding on multiple slides
+ * Removes old brand elements and re-applies with current settings
+ */
+export function refreshBrandingOnSlides(
+  slides: any[],
+  slideType: SlideType
+): any[] {
+  console.log(`🔄 Refreshing branding on ${slides.length} slides (type: ${slideType})`);
+  
+  return slides.map((slide, index) => {
+    if (!slide.visualData || !slide.visualData.elements) {
+      return slide;
+    }
+    
+    // Determine if this is a title slide (usually first slide or type='title')
+    const isTitle = index === 0 || slide.type === 'title';
+    
+    // Remove old branding
+    slide.visualData = removeBrandingFromSlide(slide.visualData);
+    
+    // Re-apply with current settings
+    slide.visualData = applyBrandingToSlide(slide.visualData, slideType, isTitle);
+    
+    return slide;
+  });
+}
+
+/**
  * Get brand profile statistics
  */
 export function getBrandProfileStats(): BrandProfileStats {
