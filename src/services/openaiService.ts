@@ -94,23 +94,39 @@ Return this exact JSON structure:
         role: 'user',
         content: `Break these worship lyrics into presentation slides. Return ONLY valid JSON:
 
-CRITICAL RULES:
+CRITICAL RULES - LYRICS CONTENT:
+- Include ONLY song lyrics - NO artist names, annotations, or metadata
+- Remove any [Verse], [Chorus], [Bridge] labels from the lyrics text
+- Keep the actual sung words only
+
+CRITICAL RULES - SLIDE STRUCTURE:
 - Aim for 15-25 slides total for a typical song (NEVER more than 30!)
-- Each slide should have 4-6 lines of text (use the FULL 6 lines!)
-- Keep related phrases together - don't over-split
+- Each slide should have 4-6 lines of text (use the FULL 6 lines when possible)
+- NEVER mix different sections (verse/chorus/bridge) on the same slide
+- Each slide must contain ONLY one section type
 - Break at natural section boundaries (verse/chorus/bridge)
 - Repeat choruses as separate slides
-- Identify section types (verse, chorus, bridge, intro, outro)
-- COMBINE short phrases into fuller slides
+- Keep related phrases together within the SAME section
 
-EXAMPLE GOOD SLIDE:
+SECTION IDENTIFICATION:
+- Identify section types accurately: verse, chorus, bridge, intro, outro
+- Verse: Unique lyrics that tell the story (changes each time)
+- Chorus: Repeated lyrics that express the main message
+- Bridge: Transitional section with different melody/feel
+- Intro/Outro: Brief opening or closing phrases
+
+EXAMPLE GOOD SLIDE (Verse):
 "Amazing grace how sweet the sound
 That saved a wretch like me
 I once was lost but now I'm found
 Was blind but now I see"
 
-EXAMPLE BAD SLIDE (TOO MUCH TEXT):
-Do NOT put entire verses or multiple sections on one slide!
+EXAMPLE BAD SLIDE (Mixing sections - NEVER DO THIS):
+"Amazing grace how sweet the sound
+That saved a wretch like me
+[Then jumping to chorus]
+How great thou art
+How great thou art"
 
 Lyrics:
 ${lyrics}
@@ -119,7 +135,7 @@ Return this exact JSON structure:
 {
   "slides": [
     {
-      "content": "4-6 lines of lyrics only",
+      "content": "4-6 lines of lyrics ONLY (no labels, no artist names)",
       "type": "verse|chorus|bridge|intro|outro",
       "order": 1
     }

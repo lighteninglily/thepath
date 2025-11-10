@@ -3,8 +3,7 @@ import { Palette, Type, Globe, FileText } from 'lucide-react';
 import { 
   SERMON_SLIDE_DESIGNS, 
   SERMON_COLOR_PALETTE,
-  SERMON_FONT_COMBINATIONS,
-  type SermonSlideDesign 
+  SERMON_FONT_COMBINATIONS
 } from '../../config/sermonSlideDesigns';
 
 interface SermonDesignToolbarProps {

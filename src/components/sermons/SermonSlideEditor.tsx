@@ -4,7 +4,6 @@ import { SlideNavigator } from '../slides/SlideNavigator';
 import { SlideEditorPanel } from '../slides/SlideEditorPanel';
 import { SermonDesignToolbar } from './SermonDesignToolbar';
 import { applyDesignToSlide, applyDesignToAllSlides, extractDesignFromSlide } from '../../utils/sermonDesignApplier';
-import { getDefaultSermonDesign } from '../../config/sermonSlideDesigns';
 import type { Slide } from '../../types';
 import type { BackgroundImage } from '../../assets/backgrounds';
 import type { LayoutType } from '../../utils/layouts';

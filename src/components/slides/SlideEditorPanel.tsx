@@ -72,7 +72,6 @@ export function SlideEditorPanel({
   };
 
   const lineCount = slide.content.split('\n').length;
-  const isLongSlide = lineCount > 6;
   const canMerge = slideIndex < totalSlides - 1;
   const isTitleSlide = slide.type === 'title';
   

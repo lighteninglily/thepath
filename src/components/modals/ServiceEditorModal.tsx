@@ -78,33 +78,6 @@ export function ServiceEditorModal({
     }
   }, [isPresentationMode, imagesReady, loadedImages, totalImages]);
 
-  // Preload ALL song data when presentation starts
-  useEffect(() => {
-    if (!isPresentationMode || !presentationService) return;
-    
-    const preloadAllSongs = async () => {
-      console.log('🚀 Preloading all song data for instant navigation...');
-      const songItems = presentationService.items.filter(item => item.type === 'song' && item.songId);
-      
-      const loadPromises = songItems.map(async (item) => {
-        try {
-          const song = await window.electron.database.getSongById(item.songId!);
-          if (song) {
-            useServicePresentationStore.getState().preloadSongData(item.songId!, song);
-            console.log(`✅ Preloaded: ${song.title} (${song.slidesData?.length || 0} slides)`);
-          }
-        } catch (error) {
-          console.error(`❌ Failed to preload song ${item.songId}:`, error);
-        }
-      });
-      
-      await Promise.all(loadPromises);
-      console.log(`🎉 Preloaded ${songItems.length} songs!`);
-    };
-    
-    preloadAllSongs();
-  }, [isPresentationMode, presentationService]);
-
   // Update currentSongData when navigating (instant from cache!)
   useEffect(() => {
     if (!isPresentationMode || !presentationService) return;
@@ -289,6 +262,9 @@ export function ServiceEditorModal({
           date: service.date,
         };
         
+        // Preload all songs and set first song data BEFORE starting presentation
+        await preloadSongsAndSetFirst(presentationService);
+        
         startPresentation(presentationService, 'dual');
         
         if (window.electron?.presentation?.start) {
@@ -408,12 +384,49 @@ export function ServiceEditorModal({
     return items.reduce((total, item) => total + (item.duration || 0), 0);
   };
 
+  // Helper function to preload all songs and set first song data before presentation starts
+  const preloadSongsAndSetFirst = async (serviceToPresent: Service) => {
+    console.log('🚀 Preloading all song data before presentation starts...');
+    const songItems = serviceToPresent.items.filter(item => item.type === 'song' && item.songId);
+    
+    // Load all songs in parallel
+    const loadPromises = songItems.map(async (item) => {
+      try {
+        const song = await window.electron.database.getSongById(item.songId!);
+        if (song) {
+          useServicePresentationStore.getState().preloadSongData(item.songId!, song);
+          console.log(`✅ Preloaded: ${song.title} (${song.slidesData?.length || 0} slides)`);
+          return { songId: item.songId!, song };
+        }
+      } catch (error) {
+        console.error(`❌ Failed to preload song ${item.songId}:`, error);
+      }
+      return null;
+    });
+    
+    await Promise.all(loadPromises);
+    console.log(`🎉 Preloaded ${songItems.length} songs!`);
+    
+    // If first item is a song, set it immediately
+    const firstItem = serviceToPresent.items[0];
+    if (firstItem?.type === 'song' && firstItem.songId) {
+      const firstSong = useServicePresentationStore.getState().songDataCache[firstItem.songId];
+      if (firstSong) {
+        console.log('🎵 Setting first song data immediately:', firstSong.title);
+        useServicePresentationStore.setState({ currentSongData: firstSong });
+      }
+    }
+  };
+
   const handleStartPresentation = async () => {
     // Create service object with current items
     const presentationService: Service = {
       ...service,
       items
     };
+    
+    // Preload all songs and set first song data BEFORE starting presentation
+    await preloadSongsAndSetFirst(presentationService);
     
     // Start presentation in dual-screen mode
     startPresentation(presentationService, 'dual');

@@ -19,7 +19,7 @@ export function SubPointEditor({
   onAdd,
   onUpdate,
   onDelete,
-  onReorder
+  onReorder: _onReorder
 }: SubPointEditorProps) {
   return (
     <div className="space-y-2">
@@ -43,7 +43,7 @@ export function SubPointEditor({
         </div>
       ) : (
         <div className="space-y-2">
-          {subPoints.map((subPoint, index) => (
+          {subPoints.map((subPoint, _index) => (
             <div
               key={subPoint.id}
               className="flex items-start gap-2 p-2 bg-gray-50 rounded border border-gray-200 hover:border-gray-300 transition-colors"
